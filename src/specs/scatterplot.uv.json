@@ -1,0 +1,58 @@
+{
+  "data": {"url": "https://raw.githubusercontent.com/vega/vega-datasets/master/data/penguins.json"},
+  "fields": [
+    {
+      "name": "Flipper Length (mm)",
+      "type": "quantitative",
+      "scale": {
+        "zero": false
+      }
+    },
+    {
+      "name": "Body Mass (g)",
+      "type": "quantitative",
+      "scale": {
+        "zero": false
+      }
+    },
+    {
+      "name": "Species",
+      "type": "nominal"
+    }
+  ],
+  "visual": {
+    "mark": "point",
+    "encoding": {
+      "x": "Flipper Length (mm)",
+      "y": "Body Mass (g)",
+      "color": "Species",
+      "shape": "Species"
+    }
+  },
+  "audio": [
+    {
+      "encoding": {
+        "pitch": {
+          "field": "Body Mass (g)",
+          "aggregate": "mean",
+          "bin": true
+        }
+      },
+      "traversal": {
+        "Flipper Length (mm)": "interaction"
+      }
+    },
+    {
+      "encoding": {
+        "pitch": {
+          "field": "Flipper Length (mm)",
+          "aggregate": "mean",
+          "bin": true
+        }
+      },
+      "traversal": {
+        "Body Mass (g)": "interaction"
+      }
+    }
+  ]
+}

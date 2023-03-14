@@ -1,0 +1,54 @@
+{
+  "data": {"url": "/data/barley-agg.json"},
+  "fields": [
+    {
+      "name": "site",
+      "type": "ordinal"
+    },
+    {
+      "name": "median_yield",
+      "type": "quantitative",
+      "scale": {"zero": false}
+    },
+    {
+      "name": "variety",
+      "type": "ordinal"
+    },
+    {
+      "name": "year",
+      "type": "nominal"
+    }
+  ],
+  "visual": {
+    "mark": "point",
+    "encoding": {
+      "color": "year",
+      "x": {
+        "field": "median_yield",
+        "type": "quantitative"
+      },
+      "y": {
+        "field": "variety",
+        "type": "ordinal",
+        "sort": "-x"
+      },
+      "facet": {
+        "field": "site",
+        "columns": 2,
+        "sort": {"field": "median_yield"}
+      }
+    }
+  },
+  "audio": {
+    "encoding": {
+      "pitch": {
+        "field": "median_yield",
+        "aggregate": "mean"
+      }
+    },
+    "traversal": {
+      "variety": "interaction",
+      "year": "sequence"
+    }
+  }
+}

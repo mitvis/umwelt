@@ -1,0 +1,64 @@
+import { OlliVisSpec, OlliConfigOptions, olli } from "olli";
+import { parse, View } from "vega";
+import { compile } from "vega-lite";
+import { VlSpec } from "../grammar/Types";
+import { removeAnnoyingLineColorConditional } from "./vega-helpers";
+
+export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
+  let vgSpec = compile(vlSpec).spec;
+  vgSpec.data.push({
+    "name": "selection_materialized",
+    "source": vgSpec.data[vgSpec.data.length - 1].name,
+    "transform": [{"type": "filter", "expr": "!length(data(\"brush_store\")) || vlSelectionTest(\"brush_store\", datum)"}]
+  })
+  if ((vlSpec.mark as any).type === 'line' && (vlSpec.mark as any).point) {
+    vgSpec = removeAnnoyingLineColorConditional(vgSpec);
+  }
+  const runtime = parse(vgSpec);
+  const view = new View(runtime, {
+    'renderer': 'canvas',
+    'container': domSelector,
+    hover: true
+  });
+
+  view.runAsync();
+
+  return view;
+}
+
+export function renderOlli(olliSpec: OlliVisSpec, domSelector: string, config?: OlliConfigOptions) {
+  const elem = olli(olliSpec, config);
+  document.querySelector(domSelector).replaceChildren(elem);
+}
+
+export function getOnFocus(vlSpec, selectionCallback: (field, value) => void) {
+  const onFocus = (elem) => {
+    const fv = elem.getAttribute('data-filterValue');
+    if (fv) {
+      const filterValue = JSON.parse(fv);
+      const parentAxis = elem.closest('li[data-nodeType="xAxis"],li[data-nodeType="yAxis"],li[data-nodeType="legend"]');
+      if (!parentAxis) {
+        return;
+      }
+      const parentNodeType = parentAxis.getAttribute('data-nodeType');
+      let field;
+      if (parentNodeType === 'xAxis') {
+        field = (vlSpec.encoding.x as any)?.field;
+      }
+      else if (parentNodeType === 'yAxis') {
+        field = (vlSpec.encoding.y as any)?.field;
+      }
+      else if (parentNodeType === 'legend') {
+        // TODO this is bad (hardcoded channels for legend) and olli should
+        // do something about this (pass the field with the AccessibilityTreeNode)
+        field = (vlSpec.encoding.color as any)?.field ||
+        (vlSpec.encoding.color as any)?.condition?.field ||
+        (vlSpec.encoding.shape as any)?.field;
+      }
+      if (field) {
+        selectionCallback(field, filterValue);
+      }
+    }
+  }
+  return onFocus;
+}

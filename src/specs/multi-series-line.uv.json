@@ -1,0 +1,43 @@
+{
+  "data": {"url": "https://raw.githubusercontent.com/vega/vega-datasets/master/data/stocks.csv"},
+  "fields": [
+    {
+      "name": "date",
+      "type": "temporal"
+    },
+    {
+      "name": "price",
+      "type": "quantitative"
+    },
+    {
+      "name": "symbol",
+      "type": "nominal"
+    }
+  ],
+  "selection": {
+    "predicate": {
+      "field": "date",
+      "range": [
+        1066971600000,
+        1155168720000
+      ]
+    }
+  },
+  "visual": {
+    "mark": "line",
+    "encoding": {
+      "x": "date",
+      "y": "price",
+      "color": "symbol"
+    }
+  },
+  "audio": {
+   "encoding": {
+    "pitch": "price"
+   },
+   "traversal": {
+    "date": "interaction",
+    "symbol": "interaction"
+   }
+  }
+}

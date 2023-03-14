@@ -1,0 +1,22 @@
+.App select {
+  display: inline-block;
+  margin-right: 5px;
+}
+.App textarea {
+  width: 90%;
+  height: 90%;
+}
+
+.App .column {
+  display: inline-block;
+  width: 50%;
+  height: 100vh;
+  vertical-align: top;
+  margin: 0;
+}
+
+.audio-spec {
+  border-left: 1px solid black;
+  padding: 10px;
+  margin-bottom: 15px;
+}
