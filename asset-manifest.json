@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/umvelt/static/css/main.4a6892fb.css",
+    "main.js": "/umvelt/static/js/main.76c9fc86.js",
+    "index.html": "/umvelt/index.html",
+    "main.4a6892fb.css.map": "/umvelt/static/css/main.4a6892fb.css.map",
+    "main.76c9fc86.js.map": "/umvelt/static/js/main.76c9fc86.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.4a6892fb.css",
+    "static/js/main.76c9fc86.js"
+  ]
+}
