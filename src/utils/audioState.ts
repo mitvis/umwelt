@@ -1,8 +1,10 @@
 import { OlliDataset } from "olli";
-import { LogicalAnd } from "vega-lite/src/logical";
+import { Bin } from "vega-lite/src/bin";
+import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from "vega-lite/src/predicate";
 import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef } from "../grammar";
 import { AudioSpecState, AudioState, AxisBins } from "../UmveltAudio";
+import { getAudioEncodingBin } from "./bin";
 import { getDomain, getFieldDef } from "./data";
 import { rangesAreEqual, serializeValue } from "./values";
 
@@ -33,36 +35,23 @@ export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: E
   const predicate = selectionSpec?.predicate;
   const audioState: Partial<AudioState> = {
   specStates: audio.map((audioSpec, audioSpecIdx) => {
-      if (audioSpec.traversal !== 'selection' && Object.values(audioSpec.traversal).find(m => m === 'interaction')) {
+      if (audioSpec.traversal !== 'selection') {
         if (predicate) {
-          let state = {};
-          if ((predicate as LogicalAnd<FieldPredicate>).and) {
-            const and = (predicate as LogicalAnd<FieldPredicate>).and;
-            and.forEach(pred => {
-              if ((pred as FieldPredicate).field) {
-                const partialState = partialAudioStateFromFieldPredicate(predicate as FieldPredicate, audio, fields, data, axisBins);
-                state = {
-                  ...state,
-                  ...partialState
-                }
-              }
-            })
-          }
-          else if ((predicate as FieldPredicate).field) {
-            const partialState = partialAudioStateFromFieldPredicate(predicate as FieldPredicate, audio, fields, data, axisBins);
-            state = {
-              ...state,
-              ...partialState
+          const partialStates = Object.entries(audioSpec.traversal).filter(([_, mode]) => mode === 'interaction').map(([field, _]) => {
+            return {
+              [field]: fieldValueFromPreducate(predicate, field, getAudioEncodingBin(audioSpec.encoding), fields, data, axisBins)
             }
+          }).filter(s => Object.values(s).every(x => x));
+          if (partialStates.length) {
+            const state = partialStates.reduce((prev, curr) => {return {...prev, ...curr}});
+            if (Object.keys(state).length) {
+              changedIndexes.push(audioSpecIdx);
+            }
+            return state;
           }
-          if (Object.keys(state).length) {
-            changedIndexes.push(audioSpecIdx);
-          }
-          return state;
         }
-        return null;
       }
-      return null;
+      return {};
     })
   };
 
@@ -72,42 +61,24 @@ export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: E
   return audioState;
 }
 
-function partialAudioStateFromFieldPredicate(predicate: FieldPredicate, audio: ElaboratedAudioSpec[], fields: ElaboratedFieldDef[], data: OlliDataset, axisBins: AxisBins) {
-  if ((predicate as FieldEqualPredicate).equal) {
-    const eq = predicate as FieldEqualPredicate;
-    if (fieldExistsInTraversalInteraction(audio, eq.field)) {
-      if (valueExistsInDomain(fields, data, eq.field, eq.equal)) {
-        return {
-          [predicate.field]: eq.equal as any
-        };
+function fieldValueFromPreducate(predicate: LogicalComposition<FieldPredicate>, field: string, bin: Bin, fields: ElaboratedFieldDef[], data: OlliDataset, axisBins: AxisBins) {
+  if ((predicate as LogicalAnd<FieldPredicate>).and) {
+    return (predicate as LogicalAnd<FieldPredicate>).and.map(p => fieldValueFromPreducate(p as FieldPredicate, field, bin, fields, data, axisBins)).find(x => x);
+  }
+  else {
+    const eq = (predicate as FieldEqualPredicate).equal;
+    if (eq && valueExistsInDomain(fields, data, field, eq)) return eq;
+    const r = (predicate as FieldRangePredicate).range;
+    if (r) {
+      if (bin && rangeExistsInAxisBins(field, fields, r as any[], axisBins)) {
+        return r;
+      }
+      else if (!bin && valueExistsInDomain(fields, data, field, r[0])) {
+        return r[0];
       }
     }
   }
-  else if ((predicate as FieldRangePredicate).range) {
-    const r = predicate as FieldRangePredicate;
-    if (fieldExistsInTraversalInteraction(audio, predicate.field)) {
-      if (rangeExistsInAxisBins(predicate.field, fields, r.range as any[], axisBins)) {
-        return {
-          [predicate.field]: r.range
-        };
-      }
-      else if (valueExistsInDomain(fields, data, r.field, r.range[0])) {
-        return {
-          [predicate.field]: r.range[0]
-        };
-      }
-    }
-  }
-  return {};
-}
-
-function fieldExistsInTraversalInteraction(audio: ElaboratedAudioSpec[], someField: string) {
-  return audio.some(audioSpec => {
-    if (audioSpec.traversal === 'selection') return false;
-    return Object.entries(audioSpec.traversal).some(([field, mode]) => {
-      return field === someField && mode === 'interaction';
-    });
-  });
+  return null;
 }
 
 function valueExistsInDomain(fields: ElaboratedFieldDef[], data: OlliDataset, field: string, value: any) {

@@ -8,6 +8,7 @@ import { filterObjectByKeys, rangesAreEqual, serializeValue } from './utils/valu
 import { SelectionCtrl } from './Umvelt';
 import Sonifier from './sonification';
 import { audioStateToSelectionSpec, selectionSpecToAudioState } from './utils/audioState';
+import { getAudioEncodingBin } from './utils/bin';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -40,9 +41,7 @@ function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       specStates: audio.map(audioSpec => {
         if (audioSpec.traversal !== 'selection') {
 
-          const bin = Object.values(audioSpec.encoding).find((encFieldDef) => {
-            return encFieldDef.bin
-          });
+          const bin = getAudioEncodingBin(audioSpec.encoding);
 
           return Object.fromEntries(
             Object.keys(audioSpec.traversal)
@@ -112,10 +111,11 @@ function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     if (selectionCtrl !== 'audio' && selectionSpec) {
       const as = selectionSpecToAudioState(selectionSpec, audio, fields, data, axisBins);
       if (as.specStates.map(state => Object.keys(state).length).some(n => n >= 1)) {
+        const mergedSpecStates = audioState.specStates.map((state, idx) => {return {...state, ...as.specStates[idx]}});
         setShouldUpdate(false);
         setAudioState({
-          ...audioState,
-          ...as
+          specStates: mergedSpecStates,
+          activeState: as.activeState || audioState.activeState
         });
       }
       else {
@@ -157,9 +157,7 @@ function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                   if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal') {
                     const id = `${field}-slider`;
                     // handle binning
-                    const bin = Object.values(audioSpec.encoding).find((encFieldDef) => {
-                      return encFieldDef.bin
-                    });
+                    const bin = getAudioEncodingBin(audioSpec.encoding);
                     if (bin && axisBins[field]) {
                       const onchange = (e) => {
                         const idx = Number(e.target.value);
@@ -179,6 +177,9 @@ function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                         <div key={field}>
                           <label htmlFor={id}>{field}</label>
                           <input onChange={onchange} id={id} type="range" min="0" max={axisBins[field].length - 1} value={axisBins[field].findIndex(b => rangesAreEqual(b, audioState.specStates?.[audioSpecIdx]?.[field] as any[], fieldDef))}></input>
+                          {/* <div>{JSON.stringify(audioState.specStates)}</div>
+                          <div>{JSON.stringify(audioState.specStates?.[audioSpecIdx])}</div>
+                          <div>{JSON.stringify(audioState.specStates?.[audioSpecIdx]?.[field])}</div> */}
                         </div>
                       );
 
@@ -201,10 +202,6 @@ function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                         <div key={field}>
                           <label htmlFor={id}>{field}</label>
                           <input onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={domain.findIndex(v => serializeValue(v, fieldDef) === serializeValue(audioState.specStates?.[audioSpecIdx]?.[field], fieldDef))}></input>
-                          {/* <div>{serializeValue(audioState[field], fieldDef)}</div>
-                          <div>{serializeValue(domain[0], fieldDef)}</div>
-                          <div>{String(domain[0])}</div>
-                          <div>{domain.findIndex(v => serializeValue(v, fieldDef) === serializeValue(audioState[field], fieldDef))}</div> */}
                         </div>
                       );
                     }

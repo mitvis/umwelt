@@ -1,3 +1,5 @@
+import { ElaboratedAudioEncoding } from "../grammar";
+
 // this is from olli/Structure/index.ts
 export function axisValuesToIntervals(values: string[] | number[]): ([number, number])[] {
 
@@ -47,4 +49,10 @@ export function axisValuesToIntervals(values: string[] | number[]): ([number, nu
   //     return increments.map(value => [new Date(value[0]), new Date(value[1])])
   // }
   return increments;
+}
+
+export function getAudioEncodingBin(audioEncoding: ElaboratedAudioEncoding) {
+    return Object.values(audioEncoding).find((encFieldDef) => {
+        return encFieldDef.bin
+    })?.bin;
 }
