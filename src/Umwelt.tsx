@@ -24,7 +24,7 @@ interface RenderProps {
 const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
 
   const [selectionSpec, _setSelectionSpec] = useState<SelectionSpec>(uvSpec.selection);
-  const setSelectionSpec = useCallback(debounce(250, _setSelectionSpec), []);
+  const setSelectionSpec = useCallback(debounce(50, _setSelectionSpec), []);
   const [_selectionCtrl, _setSelectionCtrl] = useState<SelectionCtrl>('spec');
   const selectionCtrl = useRef<SelectionCtrl>(_selectionCtrl);
   const setSelectionCtrl = data => {
