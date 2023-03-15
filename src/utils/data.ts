@@ -7,8 +7,19 @@ import { getVegaScene } from "./vega-helpers";
 
 export async function getData(spec: UmweltSpec): Promise<OlliDataset> {
 
+  const data = structuredClone(spec.data) as any;
+
+  if (data.url) {
+    if (data.url.startsWith('/')) {
+      data.url = 'https://mitvis.github.io/umwelt' + data.url;
+    }
+    else if (data.url.startsWith('data/')) {
+      data.url = 'https://raw.githubusercontent.com/vega/vega-datasets/master/' + data.url;
+    }
+  }
+
   const vlSpec = {
-    data: spec.data,
+    data: data,
     mark: "point"
   }
 

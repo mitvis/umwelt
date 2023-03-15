@@ -32,9 +32,6 @@ function App() {
 
   useEffect(() => {
     const spec = specs[selectedSpec];
-    if (spec.data.url && spec.data.url.startsWith('data/')) {
-      spec.data.url = 'https://raw.githubusercontent.com/vega/vega-datasets/master/' + spec.data.url;
-    }
     setTextValue(JSON.stringify(spec, null, 2));
 
     umwelt(spec).then((props) => {
@@ -71,6 +68,9 @@ function App() {
             })
           }
         </select>
+        <div className="logo" aria-hidden="true">
+          uw
+        </div>
       </div>
       <div className='column'>
         <Debounce ms={250}>

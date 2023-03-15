@@ -49,7 +49,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
     // initialize binning information
     let axes: Axis[] = [];
     if (olliSpec.type === 'facetedChart') {
-      axes = [...olliSpec.charts.values()][0].axes;
+      axes = [...olliSpec.charts.values()]?.[0]?.axes || [];
     }
     else {
       axes = olliSpec.axes;

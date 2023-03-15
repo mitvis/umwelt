@@ -20,3 +20,13 @@
   padding: 10px;
   margin-bottom: 15px;
 }
+
+.logo {
+  font-family: 'Knewave', cursive;
+  font-size: 72px;
+  line-height: 1em;
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  margin: 10px 15px;
+}

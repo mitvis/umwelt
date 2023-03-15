@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import { nodeIsTextInput } from '../utils/events';
 
 export type SonifiedNote = {
   pitch?: number;
@@ -31,24 +32,26 @@ class Sonifier {
 
   private init() {
     window.addEventListener('keydown', async (e) => {
-      if (e.ctrlKey && e.key === 'p' && !e.repeat) {
-        await Tone.start()
-        console.log('keydown notes', this.notes);
-        if (this.notes) {
-          if (this.notes.length === 0) {
-            this.play(null);
-          }
-          else if (this.notes.length === 1) {
-            this.play(this.notes[0]);
-          }
-          else {
-            if (Tone.Transport.state !== 'started') {
-              this.playSequence(this.notes);
+      if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement)) {
+        if (e.key === 'p' && !e.repeat) {
+          await Tone.start()
+          console.log('keydown notes', this.notes);
+          if (this.notes) {
+            if (this.notes.length === 0) {
+              this.play(null);
+            }
+            else if (this.notes.length === 1) {
+              this.play(this.notes[0]);
             }
             else {
-              Tone.Transport.stop();
-              Tone.Transport.position = 0;
-              Tone.Transport.cancel();
+              if (Tone.Transport.state !== 'started') {
+                this.playSequence(this.notes);
+              }
+              else {
+                Tone.Transport.stop();
+                Tone.Transport.position = 0;
+                Tone.Transport.cancel();
+              }
             }
           }
         }
@@ -56,9 +59,11 @@ class Sonifier {
     });
 
     window.addEventListener('keyup', (e) => {
-      if (e.ctrlKey && e.key === 'p') {
-        if (this.notes && this.notes.length === 1) {
-          this.pause();
+      if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement)) {
+        if (e.key === 'p') {
+          if (this.notes && this.notes.length === 1) {
+            this.pause();
+          }
         }
       }
     });

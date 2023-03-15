@@ -73,5 +73,6 @@ function umweltToVegaLiteSpec(spec: ElaboratedUmweltSpec): VlSpec {
 
 async function umweltToOlliSpec(spec: ElaboratedUmweltSpec): Promise<OlliVisSpec> {
   const vlSpec = umweltToVegaLiteSpec(spec);
-  return VegaLiteAdapter(vlSpec);
+  const olliSpec = VegaLiteAdapter(vlSpec);
+  return olliSpec;
 }
