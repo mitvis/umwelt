@@ -3,7 +3,7 @@ import { Bin } from "vega-lite/src/bin";
 import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from "vega-lite/src/predicate";
 import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef } from "../grammar";
-import { AudioSpecState, AudioState, AxisBins } from "../UmveltAudio";
+import { AudioSpecState, AudioState, AxisBins } from "../UmweltAudio";
 import { getAudioEncodingBin } from "./bin";
 import { getDomain, getFieldDef } from "./data";
 import { rangesAreEqual, serializeValue } from "./values";

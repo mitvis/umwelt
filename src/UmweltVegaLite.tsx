@@ -4,10 +4,10 @@ import { useEffect } from 'react';
 import { ElaboratedFieldDef, SelectionSpec, VlSpec } from './grammar';
 import { renderOlli, renderVegaLite } from './utils/render';
 import { selectionSpecToSelectionStore, selectionStoreToSelectionSpec, selectionTest } from './utils/selection';
-import { SelectionCtrl } from './Umvelt';
+import { SelectionCtrl } from './Umwelt';
 import { View } from 'vega';
 
-interface UmveltVegaLiteProps {
+interface UmweltVegaLiteProps {
   vlSpec: VlSpec,
   onVegaLiteSelection,
   selectionCtrl: MutableRefObject<SelectionCtrl>,
@@ -16,7 +16,7 @@ interface UmveltVegaLiteProps {
   fields: ElaboratedFieldDef[]
 }
 
-const UmveltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, fields, onVegaLiteSelection, setSelectionCtrl }: UmveltVegaLiteProps) => {
+const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, fields, onVegaLiteSelection, setSelectionCtrl }: UmweltVegaLiteProps) => {
 
   const [view, setView] = useState<View>();
 
@@ -52,4 +52,4 @@ const UmveltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
   return prevProps.vlSpec === nextProps.vlSpec && prevProps.selectionSpec === nextProps.selectionSpec;
 });
 
-export default UmveltVegaLite;
+export default UmweltVegaLite;

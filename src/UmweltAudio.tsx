@@ -5,7 +5,7 @@ import { audioCtrlSelectionToNotes, selectionToNotes } from './utils/sonificatio
 import { getDomain, getFieldDef } from './utils/data';
 import { selectionTest } from './utils/selection';
 import { filterObjectByKeys, rangesAreEqual, serializeValue } from './utils/values';
-import { SelectionCtrl } from './Umvelt';
+import { SelectionCtrl } from './Umwelt';
 import Sonifier from './sonification';
 import { audioStateToSelectionSpec, selectionSpecToAudioState } from './utils/audioState';
 import { getAudioEncodingBin } from './utils/bin';
@@ -31,7 +31,7 @@ export type AudioState = {
   activeState: number // index of active audio spec
 }
 
-function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectionCtrl, axisBins}: AudioProps) {
+function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectionCtrl, axisBins}: AudioProps) {
 
   const [audioState, setAudioState] = useState<AudioState>(getInitialAudioState(audio, axisBins, fields, data));
   const [shouldUpdate, setShouldUpdate] = useState<boolean>(false);
@@ -98,7 +98,7 @@ function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       }
     }
 
-    // update umvelt selection on audio state change
+    // update umwelt selection on audio state change
     if (shouldUpdate) {
       onAudioState(currentAudioSpecState);
       Sonifier.pingCurrentNotes();
@@ -107,7 +107,7 @@ function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }, [audioState, shouldUpdate]);
 
   useEffect(() => {
-    // update audio state on umvelt selection change
+    // update audio state on umwelt selection change
     if (selectionCtrl !== 'audio' && selectionSpec) {
       const as = selectionSpecToAudioState(selectionSpec, audio, fields, data, axisBins);
       if (as.specStates.map(state => Object.keys(state).length).some(n => n >= 1)) {
@@ -244,4 +244,4 @@ function UmveltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   );
 }
 
-export default UmveltAudio;
+export default UmweltAudio;

@@ -15,8 +15,8 @@ export type VgSpec = Spec;
 type ScaleDomain = Pick<Scale, "domain" | "zero" | "nice">
 
 export type MeasureType = Exclude<Type, "geojson">;
-type UmveltDataSource = Exclude<DataSource, NamedData>
-type ElaboratedUmveltDataSource = { values: OlliDataset }
+type UmweltDataSource = Exclude<DataSource, NamedData>
+type ElaboratedUmweltDataSource = { values: OlliDataset }
 
 type VisualPropName = "x" | "y" | "color" | "shape";
 export type AudioPropName = "pitch" | "duration" | "volume";
@@ -81,8 +81,8 @@ export interface SelectionSpec {
   predicate: LogicalComposition<FieldPredicate>;
 }
 
-export interface UmveltSpec {
-  data: UmveltDataSource
+export interface UmweltSpec {
+  data: UmweltDataSource
   selection?: SelectionSpec
   fields: FieldDef[]
   visual?: VisualSpec | boolean
@@ -90,8 +90,8 @@ export interface UmveltSpec {
   text?: boolean
 }
 
-export interface ElaboratedUmveltSpec {
-  data: ElaboratedUmveltDataSource
+export interface ElaboratedUmweltSpec {
+  data: ElaboratedUmweltDataSource
   selection?: SelectionSpec
   fields: ElaboratedFieldDef[]
   visual: ElaboratedVisualSpec | false

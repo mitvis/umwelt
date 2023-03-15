@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 import { ElaboratedFieldDef, SelectionSpec } from './grammar';
 import { renderOlli } from './utils/render';
 import { selectionTest } from './utils/selection';
-import { SelectionCtrl } from './Umvelt';
+import { SelectionCtrl } from './Umwelt';
 
-interface UmveltOlliProps {
+interface UmweltOlliProps {
   olliSpec: OlliVisSpec,
   onFocus,
   selectionCtrl: SelectionCtrl
@@ -14,7 +14,7 @@ interface UmveltOlliProps {
   fields: ElaboratedFieldDef[]
 }
 
-const UmveltOlli = React.memo(({ olliSpec, onFocus, selectionCtrl, selectionSpec, fields }: UmveltOlliProps) => {
+const UmweltOlli = React.memo(({ olliSpec, onFocus, selectionCtrl, selectionSpec, fields }: UmweltOlliProps) => {
 
   useEffect(() => {
     if (olliSpec) {
@@ -39,4 +39,4 @@ const UmveltOlli = React.memo(({ olliSpec, onFocus, selectionCtrl, selectionSpec
   return prevProps.olliSpec === nextProps.olliSpec;
 });
 
-export default UmveltOlli;
+export default UmweltOlli;

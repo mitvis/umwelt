@@ -1,31 +1,31 @@
 import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import Debounce from 'react-debounce-component';
-import Umvelt from './Umvelt';
-import { umvelt } from './grammar';
+import Umwelt from './Umwelt';
+import { umwelt } from './grammar';
 import JSONC from 'jsonc-simple-parser';
 import { debounce } from 'vega';
 
 function App() {
 
   const specs = {
-    "scatterplot.uv.json": require('./specs/scatterplot.uv.json'),
-    "multi-series-line.uv.json": require('./specs/multi-series-line.uv.json'),
-    "line-sequence.uv.json": require('./specs/line-sequence.uv.json'),
-    "line-interaction-sequence.uv.json": require('./specs/line-interaction-sequence.uv.json'),
-    "line-interaction-agg.uv.json": require('./specs/line-interaction-agg.uv.json'),
-    "barley-facet.uv.json": require('./specs/barley-facet.uv.json'),
-    "barley-facet-agg.uv.json": require('./specs/barley-facet-agg.uv.json'),
+    "scatterplot.uw.json": require('./specs/scatterplot.uw.json'),
+    "multi-series-line.uw.json": require('./specs/multi-series-line.uw.json'),
+    "line-sequence.uw.json": require('./specs/line-sequence.uw.json'),
+    "line-interaction-sequence.uw.json": require('./specs/line-interaction-sequence.uw.json'),
+    "line-interaction-agg.uw.json": require('./specs/line-interaction-agg.uw.json'),
+    "barley-facet.uw.json": require('./specs/barley-facet.uw.json'),
+    "barley-facet-agg.uw.json": require('./specs/barley-facet-agg.uw.json'),
   }
 
   const [selectedSpec, setSelectedSpec] =
-    // useState("multi-series-line.uv.json");
-    useState("scatterplot.uv.json");
-    // useState("line-sequence.uv.json");
-    // useState("line-interaction-sequence.uv.json");
-    // useState("line-interaction-agg.uv.json");
-    // useState("barley-facet.uv.json");
-    // useState("barley-facet-agg.uv.json");
+    // useState("multi-series-line.uw.json");
+    useState("scatterplot.uw.json");
+    // useState("line-sequence.uw.json");
+    // useState("line-interaction-sequence.uw.json");
+    // useState("line-interaction-agg.uw.json");
+    // useState("barley-facet.uw.json");
+    // useState("barley-facet-agg.uw.json");
 
   const [textValue, setTextValue] = useState("");
   const [props, setProps] = useState(null);
@@ -37,7 +37,7 @@ function App() {
     }
     setTextValue(JSON.stringify(spec, null, 2));
 
-    umvelt(spec).then((props) => {
+    umwelt(spec).then((props) => {
       setProps(props);
     })
   }, [selectedSpec]);
@@ -46,7 +46,7 @@ function App() {
     try {
       console.log('onvalue');
       const spec = JSONC.parse(textValue);
-      umvelt(spec).then((props) => {
+      umwelt(spec).then((props) => {
         setProps(props);
       })
     }
@@ -67,7 +67,7 @@ function App() {
         <select onChange={(e) => setSelectedSpec(e.target.value)} value={selectedSpec}>
           {
             Object.keys(specs).map(spec => {
-              return <option key={spec} value={spec}>{spec}</option>
+              return <option key={spec} value={spec}>{spec.substring(0, spec.indexOf('.uw.json'))}</option>
             })
           }
         </select>
@@ -76,7 +76,7 @@ function App() {
         <Debounce ms={250}>
           {
             props ? (
-              <Umvelt {...props} />
+              <Umwelt {...props} />
             ) : null
           }
         </Debounce>

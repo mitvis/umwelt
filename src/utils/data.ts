@@ -1,11 +1,11 @@
 import { OlliDataset, OlliValue } from "olli";
 import { isString } from "vega";
 import { compile } from "vega-lite";
-import { ElaboratedFieldDef, UmveltSpec } from "../grammar/Types";
+import { ElaboratedFieldDef, UmweltSpec } from "../grammar/Types";
 import { isNumeric } from "./values";
 import { getVegaScene } from "./vega-helpers";
 
-export async function getData(spec: UmveltSpec): Promise<OlliDataset> {
+export async function getData(spec: UmweltSpec): Promise<OlliDataset> {
 
   const vlSpec = {
     data: spec.data,

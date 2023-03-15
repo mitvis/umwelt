@@ -1,10 +1,10 @@
 import { OlliDataset } from "olli";
-import { AudioSpec, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedFieldDef, ElaboratedUmveltSpec, ElaboratedVisualSpec, FieldDef, UmveltSpec, VisualSpec } from "./Types"
+import { AudioSpec, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, UmweltSpec, VisualSpec } from "./Types"
 import { typeInference, recommendVisuals, recommendAudio } from "../utils/inference";
 import { getFieldDef } from "../utils/data";
 
 
-export function elaborate(spec: UmveltSpec, data: OlliDataset): ElaboratedUmveltSpec {
+export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmweltSpec {
 
   function elaborateFields(fields: FieldDef[]): ElaboratedFieldDef[] {
     return fields.map(fieldDef => {

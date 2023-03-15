@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ElaboratedUmveltSpec, SelectionSpec, VlSpec } from './grammar';
+import { ElaboratedUmweltSpec, SelectionSpec, VlSpec } from './grammar';
 import { getOnFocus } from './utils/render';
 import { selectionStoreToSelectionSpec, selectionTest } from './utils/selection';
-import UmveltAudio, { AudioSpecState } from './UmveltAudio';
+import UmweltAudio, { AudioSpecState } from './UmweltAudio';
 import { debounce } from 'vega';
-import UmveltOlli from './UmveltOlli';
+import UmweltOlli from './UmweltOlli';
 import React from 'react';
 import { Axis, chart, OlliDataset, OlliVisSpec } from 'olli';
 import { audioStateToSelectionSpec } from './utils/audioState';
-import UmveltVegaLite from './UmveltVegaLite';
+import UmweltVegaLite from './UmweltVegaLite';
 import { axisValuesToIntervals } from './utils/bin';
 import { getFieldDef } from './utils/data';
 
@@ -18,10 +18,10 @@ interface RenderProps {
   data: OlliDataset,
   vlSpec: VlSpec,
   olliSpec: OlliVisSpec,
-  uvSpec: ElaboratedUmveltSpec
+  uvSpec: ElaboratedUmweltSpec
 }
 
-const Umvelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
+const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
 
   const [selectionSpec, _setSelectionSpec] = useState<SelectionSpec>(uvSpec.selection);
   const setSelectionSpec = useCallback(debounce(250, _setSelectionSpec), []);
@@ -67,7 +67,7 @@ const Umvelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
   /* *********** define listeners to update selection state from children ************ */
 
   const onAudioState = useCallback((audioState: AudioSpecState) => {
-    // update umvelt selection from audio state
+    // update umwelt selection from audio state
     const selectionSpec = audioStateToSelectionSpec(audioState);
     setSelectionCtrl('audio');
     setSelectionSpec(selectionSpec);
@@ -99,14 +99,14 @@ const Umvelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
 
   return (
     <div>
-      <UmveltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} setSelectionCtrl={setSelectionCtrl} selectionSpec={selectionSpec} fields={uvSpec.fields} ></UmveltVegaLite>
+      <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} setSelectionCtrl={setSelectionCtrl} selectionSpec={selectionSpec} fields={uvSpec.fields} ></UmweltVegaLite>
       <br/>
 
-      <UmveltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} fields={uvSpec.fields} onFocus={onFocus}></UmveltOlli>
+      <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} fields={uvSpec.fields} onFocus={onFocus}></UmweltOlli>
       <br/>
 
       {
-        uvSpec.audio ? <UmveltAudio audio={uvSpec.audio} fields={uvSpec.fields} data={data} onAudioState={onAudioState} selectionSpec={selectionSpec} selectionCtrl={selectionCtrl.current} axisBins={axisBins}></UmveltAudio> : null
+        uvSpec.audio ? <UmweltAudio audio={uvSpec.audio} fields={uvSpec.fields} data={data} onAudioState={onAudioState} selectionSpec={selectionSpec} selectionCtrl={selectionCtrl.current} axisBins={axisBins}></UmweltAudio> : null
       }
       <br/>
       <br/>
@@ -121,5 +121,5 @@ const Umvelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
   );
 });
 
-export default Umvelt;
+export default Umwelt;
 

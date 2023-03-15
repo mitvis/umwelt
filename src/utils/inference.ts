@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
 import * as cql from 'compassql';
 import { OlliDataset } from "olli";
-import { UmveltSpec, VisualSpec, ElaboratedVisualSpec, AudioSpec, ElaboratedAudioSpec, MeasureType } from "../grammar/Types";
+import { UmweltSpec, VisualSpec, ElaboratedVisualSpec, AudioSpec, ElaboratedAudioSpec, MeasureType } from "../grammar/Types";
 
-export function recommendVisuals(spec: UmveltSpec, data: OlliDataset, partial?: Partial<VisualSpec>): ElaboratedVisualSpec {
+export function recommendVisuals(spec: UmweltSpec, data: OlliDataset, partial?: Partial<VisualSpec>): ElaboratedVisualSpec {
   const encodings = [];
   if (partial?.encoding) {
     const encoding = partial?.encoding;
@@ -57,7 +57,7 @@ export function recommendVisuals(spec: UmveltSpec, data: OlliDataset, partial?: 
   };
 }
 
-export function recommendAudio(spec: UmveltSpec, data: OlliDataset, partial?: Partial<AudioSpec>): ElaboratedAudioSpec {
+export function recommendAudio(spec: UmweltSpec, data: OlliDataset, partial?: Partial<AudioSpec>): ElaboratedAudioSpec {
   // TODO write some clever inference for audio encodings and traversals lol.
   // should check for a quantitative field to assign to an encoding
   // should use information from the visual spec, if present, to inform inferences
