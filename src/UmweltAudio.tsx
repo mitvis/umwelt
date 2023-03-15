@@ -176,7 +176,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                       return (
                         <div key={field}>
                           <label htmlFor={id}>{field}</label>
-                          <input onChange={onchange} id={id} type="range" min="0" max={axisBins[field].length - 1} value={axisBins[field].findIndex(b => rangesAreEqual(b, audioState.specStates?.[audioSpecIdx]?.[field] as any[], fieldDef))}></input>
+                          <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={axisBins[field].length - 1} value={axisBins[field].findIndex(b => rangesAreEqual(b, audioState.specStates?.[audioSpecIdx]?.[field] as any[], fieldDef))}></input>
                           {/* <div>{JSON.stringify(audioState.specStates)}</div>
                           <div>{JSON.stringify(audioState.specStates?.[audioSpecIdx])}</div>
                           <div>{JSON.stringify(audioState.specStates?.[audioSpecIdx]?.[field])}</div> */}
@@ -201,7 +201,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                       return (
                         <div key={field}>
                           <label htmlFor={id}>{field}</label>
-                          <input onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={domain.findIndex(v => serializeValue(v, fieldDef) === serializeValue(audioState.specStates?.[audioSpecIdx]?.[field], fieldDef))}></input>
+                          <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={domain.findIndex(v => serializeValue(v, fieldDef) === serializeValue(audioState.specStates?.[audioSpecIdx]?.[field], fieldDef))}></input>
                         </div>
                       );
                     }
