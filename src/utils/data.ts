@@ -65,7 +65,7 @@ export function getDomain(field: string, data: OlliDataset): OlliValue[] {
   data.map(d => d[field]).forEach((v) => {
     unique_vals.add(v);
   });
-  return [...unique_vals].filter(x => x).sort((a: any, b: any) => a - b);
+  return [...unique_vals].filter(x => x !== null && x !== undefined).sort((a: any, b: any) => a - b);
 }
 
 export function getFieldDef(field: string, fields: ElaboratedFieldDef[]): ElaboratedFieldDef {
