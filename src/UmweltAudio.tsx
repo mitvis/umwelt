@@ -166,7 +166,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                           ...specStates[audioSpecIdx],
                           [field]: axisBins[field][idx]
                         }
-                        console.log('specStates', specStates);
                         setAudioState({
                           activeState: audioSpecIdx,
                           specStates

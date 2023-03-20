@@ -33,5 +33,15 @@
       "city": "interaction"
     }
   },
-  "text": true
+  "text": {
+    "field": "city",
+    "children": [
+      {
+        "field": "month"
+      },
+      {
+        "field": "mean_temp"
+      }
+    ]
+  }
 }

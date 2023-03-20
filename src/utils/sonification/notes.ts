@@ -101,8 +101,6 @@ export function audioCtrlSelectionToNotes(selectionSpec: SelectionSpec, audio: E
     })
   });
 
-  console.log('huh', audioStateFields, audioSpec);
-
   if (audioSpec) {
     if (Object.values(audioSpec.traversal).some(v => v === 'sequence')) {
       // sequence exists on this spec

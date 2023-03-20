@@ -78,7 +78,6 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
       return recommendVisuals(spec, data, partial);
     } catch (e) {
       console.error(e);
-      console.log(partial);
       return partial as ElaboratedVisualSpec;
     }
   }

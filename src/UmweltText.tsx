@@ -15,7 +15,7 @@ interface TextProps {
   onTextPred: (predicate: LogicalAnd<FieldPredicate>) => void;
 }
 
-const UmweltText = React.memo(({ textSpec }: TextProps) => {
+const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextPred }: TextProps) => {
 
   const treeContainer = createRef<HTMLDivElement>();
   const nodeMap = useRef<{[key: string]: TextPredTreeNode}>({});
@@ -29,19 +29,20 @@ const UmweltText = React.memo(({ textSpec }: TextProps) => {
         const t = new Tree(el.children.item(0) as HTMLElement, (el) => {
           const key = el.getAttribute('data-nodeid');
           const node = nodeMap.current[key];
-          console.log(node.fullPredicate);
+          console.log(key, JSON.stringify(node.fullPredicate));
+          onTextPred(node.fullPredicate);
         });
         t.init();
       }
     }
   }, [textSpec])
 
-  function renderPredTree(predTree: TextPredTreeNode[], depth: number) {
+  function renderPredTree(predTree: TextPredTreeNode[], depth: number, id: string) {
     return (
       <ul role={depth === 0 ? "tree" : "group"}>
         {
           predTree.map((predNode, idx) => {
-            const nodeId = `${depth}-${idx}`;
+            const nodeId = `${id}-${idx}`;
             nodeMap.current[nodeId] = predNode;
             let description = `${idx + 1} of ${predTree.length}. `;
             if ((predNode as TextGroupNode).field) {
@@ -54,11 +55,11 @@ const UmweltText = React.memo(({ textSpec }: TextProps) => {
               description += JSON.stringify((predNode as TextLeafNode).fullPredicate);
             }
             return (
-              <li role="treeitem" aria-expanded="false" data-nodeid={nodeId}>
+              <li role="treeitem" aria-expanded="false" data-nodeid={nodeId} key={nodeId}>
                 <span>{description.trim()}</span>
                 {
                   (predNode as TextGroupNode | TextPredNode)?.children ?
-                    renderPredTree((predNode as TextGroupNode | TextPredNode)?.children, depth + 1) :
+                    renderPredTree((predNode as TextGroupNode | TextPredNode)?.children, depth + 1, nodeId) :
                     null
                 }
               </li>
@@ -83,14 +84,13 @@ const UmweltText = React.memo(({ textSpec }: TextProps) => {
 
   return (
     <div>
-      <pre>
-        {JSON.stringify(textSpec, null, 2)}
-      </pre>
       <div className='olli-vis' ref={treeContainer}>
-        {textSpec ? renderPredTree(textSpec, 0) : null}
+        {textSpec ? renderPredTree(textSpec, 0, '0') : null}
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  return prevProps.textSpec === nextProps.textSpec
 });
 
 export default UmweltText;
