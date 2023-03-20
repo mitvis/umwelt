@@ -39,6 +39,5 @@ export function editLinePointConditionalBehavior(vgSpec: VgSpec): VgSpec {
 
     symbolUpdate.opacity = [ {test: 'vlSelectionTest("brush_store", datum)', value: 1}, {value: 0}];
   }
-  console.log(vgSpec);
   return vgSpec;
 }

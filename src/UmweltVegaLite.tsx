@@ -35,6 +35,8 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
         }
       });
 
+      (window as any).view = view;
+
     }
   }, [vlSpec]);
 

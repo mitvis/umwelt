@@ -28,7 +28,6 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextP
         const t = new Tree(el.children.item(0) as HTMLElement, (el) => {
           const key = el.getAttribute('data-nodeid');
           const node = nodeMap.current[key];
-          console.log(key, JSON.stringify(node.fullPredicate));
           onTextPred(node.fullPredicate);
         });
         t.init();
@@ -48,10 +47,13 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextP
               description += `Group of ${(predNode as TextGroupNode).field}`;
             }
             else if ((predNode as TextPredNode).predicate) {
-              description += JSON.stringify((predNode as TextPredNode).predicate)
+              description += JSON.stringify((predNode as TextPredNode).predicate);
             }
             else if ((predNode as TextLeafNode).fullPredicate) {
               description += JSON.stringify((predNode as TextLeafNode).fullPredicate);
+            }
+            if ((predNode as any).children?.length) {
+              description += `. ${(predNode as TextPredNode).children?.length} children.`;
             }
             return (
               <li role="treeitem" aria-expanded="false" data-nodeid={nodeId} key={nodeId}>

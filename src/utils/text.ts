@@ -5,6 +5,7 @@ import { ElaboratedFieldDef, SelectionSpec, TextNode, TextPredNode, TextPredTree
 import { getDomain, getFieldDef } from "./data";
 import { datumToPredicate, selectionTest } from "./selection";
 import { serializeValue } from "./values";
+import {bin} from 'vega-statistics';
 
 export function textNodeToPredicateTextNode(textSpec: TextNode[], fields: ElaboratedFieldDef[], data: OlliDataset, fullPredicate: LogicalAnd<FieldPredicate>): TextPredTreeNode[] {
   if (!textSpec) {
@@ -52,16 +53,11 @@ export function fieldToPredicates(field: string, fields: ElaboratedFieldDef[], d
     });
   }
   else {
-    // calculate bins lmao
-    const skip = Math.floor(domain.length / 5);
+    const binResult = bin({maxbins: 10, extent: [domain[0], domain[domain.length - 1]]});
+    console.log(binResult);
     const bins = [];
-    for (let i = 0; i < 5; i++) {
-      const x = i * skip;
-      let x2 = x + skip - 1;
-      if (x2 >= domain.length) {
-        x2 = domain.length - 1;
-      }
-      bins.push([domain[x], domain[x2]]);
+    for (let i = binResult.start; i < binResult.stop; i += binResult.step) {
+      bins.push([i, i + binResult.step]);
     }
     return bins.map((bin) => {
       return {
