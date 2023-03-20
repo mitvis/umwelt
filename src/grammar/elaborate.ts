@@ -106,13 +106,26 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
 
 
   function elaborateText(textSpec: TextNode | TextNode[] | boolean, fields: ElaboratedFieldDef[], data: OlliDataset, visual?: ElaboratedVisualSpec | false): TextPredTreeNode[] | false {
+
+    function ensureFirstLayerHasOneRoot(textPredTree: TextPredTreeNode[]): TextPredTreeNode[] {
+      if (textPredTree.length === 1) {
+        return textPredTree
+      }
+      return [
+        {
+          fullPredicate: {and: []},
+          children: textPredTree
+        }
+      ]
+    }
+
     if (!textSpec) {
       return false;
     }
     else if (textSpec === true) {
       // TODO infer text
       const inferredTextSpec = recommendTextStructure(fields, visual);
-      return textNodeToPredicateTextNode(inferredTextSpec, fields, data, {and: []});
+      return ensureFirstLayerHasOneRoot(textNodeToPredicateTextNode(inferredTextSpec, fields, data, {and: []}));
     }
     else {
       let cleanedTextSpec: TextNode[];
@@ -122,7 +135,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
       else {
         cleanedTextSpec = textSpec;
       }
-      return textNodeToPredicateTextNode(cleanedTextSpec, fields, data, {and: []});
+      return ensureFirstLayerHasOneRoot(textNodeToPredicateTextNode(cleanedTextSpec, fields, data, {and: []}));
     }
   }
 

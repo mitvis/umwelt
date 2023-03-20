@@ -96,6 +96,8 @@ export function recommendTextStructure(fields: ElaboratedFieldDef[], visual?: El
       return {
         field: encDef.field
       }
+    }).filter((node, index, array) => {
+      return index === array.findIndex(n => n.field === node.field);
     });
   }
   else {

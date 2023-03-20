@@ -54,5 +54,6 @@
         "Body Mass (g)": "interaction"
       }
     }
-  ]
+  ],
+  "text": true
 }

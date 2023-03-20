@@ -22,13 +22,17 @@
 }
 
 .logo {
-  font-family: 'Knewave', cursive;
-  font-size: 72px;
-  line-height: 1em;
+  /* font-family: 'Knewave', cursive; */
+  /* font-size: 72px; */
+  /* line-height: 1em; */
   position: fixed;
   right: 0;
-  bottom: 0;
-  margin: 10px 15px;
+  top: 0;
+  margin: 0px 10px;
+}
+
+.logo img {
+  height: 50px;
 }
 
 #pred-out {

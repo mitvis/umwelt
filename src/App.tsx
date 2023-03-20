@@ -71,7 +71,7 @@ function App() {
           }
         </select>
         <div className="logo" aria-hidden="true">
-          uw
+          <img src='/umwelt/umwelt.svg' />
         </div>
       </div>
       <div className='column'>
