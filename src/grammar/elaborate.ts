@@ -64,7 +64,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
   }
 
   function elaborateVisual(visual: VisualSpec | boolean, fields: ElaboratedFieldDef[]): ElaboratedVisualSpec | false {
-    if (!visual) return false;
+    if (visual === false) return false;
     let partial: VisualSpec = structuredClone(visual);
     if (visual !== true) {
       if (visual.encoding) {
@@ -83,7 +83,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
   }
 
   function elaborateAudio(audio: AudioSpec | AudioSpec[] | boolean, fields: ElaboratedFieldDef[]): ElaboratedAudioSpec[] | false {
-    if (!audio) return false;
+    if (audio === false) return false;
     if (audio === true) {
       return [recommendAudio(spec, data, {})];
     }
@@ -119,7 +119,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
       ]
     }
 
-    if (!textSpec) {
+    if (textSpec === false) {
       return false;
     }
     else if (textSpec === true) {
