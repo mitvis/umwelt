@@ -3,7 +3,7 @@ import { isString } from "vega";
 import { compile } from "vega-lite";
 import { ElaboratedFieldDef, UmweltSpec } from "../grammar/Types";
 import { isNumeric } from "./values";
-import { getVegaScene } from "./vega-helpers";
+import { getVegaScene } from "./vega";
 
 export async function getData(spec: UmweltSpec): Promise<OlliDataset> {
 

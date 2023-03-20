@@ -61,7 +61,7 @@ function umweltToVegaLiteSpec(spec: ElaboratedUmweltSpec): VlSpec {
 
   return {
     data: spec.data,
-    mark: spec.visual.mark === 'line' ? {type: 'line', point: {size: 20}} : spec.visual.mark,
+    mark: spec.visual.mark === 'line' ? {type: 'line', point: true} : spec.visual.mark,
     encoding: {
       ...encoding,
       color: condition(encoding.color, "brush")

@@ -21,7 +21,6 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextP
   const nodeMap = useRef<{[key: string]: TextPredTreeNode}>({});
 
   useEffect(() => {
-
     const el = treeContainer.current;
     if (el) {
       const ul = el.children.item(0);

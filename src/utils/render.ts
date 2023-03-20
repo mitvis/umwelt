@@ -2,7 +2,7 @@ import { OlliVisSpec, OlliConfigOptions, olli } from "olli";
 import { parse, View } from "vega";
 import { compile } from "vega-lite";
 import { VlSpec } from "../grammar/Types";
-import { removeAnnoyingLineColorConditional } from "./vega-helpers";
+import { editLinePointConditionalBehavior } from "./vega";
 
 export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
   let vgSpec = compile(vlSpec).spec;
@@ -12,7 +12,7 @@ export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
     "transform": [{"type": "filter", "expr": "!length(data(\"brush_store\")) || vlSelectionTest(\"brush_store\", datum)"}]
   })
   if ((vlSpec.mark as any).type === 'line' && (vlSpec.mark as any).point) {
-    vgSpec = removeAnnoyingLineColorConditional(vgSpec);
+    vgSpec = editLinePointConditionalBehavior(vgSpec);
   }
   const runtime = parse(vgSpec);
   const view = new View(runtime, {

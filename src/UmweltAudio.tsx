@@ -154,7 +154,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                 const fieldDef = getFieldDef(field, fields);
                 if (mode === 'interaction') {
                   const domain = getDomain(field, data);
-                  if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal') {
+                  if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal' || fieldDef?.type === 'ordinal') {
                     const id = `${field}-slider`;
                     // handle binning
                     const bin = getAudioEncodingBin(audioSpec.encoding);
