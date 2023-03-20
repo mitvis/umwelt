@@ -8,7 +8,7 @@ import { filterObjectByKeys, rangesAreEqual, serializeValue } from './utils/valu
 import { SelectionCtrl } from './Umwelt';
 import Sonifier from './sonification';
 import { audioStateToSelectionSpec, selectionSpecToAudioState } from './utils/audioState';
-import { getAudioEncodingBin } from './utils/bin';
+import { getAudioEncodingBinDef } from './utils/bin';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -41,7 +41,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       specStates: audio.map(audioSpec => {
         if (audioSpec.traversal !== 'selection') {
 
-          const bin = getAudioEncodingBin(audioSpec.encoding);
+          const bin = getAudioEncodingBinDef(audioSpec.encoding);
 
           return Object.fromEntries(
             Object.keys(audioSpec.traversal)
@@ -157,7 +157,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                   if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal' || fieldDef?.type === 'ordinal') {
                     const id = `${field}-slider`;
                     // handle binning
-                    const bin = getAudioEncodingBin(audioSpec.encoding);
+                    const bin = getAudioEncodingBinDef(audioSpec.encoding);
                     if (bin && axisBins[field]) {
                       const onchange = (e) => {
                         const idx = Number(e.target.value);

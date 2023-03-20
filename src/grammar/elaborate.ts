@@ -2,23 +2,20 @@ import { OlliDataset } from "olli";
 import { AudioSpec, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, TextPredTreeNode, UmweltSpec, VisualSpec } from "./Types"
 import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from "../utils/inference";
 import { getFieldDef } from "../utils/data";
-import { datumToPredicate, selectionTest } from "../utils/selection";
-import { fieldToPredicates, textNodeToPredicateTextNode } from "../utils/text";
-import { LogicalAnd } from "vega-lite/src/logical";
-import { FieldPredicate } from "vega-lite/src/predicate";
+import { textNodeToPredicateTextNode } from "../utils/text";
 
 
-export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmweltSpec {
+export function elaborateFields(fields: FieldDef[], data: OlliDataset): ElaboratedFieldDef[] {
+  return fields.map(fieldDef => {
+    return {
+      name: fieldDef.name,
+      type: fieldDef.type || typeInference(data, fieldDef.name),
+      scale: fieldDef.scale || {}
+    }
+  });
+}
 
-  function elaborateFields(fields: FieldDef[]): ElaboratedFieldDef[] {
-    return fields.map(fieldDef => {
-      return {
-        name: fieldDef.name,
-        type: fieldDef.type || typeInference(data, fieldDef.name),
-        scale: fieldDef.scale || {}
-      }
-    });
-  }
+export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: ElaboratedFieldDef[]): ElaboratedUmweltSpec {
 
   // function elaborateRecommender(structure: ElaboratedStructureNode[], visualRender: VisualSpec | boolean, encoding: Encoding<string>) {
   //   let partial = undefined;
@@ -66,13 +63,11 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
   function elaborateVisual(visual: VisualSpec | boolean, fields: ElaboratedFieldDef[]): ElaboratedVisualSpec | false {
     if (visual === false) return false;
     let partial: VisualSpec = structuredClone(visual);
-    if (visual !== true) {
-      if (visual.encoding) {
-        partial.encoding = elaborateEncoding(visual.encoding, fields);
-      }
-    }
-    else {
+    if (visual === true || visual === undefined) {
       partial = {};
+    }
+    else if (visual.encoding) {
+      partial.encoding = elaborateEncoding(visual.encoding, fields);
     }
     try {
       return recommendVisuals(spec, data, partial);
@@ -84,7 +79,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
 
   function elaborateAudio(audio: AudioSpec | AudioSpec[] | boolean, fields: ElaboratedFieldDef[]): ElaboratedAudioSpec[] | false {
     if (audio === false) return false;
-    if (audio === true) {
+    if (audio === true || audio === undefined) {
       return [recommendAudio(spec, data, {})];
     }
 
@@ -122,9 +117,9 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
     if (textSpec === false) {
       return false;
     }
-    else if (textSpec === true) {
-      // TODO infer text
+    else if (textSpec === true || textSpec === undefined) {
       const inferredTextSpec = recommendTextStructure(fields, visual);
+      console.log('inferred text spec', inferredTextSpec);
       return ensureFirstLayerHasOneRoot(textNodeToPredicateTextNode(inferredTextSpec, fields, data, {and: []}));
     }
     else {
@@ -138,8 +133,6 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
       return ensureFirstLayerHasOneRoot(textNodeToPredicateTextNode(cleanedTextSpec, fields, data, {and: []}));
     }
   }
-
-  const fields = elaborateFields(spec.fields);
 
   const visual = elaborateVisual(spec.visual, fields);
 

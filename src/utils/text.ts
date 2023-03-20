@@ -5,7 +5,7 @@ import { ElaboratedFieldDef, SelectionSpec, TextNode, TextPredNode, TextPredTree
 import { getDomain, getFieldDef } from "./data";
 import { datumToPredicate, selectionTest } from "./selection";
 import { serializeValue } from "./values";
-import {bin} from 'vega-statistics';
+import { getBinPredicates } from "./bin";
 
 export function textNodeToPredicateTextNode(textSpec: TextNode[], fields: ElaboratedFieldDef[], data: OlliDataset, fullPredicate: LogicalAnd<FieldPredicate>): TextPredTreeNode[] {
   if (!textSpec) {
@@ -43,8 +43,8 @@ export function textNodeToPredicateTextNode(textSpec: TextNode[], fields: Elabor
 
 export function fieldToPredicates(field: string, fields: ElaboratedFieldDef[], data: OlliDataset): FieldPredicate[] {
   const fieldDef = getFieldDef(field, fields);
-  const domain = getDomain(field, data);
   if (fieldDef.type === 'nominal' || fieldDef.type === 'ordinal') {
+    const domain = getDomain(field, data);
     return domain.map(value => {
       return {
         field,
@@ -53,17 +53,7 @@ export function fieldToPredicates(field: string, fields: ElaboratedFieldDef[], d
     });
   }
   else {
-    const binResult = bin({maxbins: 10, extent: [domain[0], domain[domain.length - 1]]});
-    console.log(binResult);
-    const bins = [];
-    for (let i = binResult.start; i < binResult.stop; i += binResult.step) {
-      bins.push([i, i + binResult.step]);
-    }
-    return bins.map((bin) => {
-      return {
-        field,
-        range: bin
-      }
-    })
+    const bins = getBinPredicates(field, data);
+    return bins;
   }
 }

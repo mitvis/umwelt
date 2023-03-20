@@ -1,7 +1,7 @@
 import { ElaboratedUmweltSpec, UmweltSpec, VlSpec } from "./Types"
 import {VegaLiteAdapter} from 'olli-adapters';
 import {OlliVisSpec} from "olli";
-import { elaborate } from "./elaborate";
+import { elaborate, elaborateFields } from "./elaborate";
 import { getData, getFieldDef, typeCoerceData } from "../utils/data";
 
 export * from './Types';
@@ -10,13 +10,13 @@ export async function umwelt(spec: UmweltSpec) {
 
   const data = await getData(spec);
 
-  const elaboratedSpec = elaborate(spec, data);
+  const elaboratedFields = elaborateFields(spec.fields, data);
+  const niceData = typeCoerceData(data, elaboratedFields);
+
+  const elaboratedSpec = elaborate(spec, niceData, elaboratedFields);
 
   const vlSpec = umweltToVegaLiteSpec(elaboratedSpec);
-
   const olliSpec = await umweltToOlliSpec(elaboratedSpec);
-
-  const niceData = typeCoerceData(data, elaboratedSpec.fields);
 
   return {
     data: niceData,

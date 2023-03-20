@@ -4,7 +4,7 @@ import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from "vega-lite/src/predicate";
 import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef } from "../grammar";
 import { AudioSpecState, AudioState, AxisBins } from "../UmweltAudio";
-import { getAudioEncodingBin } from "./bin";
+import { getAudioEncodingBinDef } from "./bin";
 import { getDomain, getFieldDef } from "./data";
 import { rangesAreEqual, serializeValue } from "./values";
 
@@ -39,7 +39,7 @@ export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: E
         if (predicate) {
           const partialStates = Object.entries(audioSpec.traversal).filter(([_, mode]) => mode === 'interaction').map(([field, _]) => {
             return {
-              [field]: fieldValueFromPreducate(predicate, field, getAudioEncodingBin(audioSpec.encoding), fields, data, axisBins)
+              [field]: fieldValueFromPreducate(predicate, field, getAudioEncodingBinDef(audioSpec.encoding), fields, data, axisBins)
             }
           }).filter(s => Object.values(s).every(x => x));
           if (partialStates.length) {

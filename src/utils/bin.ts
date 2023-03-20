@@ -1,4 +1,6 @@
 import { ElaboratedAudioEncoding } from "../grammar";
+import {bin} from 'vega-statistics';
+import { getDomain } from "./data";
 
 // this is from olli/Structure/index.ts
 export function axisValuesToIntervals(values: string[] | number[]): ([number, number])[] {
@@ -51,8 +53,23 @@ export function axisValuesToIntervals(values: string[] | number[]): ([number, nu
   return increments;
 }
 
-export function getAudioEncodingBin(audioEncoding: ElaboratedAudioEncoding) {
+export function getAudioEncodingBinDef(audioEncoding: ElaboratedAudioEncoding) {
     return Object.values(audioEncoding).find((encFieldDef) => {
         return encFieldDef.bin
     })?.bin;
+}
+
+export function getBinPredicates(field, data) {
+  const domain = getDomain(field, data);
+  const binResult = bin({maxbins: 10, extent: [domain[0], domain[domain.length - 1]]});
+  const bins = [];
+  for (let i = binResult.start; i < binResult.stop; i += binResult.step) {
+    bins.push([i, i + binResult.step]);
+  }
+  return bins.map((bin) => {
+    return {
+      field,
+      range: bin
+    }
+  })
 }
