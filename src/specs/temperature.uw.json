@@ -1,0 +1,37 @@
+{
+  "data": {"url": "/data/phoenix_chicago_temp.json"},
+  "fields": [
+    {
+      "name": "city",
+      "type": "nominal"
+    },
+    {
+      "name": "month",
+      "type": "ordinal"
+    },
+    {
+      "name": "mean_temp",
+      "type": "quantitative"
+    }
+  ],
+  "visual": {
+    "mark": "line",
+    "encoding": {
+      "color": "city",
+      "x": "month",
+      "y": "mean_temp"
+    }
+  },
+  "audio": {
+    "encoding": {
+      "pitch": {
+        "field": "mean_temp"
+      }
+    },
+    "traversal": {
+      "month": "interaction",
+      "city": "interaction"
+    }
+  },
+  "text": true
+}

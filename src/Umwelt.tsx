@@ -11,6 +11,9 @@ import { audioStateToSelectionSpec } from './utils/audioState';
 import UmweltVegaLite from './UmweltVegaLite';
 import { axisValuesToIntervals } from './utils/bin';
 import { getFieldDef } from './utils/data';
+import UmweltText from './UmweltText';
+import { LogicalAnd } from 'vega-lite/src/logical';
+import { FieldPredicate } from 'vega-lite/src/predicate';
 
 export type SelectionCtrl = 'vl' | 'olli' | 'audio' | 'spec';
 
@@ -74,19 +77,24 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
     console.log('update', selectionSpec);
   }, []);
 
-  const onFocus = useCallback(getOnFocus(vlSpec, (field, value) => {
-    const selection = {
-      predicate: Array.isArray(value) ? {
-        field,
-        range: value
-      } : {
-        field,
-        equal: value
-      }
-    };
+  // const onFocus = useCallback(getOnFocus(vlSpec, (field, value) => {
+  //   const selection = {
+  //     predicate: Array.isArray(value) ? {
+  //       field,
+  //       range: value
+  //     } : {
+  //       field,
+  //       equal: value
+  //     }
+  //   };
+  //   setSelectionCtrl('olli');
+  //   setSelectionSpec(selection);
+  // }), [vlSpec, uvSpec]);
+
+  const onTextPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
     setSelectionCtrl('olli');
-    setSelectionSpec(selection);
-  }), [vlSpec, uvSpec]);
+    setSelectionSpec({predicate});
+  }, []);
 
 
   const onVegaLiteSelection = useCallback((store) => {
@@ -102,7 +110,11 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
       <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} setSelectionCtrl={setSelectionCtrl} selectionSpec={selectionSpec} fields={uvSpec.fields} ></UmweltVegaLite>
       <br/>
 
-      <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} fields={uvSpec.fields} onFocus={onFocus}></UmweltOlli>
+      {/* <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} fields={uvSpec.fields} onFocus={onFocus}></UmweltOlli> */}
+
+      {
+        uvSpec.text ? <UmweltText textSpec={uvSpec.text} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} onTextPred={onTextPred}></UmweltText> : null
+      }
       <br/>
 
       {

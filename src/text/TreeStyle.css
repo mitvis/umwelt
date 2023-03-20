@@ -1,0 +1,53 @@
+.olli-vis ul[role="tree"] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.olli-vis ul[role="tree"] li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.olli-vis [role="treeitem"][aria-expanded="false"] + [role="group"] {
+  display: none;
+}
+
+.olli-vis [role="treeitem"][aria-expanded="true"] + [role="group"] {
+  display: block;
+}
+
+.olli-vis [role="treeitem"][aria-expanded="false"] > ul {
+  display: none;
+}
+
+.olli-vis [role="treeitem"][aria-expanded="true"] > ul {
+  display: block;
+}
+
+/* .olli-vis [role="treeitem"],
+.olli-vis [role="treeitem"] span {
+  width: 9em;
+  margin: 0;
+  padding: 0.125em;
+  display: block;
+} */
+
+/* disable default keyboard focus styling for treeitems
+   Keyboard focus is styled with the following CSS */
+.olli-vis :focus {
+  outline: 0;
+}
+
+.olli-vis .focus,
+.olli-vis  span.focus,
+.olli-vis  [aria-selected="true"] {
+  border-color: black;
+  background-color: #eee;
+}
+
+.olli-vis .hover,
+.olli-vis  span:hover {
+  background-color: #ddd;
+}

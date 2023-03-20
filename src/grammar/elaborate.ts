@@ -1,7 +1,11 @@
 import { OlliDataset } from "olli";
-import { AudioSpec, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, UmweltSpec, VisualSpec } from "./Types"
-import { typeInference, recommendVisuals, recommendAudio } from "../utils/inference";
+import { AudioSpec, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, TextPredTreeNode, UmweltSpec, VisualSpec } from "./Types"
+import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from "../utils/inference";
 import { getFieldDef } from "../utils/data";
+import { datumToPredicate, selectionTest } from "../utils/selection";
+import { fieldToPredicates, textNodeToPredicateTextNode } from "../utils/text";
+import { LogicalAnd } from "vega-lite/src/logical";
+import { FieldPredicate } from "vega-lite/src/predicate";
 
 
 export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmweltSpec {
@@ -70,7 +74,13 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
     else {
       partial = {};
     }
-    return recommendVisuals(spec, data, partial);
+    try {
+      return recommendVisuals(spec, data, partial);
+    } catch (e) {
+      console.error(e);
+      console.log(partial);
+      return partial as ElaboratedVisualSpec;
+    }
   }
 
   function elaborateAudio(audio: AudioSpec | AudioSpec[] | boolean, fields: ElaboratedFieldDef[]): ElaboratedAudioSpec[] | false {
@@ -95,14 +105,40 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset): ElaboratedUmwelt
 
   }
 
+
+  function elaborateText(textSpec: TextNode | TextNode[] | boolean, fields: ElaboratedFieldDef[], data: OlliDataset, visual?: ElaboratedVisualSpec | false): TextPredTreeNode[] | false {
+    if (!textSpec) {
+      return false;
+    }
+    else if (textSpec === true) {
+      // TODO infer text
+      const inferredTextSpec = recommendTextStructure(fields, visual);
+      return textNodeToPredicateTextNode(inferredTextSpec, fields, data, {and: []});
+    }
+    else {
+      let cleanedTextSpec: TextNode[];
+      if (!Array.isArray(textSpec)) {
+        cleanedTextSpec = [textSpec];
+      }
+      else {
+        cleanedTextSpec = textSpec;
+      }
+      return textNodeToPredicateTextNode(cleanedTextSpec, fields, data, {and: []});
+    }
+  }
+
   const fields = elaborateFields(spec.fields);
+
+  const visual = elaborateVisual(spec.visual, fields);
+
+  const text = elaborateText(spec.text, fields, data, visual);
 
   return {
     data: {values: data},
     selection: spec.selection,
     fields,
-    visual: elaborateVisual(spec.visual, fields),
+    visual,
     audio: elaborateAudio(spec.audio, fields),
-    text: spec.text
+    text
   }
 }

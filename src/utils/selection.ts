@@ -166,3 +166,14 @@ function testPoint(datum, entry) {
     }
   });
 }
+
+export function datumToPredicate(datum, fields): LogicalAnd<FieldEqualPredicate> {
+  return {
+    and: fields.map(field => {
+      return {
+        field: field.name,
+        equal: datum[field.name]
+      }
+    })
+  };
+}

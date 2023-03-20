@@ -5,7 +5,7 @@ import { Scale } from 'vega-lite/src/scale';
 import { FieldDefBase } from 'vega-lite/src/channeldef';
 import { OlliDataset } from 'olli';
 import { FieldPredicate } from 'vega-lite/src/predicate';
-import { LogicalComposition } from 'vega-lite/src/logical';
+import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
 import { Spec } from 'vega';
 import { TopLevelUnitSpec } from 'vega-lite/src/spec/unit';
 
@@ -18,7 +18,7 @@ export type MeasureType = Exclude<Type, "geojson">;
 type UmweltDataSource = Exclude<DataSource, NamedData>
 type ElaboratedUmweltDataSource = { values: OlliDataset }
 
-type VisualPropName = "x" | "y" | "color" | "shape";
+type VisualPropName = "x" | "y" | "color" | "shape" | "detail" | "facet" | "row" | "column";
 export type AudioPropName = "pitch" | "duration" | "volume";
 
 export type AudioAggregateOp = "count" | "mean" // | "median" | "min" | "max"; //
@@ -77,6 +77,27 @@ export type ElaboratedAudioSpec = {
   traversal: AudioTraversal | "selection"
 }
 
+export type TextNode = {
+  field: string
+  children?: TextNode[]
+}
+
+export interface TextLeafNode {
+  fullPredicate: LogicalAnd<FieldPredicate>
+}
+
+export interface TextPredNode extends TextLeafNode {
+  predicate: FieldPredicate
+  children: TextPredTreeNode[]
+}
+
+export interface TextGroupNode extends TextLeafNode {
+  field: string
+  children: TextPredTreeNode[]
+}
+
+export type TextPredTreeNode = TextPredNode | TextGroupNode | TextLeafNode;
+
 export interface SelectionSpec {
   predicate: LogicalComposition<FieldPredicate>;
 }
@@ -87,7 +108,7 @@ export interface UmweltSpec {
   fields: FieldDef[]
   visual?: VisualSpec | boolean
   audio?: AudioSpec | AudioSpec[] | boolean
-  text?: boolean
+  text?: TextNode | TextNode[] | boolean
 }
 
 export interface ElaboratedUmweltSpec {
@@ -96,5 +117,5 @@ export interface ElaboratedUmweltSpec {
   fields: ElaboratedFieldDef[]
   visual: ElaboratedVisualSpec | false
   audio: ElaboratedAudioSpec[] | false
-  text: boolean
+  text: TextPredTreeNode[] | false
 }

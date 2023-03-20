@@ -9,6 +9,7 @@ import { debounce } from 'vega';
 function App() {
 
   const specs = {
+    "temperature.uw.json": require('./specs/temperature.uw.json'),
     "scatterplot.uw.json": require('./specs/scatterplot.uw.json'),
     "multi-series-line.uw.json": require('./specs/multi-series-line.uw.json'),
     "line-sequence.uw.json": require('./specs/line-sequence.uw.json'),
@@ -20,7 +21,8 @@ function App() {
 
   const [selectedSpec, setSelectedSpec] =
     // useState("multi-series-line.uw.json");
-    useState("scatterplot.uw.json");
+    // useState("scatterplot.uw.json");
+    useState("temperature.uw.json");
     // useState("line-sequence.uw.json");
     // useState("line-interaction-sequence.uw.json");
     // useState("line-interaction-agg.uw.json");

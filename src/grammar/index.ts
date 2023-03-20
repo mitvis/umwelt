@@ -13,6 +13,7 @@ export async function umwelt(spec: UmweltSpec) {
   const elaboratedSpec = elaborate(spec, data);
 
   const vlSpec = umweltToVegaLiteSpec(elaboratedSpec);
+  console.log(vlSpec);
   const olliSpec = await umweltToOlliSpec(elaboratedSpec);
 
   const niceData = typeCoerceData(data, elaboratedSpec.fields);
@@ -64,7 +65,7 @@ function umweltToVegaLiteSpec(spec: ElaboratedUmweltSpec): VlSpec {
     encoding: {
       ...encoding,
       color: condition(encoding.color, "brush")
-    },
+    } as any,
     params
   }
 }
