@@ -52,9 +52,7 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextP
             else if ((predNode as TextLeafNode).fullPredicate) {
               description += JSON.stringify((predNode as TextLeafNode).fullPredicate);
             }
-            if ((predNode as any).children?.length) {
-              description += `. ${(predNode as TextPredNode).children?.length} children.`;
-            }
+            description += `. ${(predNode as TextPredNode).children?.length || '0'} children.`;
             return (
               <li role="treeitem" aria-expanded="false" data-nodeid={nodeId} key={nodeId}>
                 <span>{description.trim()}</span>
