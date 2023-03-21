@@ -26,7 +26,7 @@ function datumToNote(datum: OlliDatum, encoding: ElaboratedAudioEncoding, data: 
 }
 
 function sequenceToNotes(audioSpec: ElaboratedAudioSpec, fields: ElaboratedFieldDef[], selected: OlliDataset, data: OlliDataset) {
-  if (audioSpec.traversal === 'selection') return null;
+  if (audioSpec.traversal === 'selection') return [];
   const sequenceFields = audioSpec.traversal.sequence.map(fieldDef => fieldDef.field);
 
   const encoding = audioSpec.encoding;
@@ -88,14 +88,15 @@ export function audioCtrlSelectionToNotes(selectionSpec: SelectionSpec, audio: E
   });
 
   const audioSpec = audio.find(audioSpec => {
-    if (audioSpec.traversal === 'selection') return false;
     return audioStateFields.every(field => {
-      return Object.keys(audioSpec.traversal).includes(field);
+      if (audioSpec.traversal === 'selection') return false;
+      return audioSpec.traversal.interaction.find(f => f.field === field);
     })
   });
 
   if (audioSpec) {
-    if (Object.values(audioSpec.traversal).some(v => v === 'sequence')) {
+    if (audioSpec.traversal === 'selection') return []; // TODO shrug
+    if (audioSpec.traversal.sequence.length) {
       // sequence exists on this spec
       return sequenceToNotes(audioSpec, fields, selected, data);
     }
