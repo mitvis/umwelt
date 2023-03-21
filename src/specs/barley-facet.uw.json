@@ -44,9 +44,8 @@
       "pitch": "median_yield"
     },
     "traversal": {
-      "site": "sequence",
-      "variety": "interaction",
-      "year": "sequence"
+      "sequence": ["site", "year"],
+      "interaction": "variety"
     }
   }
 }

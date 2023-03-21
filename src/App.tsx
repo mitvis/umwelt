@@ -12,7 +12,8 @@ function App() {
     "temperature.uw.json": require('./specs/temperature.uw.json'),
     "scatterplot.uw.json": require('./specs/scatterplot.uw.json'),
     "multi-series-line.uw.json": require('./specs/multi-series-line.uw.json'),
-    "line-sequence.uw.json": require('./specs/line-sequence.uw.json'),
+    "line-sequence-d-s.uw.json": require('./specs/line-sequence-d-s.uw.json'),
+    "line-sequence-s-d.uw.json": require('./specs/line-sequence-s-d.uw.json'),
     "line-interaction-sequence.uw.json": require('./specs/line-interaction-sequence.uw.json'),
     "line-interaction-agg.uw.json": require('./specs/line-interaction-agg.uw.json'),
     "barley-facet.uw.json": require('./specs/barley-facet.uw.json'),
@@ -23,7 +24,8 @@ function App() {
     // useState("multi-series-line.uw.json");
     // useState("scatterplot.uw.json");
     useState("temperature.uw.json");
-    // useState("line-sequence.uw.json");
+    // useState("line-sequence-d-s.uw.json");
+    // useState("line-sequence-s-d.uw.json");
     // useState("line-interaction-sequence.uw.json");
     // useState("line-interaction-agg.uw.json");
     // useState("barley-facet.uw.json");
@@ -38,6 +40,7 @@ function App() {
 
     umwelt(spec).then((props) => {
       setProps(props);
+      console.log(props);
     })
   }, [selectedSpec]);
 

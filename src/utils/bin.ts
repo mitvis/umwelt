@@ -53,12 +53,6 @@ export function axisValuesToIntervals(values: string[] | number[]): ([number, nu
   return increments;
 }
 
-export function getAudioEncodingBinDef(audioEncoding: ElaboratedAudioEncoding) {
-    return Object.values(audioEncoding).find((encFieldDef) => {
-        return encFieldDef.bin
-    })?.bin;
-}
-
 export function getBinPredicates(field, data) {
   const domain = getDomain(field, data);
   const binResult = bin({maxbins: 10, extent: [domain[0], domain[domain.length - 1]]});

@@ -47,8 +47,8 @@
       }
     },
     "traversal": {
-      "variety": "interaction",
-      "year": "sequence"
+      "interaction": "variety",
+      "sequence": "year"
     }
   }
 }

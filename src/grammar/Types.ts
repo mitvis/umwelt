@@ -56,25 +56,31 @@ export type ElaboratedVisualSpec = {
 }
 
 export type AudioEncoding = {
-  [prop in AudioPropName]: FieldName | FieldDefBase<FieldName>
+  [prop in AudioPropName]: FieldName | Exclude<FieldDefBase<FieldName>, 'bin'>
 }
 
 export type ElaboratedAudioEncoding = {
-  [prop in AudioPropName]: FieldDefBase<FieldName>
+  [prop in AudioPropName]: Exclude<FieldDefBase<FieldName>, 'bin'>
 }
 
 export type AudioTraversal = {
-  [field in FieldName]: "interaction" | "sequence"
+  interaction?: (string | Exclude<FieldDefBase<FieldName>, 'aggregate'>) | (string | Exclude<FieldDefBase<FieldName>, 'aggregate'>)[]
+  sequence?: (string | Exclude<FieldDefBase<FieldName>, 'aggregate'>) | (string | Exclude<FieldDefBase<FieldName>, 'aggregate'>)[]
+}
+
+export type ElaboratedAudioTraversal = {
+  interaction: Exclude<FieldDefBase<FieldName>, 'aggregate'>[]
+  sequence: Exclude<FieldDefBase<FieldName>, 'aggregate'>[]
 }
 
 export type AudioSpec = {
   encoding?: AudioEncoding,
-  traversal?: AudioTraversal
+  traversal?: AudioTraversal | "selection"
 }
 
 export type ElaboratedAudioSpec = {
   encoding: ElaboratedAudioEncoding,
-  traversal: AudioTraversal | "selection"
+  traversal: ElaboratedAudioTraversal | "selection"
 }
 
 export type TextNode = {

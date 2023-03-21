@@ -8,7 +8,6 @@ import { filterObjectByKeys, rangesAreEqual, serializeValue } from './utils/valu
 import { SelectionCtrl } from './Umwelt';
 import Sonifier from './sonification';
 import { audioStateToSelectionSpec, selectionSpecToAudioState } from './utils/audioState';
-import { getAudioEncodingBinDef } from './utils/bin';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -41,30 +40,23 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       specStates: audio.map(audioSpec => {
         if (audioSpec.traversal !== 'selection') {
 
-          const bin = getAudioEncodingBinDef(audioSpec.encoding);
+          return Object.fromEntries(audioSpec.traversal.interaction.map(({field, bin}) => {
+            const fieldDef = getFieldDef(field, fields);
+            const domain = getDomain(field, data);
 
-          return Object.fromEntries(
-            Object.keys(audioSpec.traversal)
-              .filter(field => audioSpec.traversal[field] === 'interaction')
-              .map(field => {
-                const fieldDef = getFieldDef(field, fields);
-                const domain = getDomain(field, data);
+            if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal') {
 
-                if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal') {
-
-                  if (bin && axisBins[field]) {
-                    return [field, axisBins[field][0]]
-                  }
-                  else {
-                    return [field, serializeValue(domain[0], fieldDef)];
-                  }
-                }
-                else {
-                  return [field, String(domain[0])];
-                }
-
-              })
-          );
+              if (bin && axisBins[field]) {
+                return [field, axisBins[field][0]]
+              }
+              else {
+                return [field, serializeValue(domain[0], fieldDef)];
+              }
+            }
+            else {
+              return [field, String(domain[0])];
+            }
+          }));
 
         }
         return null;
@@ -150,14 +142,13 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           return (
             <div key={audioSpecIdx} className="audio-spec">
               {
-              Object.entries(audioSpec.traversal).map(([field, mode]) => {
-                const fieldDef = getFieldDef(field, fields);
-                if (mode === 'interaction') {
+                audioSpec.traversal.interaction.map(({field, bin}) => {
+                  const fieldDef = getFieldDef(field, fields);
                   const domain = getDomain(field, data);
+
                   if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal' || fieldDef?.type === 'ordinal') {
                     const id = `${field}-slider`;
                     // handle binning
-                    const bin = getAudioEncodingBinDef(audioSpec.encoding);
                     if (bin && axisBins[field]) {
                       const onchange = (e) => {
                         const idx = Number(e.target.value);
@@ -230,9 +221,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                       </div>
                     )
                   }
-                }
-                return null;
-              })
+                })
             }
           </div>)
         })

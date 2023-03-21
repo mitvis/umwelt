@@ -34,24 +34,28 @@
       "encoding": {
         "pitch": {
           "field": "Body Mass (g)",
-          "aggregate": "mean",
-          "bin": true
+          "aggregate": "mean"
         }
       },
       "traversal": {
-        "Flipper Length (mm)": "interaction"
+        "interaction": {
+          "field": "Flipper Length (mm)",
+          "bin": true
+        }
       }
     },
     {
       "encoding": {
         "pitch": {
           "field": "Flipper Length (mm)",
-          "aggregate": "mean",
-          "bin": true
+          "aggregate": "mean"
         }
       },
       "traversal": {
-        "Body Mass (g)": "interaction"
+        "interaction": {
+          "field": "Body Mass (g)",
+          "bin": true
+        }
       }
     }
   ]

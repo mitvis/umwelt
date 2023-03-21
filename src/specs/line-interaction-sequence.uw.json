@@ -28,8 +28,8 @@
     "duration": "price"
    },
    "traversal": {
-    "date": "interaction",
-    "symbol": "sequence"
+    "interaction": "date",
+    "sequence": "symbol"
    }
   }
 }

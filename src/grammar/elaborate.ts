@@ -1,8 +1,10 @@
 import { OlliDataset } from "olli";
-import { AudioSpec, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, TextPredTreeNode, UmweltSpec, VisualSpec } from "./Types"
+import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, TextPredTreeNode, UmweltSpec, VisualSpec } from "./Types"
 import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from "../utils/inference";
 import { getFieldDef } from "../utils/data";
 import { textNodeToPredicateTextNode } from "../utils/text";
+import { isString } from "vega";
+import { FieldDefBase } from "vega-lite/src/channeldef";
 
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): ElaboratedFieldDef[] {
@@ -85,9 +87,42 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
 
     function elaborateSingleAudio(audio: AudioSpec, fields: ElaboratedFieldDef[]): ElaboratedAudioSpec {
       return {
-        ...structuredClone(audio),
+        traversal: elaborateTraversal(audio.traversal, fields),
         encoding: elaborateEncoding(audio.encoding, fields) as ElaboratedAudioEncoding
       };
+    }
+
+    function elaborateTraversal(traversal: AudioTraversal | "selection", fields: ElaboratedFieldDef[]): ElaboratedAudioTraversal | "selection" {
+      if (traversal === 'selection') return traversal;
+      // TODO should probably inherit properties from the umvelt fields definition?
+
+      function elaborateTraversalDef(def) {
+
+        function wrapFieldInDef(s) {
+          if (isString(s)) {
+            const {name, type, ...fieldDef} = getFieldDef(s, fields);
+            return {...fieldDef, field: s}
+          }
+          return s;
+        }
+
+        if (def) {
+          if (Array.isArray(def)) {
+            return def.map((s) => {
+              return wrapFieldInDef(s);
+            });
+          }
+          else {
+            return [ wrapFieldInDef(def) ];
+          }
+        }
+        return [];
+      }
+
+      return {
+        interaction: elaborateTraversalDef(traversal.interaction),
+        sequence: elaborateTraversalDef(traversal.sequence)
+      }
     }
 
     if (Array.isArray(audio)) {

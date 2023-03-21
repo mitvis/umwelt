@@ -14,15 +14,6 @@
       "type": "nominal"
     }
   ],
-  "selection": {
-    "predicate": {
-      "field": "date",
-      "range": [
-        1066971600000,
-        1155168720000
-      ]
-    }
-  },
   "visual": {
     "mark": "line",
     "encoding": {
@@ -33,10 +24,11 @@
   },
   "audio": {
    "encoding": {
-    "pitch": "price"
+    "pitch": "price",
+    "duration": "price"
    },
    "traversal": {
-    "interaction": ["date", "symbol"]
+    "sequence": ["date", "symbol"]
    }
   }
 }

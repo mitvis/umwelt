@@ -29,8 +29,7 @@
       }
     },
     "traversal": {
-      "month": "interaction",
-      "city": "interaction"
+      "interaction": ["month", "city"]
     }
   },
   "text": {

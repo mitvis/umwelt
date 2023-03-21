@@ -26,15 +26,8 @@ function datumToNote(datum: OlliDatum, encoding: ElaboratedAudioEncoding, data: 
 }
 
 function sequenceToNotes(audioSpec: ElaboratedAudioSpec, fields: ElaboratedFieldDef[], selected: OlliDataset, data: OlliDataset) {
-  const sequenceFields = Object.keys(audioSpec.traversal).filter(field => {
-    return audioSpec.traversal[field] === 'sequence';
-  });
-  const sortOrder = ['quantitative', 'temporal', 'ordinal', 'nominal']
-  sequenceFields.sort((a, b) => {
-    const fieldDefA = getFieldDef(a, fields);
-    const fieldDefB = getFieldDef(b, fields);
-    return sortOrder.indexOf(fieldDefA.type) - sortOrder.indexOf(fieldDefB.type);
-  });
+  if (audioSpec.traversal === 'selection') return null;
+  const sequenceFields = audioSpec.traversal.sequence.map(fieldDef => fieldDef.field);
 
   const encoding = audioSpec.encoding;
   return generateSequence(sequenceFields, 0, selected, fields, data);
@@ -79,7 +72,7 @@ export function selectionToNotes(selected: OlliDataset, audio: ElaboratedAudioSp
   // TODO idk what to do with the above^
   const sequenceAudioSpec = audio.find(audioSpec => {
     if (audioSpec.traversal === 'selection') return false;
-    return Object.values(audioSpec.traversal).some(v => v === 'sequence');
+    return audioSpec.traversal.sequence.length;
   }); // TODO what if there's more than one
   if (sequenceAudioSpec) {
     return sequenceToNotes(sequenceAudioSpec, fields, selected, data);

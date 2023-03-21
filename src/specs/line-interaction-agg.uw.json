@@ -30,7 +30,7 @@
     }
    },
    "traversal": {
-    "date": "interaction"
+    "interaction": "date"
    }
   }
 }
