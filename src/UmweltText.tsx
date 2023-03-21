@@ -1,15 +1,15 @@
 import { OlliDataset } from 'olli';
 import React, { createRef, useEffect, useRef, useState } from 'react';
-import { ElaboratedFieldDef, SelectionSpec, TextGroupNode, TextLeafNode, TextNode, TextPredNode, TextPredTreeNode } from './grammar';
+import { ElaboratedFieldDef, SelectionSpec, ElaboratedGroupNode, ElaboratedLeafNode, TextNode, ElaboratedPredNode, ElaboratedTextNode } from './grammar';
 import { Tree } from './text/Tree';
-import { textNodeToPredicateTextNode } from './utils/text';
+import { textSpecToFullPredicateSpec } from './utils/text';
 import './text/TreeStyle.css'
 import { LogicalAnd } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 import { SelectionCtrl } from './Umwelt';
 
 interface TextProps {
-  textSpec: TextPredTreeNode[],
+  textSpec: ElaboratedTextNode[],
   selectionCtrl: SelectionCtrl
   selectionSpec: SelectionSpec,
   onTextPred: (predicate: LogicalAnd<FieldPredicate>) => void;
@@ -18,7 +18,7 @@ interface TextProps {
 const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextPred }: TextProps) => {
 
   const treeContainer = createRef<HTMLDivElement>();
-  const nodeMap = useRef<{[key: string]: TextPredTreeNode}>({});
+  const nodeMap = useRef<{[key: string]: ElaboratedTextNode}>({});
 
   useEffect(() => {
     const el = treeContainer.current;
@@ -35,30 +35,31 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextP
     }
   }, [textSpec])
 
-  function renderPredTree(predTree: TextPredTreeNode[], depth: number, id: string) {
+  function renderPredTree(predTree: ElaboratedTextNode[], depth: number, id: string) {
     return (
       <ul role={depth === 0 ? "tree" : "group"}>
         {
           predTree.map((predNode, idx) => {
+            if (!predNode) return null;
             const nodeId = `${id}-${idx}`;
             nodeMap.current[nodeId] = predNode;
             let description = `${idx + 1} of ${predTree.length}. `;
-            if ((predNode as TextGroupNode).field) {
-              description += `Group of ${(predNode as TextGroupNode).field}`;
+            if ((predNode as ElaboratedGroupNode).field) {
+              description += `Group of ${(predNode as ElaboratedGroupNode).field}`;
             }
-            else if ((predNode as TextPredNode).predicate) {
-              description += JSON.stringify((predNode as TextPredNode).predicate);
+            else if ((predNode as ElaboratedPredNode).predicate) {
+              description += JSON.stringify((predNode as ElaboratedPredNode).predicate);
             }
-            else if ((predNode as TextLeafNode).fullPredicate) {
-              description += JSON.stringify((predNode as TextLeafNode).fullPredicate);
+            else if ((predNode as ElaboratedLeafNode).fullPredicate) {
+              description += JSON.stringify((predNode as ElaboratedLeafNode).fullPredicate);
             }
-            description += `. ${(predNode as TextPredNode).children?.length || '0'} children.`;
+            description += `. ${(predNode as ElaboratedPredNode).children?.length || '0'} children.`;
             return (
               <li role="treeitem" aria-expanded="false" data-nodeid={nodeId} key={nodeId}>
                 <span>{description.trim()}</span>
                 {
-                  (predNode as TextGroupNode | TextPredNode)?.children ?
-                    renderPredTree((predNode as TextGroupNode | TextPredNode)?.children, depth + 1, nodeId) :
+                  (predNode as ElaboratedGroupNode | ElaboratedPredNode)?.children ?
+                    renderPredTree((predNode as ElaboratedGroupNode | ElaboratedPredNode)?.children, depth + 1, nodeId) :
                     null
                 }
               </li>

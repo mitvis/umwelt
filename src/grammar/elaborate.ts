@@ -1,8 +1,8 @@
 import { OlliDataset } from "olli";
-import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, TextPredTreeNode, UmweltSpec, VisualSpec } from "./Types"
+import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, ElaboratedTextNode, UmweltSpec, VisualSpec } from "./Types"
 import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from "../utils/inference";
 import { getFieldDef } from "../utils/data";
-import { textNodeToPredicateTextNode } from "../utils/text";
+import { textSpecToFullPredicateSpec } from "../utils/text";
 import { isString } from "vega";
 import { FieldDefBase } from "vega-lite/src/channeldef";
 
@@ -135,9 +135,9 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
   }
 
 
-  function elaborateText(textSpec: TextNode | TextNode[] | boolean, fields: ElaboratedFieldDef[], data: OlliDataset, visual?: ElaboratedVisualSpec | false): TextPredTreeNode[] | false {
+  function elaborateText(textSpec: TextNode | TextNode[] | boolean, fields: ElaboratedFieldDef[], data: OlliDataset, visual?: ElaboratedVisualSpec | false): ElaboratedTextNode[] | false {
 
-    function ensureFirstLayerHasOneRoot(textPredTree: TextPredTreeNode[]): TextPredTreeNode[] {
+    function ensureFirstLayerHasOneRoot(textPredTree: ElaboratedTextNode[]): ElaboratedTextNode[] {
       if (textPredTree.length === 1) {
         return textPredTree
       }
@@ -155,17 +155,17 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     else if (textSpec === true || textSpec === undefined) {
       const inferredTextSpec = recommendTextStructure(fields, visual);
       console.log('inferred text spec', inferredTextSpec);
-      return ensureFirstLayerHasOneRoot(textNodeToPredicateTextNode(inferredTextSpec, fields, data, {and: []}));
+      return ensureFirstLayerHasOneRoot(textSpecToFullPredicateSpec(inferredTextSpec, fields, data, {and: []}));
     }
     else {
-      let cleanedTextSpec: TextNode[];
+      let normalizedTextSpec: TextNode[];
       if (!Array.isArray(textSpec)) {
-        cleanedTextSpec = [textSpec];
+        normalizedTextSpec = [textSpec];
       }
       else {
-        cleanedTextSpec = textSpec;
+        normalizedTextSpec = textSpec;
       }
-      return ensureFirstLayerHasOneRoot(textNodeToPredicateTextNode(cleanedTextSpec, fields, data, {and: []}));
+      return ensureFirstLayerHasOneRoot(textSpecToFullPredicateSpec(normalizedTextSpec, fields, data, {and: []}));
     }
   }
 

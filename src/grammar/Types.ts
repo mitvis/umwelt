@@ -83,26 +83,33 @@ export type ElaboratedAudioSpec = {
   traversal: ElaboratedAudioTraversal | "selection"
 }
 
-export type TextNode = {
-  field: string
+export interface FieldTextNode {
+  field: string,
   children?: TextNode[]
 }
 
-export interface TextLeafNode {
+export interface PredTextNode {
+  predicate: FieldPredicate,
+  children?: TextNode[]
+}
+
+export type TextNode = FieldTextNode | PredTextNode;
+
+export interface ElaboratedLeafNode {
   fullPredicate: LogicalAnd<FieldPredicate>
 }
 
-export interface TextPredNode extends TextLeafNode {
+export interface ElaboratedPredNode extends ElaboratedLeafNode {
   predicate: FieldPredicate
-  children: TextPredTreeNode[]
+  children: ElaboratedGroupNode[] | ElaboratedLeafNode[]
 }
 
-export interface TextGroupNode extends TextLeafNode {
+export interface ElaboratedGroupNode extends ElaboratedLeafNode {
   field: string
-  children: TextPredTreeNode[]
+  children: ElaboratedPredNode[]
 }
 
-export type TextPredTreeNode = TextPredNode | TextGroupNode | TextLeafNode;
+export type ElaboratedTextNode = ElaboratedPredNode | ElaboratedGroupNode | ElaboratedLeafNode;
 
 export interface SelectionSpec {
   predicate: LogicalComposition<FieldPredicate>;
@@ -123,5 +130,5 @@ export interface ElaboratedUmweltSpec {
   fields: ElaboratedFieldDef[]
   visual: ElaboratedVisualSpec | false
   audio: ElaboratedAudioSpec[] | false
-  text: TextPredTreeNode[] | false
+  text: ElaboratedTextNode[] | false
 }

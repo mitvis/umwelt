@@ -1,15 +1,15 @@
 import { OlliDataset } from "olli";
 import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate } from "vega-lite/src/predicate";
-import { ElaboratedFieldDef, SelectionSpec, TextNode, TextPredNode, TextPredTreeNode } from "../grammar";
+import { ElaboratedFieldDef, SelectionSpec, TextNode, ElaboratedPredNode, ElaboratedTextNode, FieldTextNode, PredTextNode } from "../grammar";
 import { getDomain, getFieldDef } from "./data";
 import { datumToPredicate, selectionTest } from "./selection";
 import { serializeValue } from "./values";
 import { getBinPredicates } from "./bin";
 
-export function textNodeToPredicateTextNode(textSpec: TextNode[], fields: ElaboratedFieldDef[], data: OlliDataset, fullPredicate: LogicalAnd<FieldPredicate>): TextPredTreeNode[] {
+export function textSpecToFullPredicateSpec(textSpec: TextNode[], fields: ElaboratedFieldDef[], data: OlliDataset, fullPredicate: LogicalAnd<FieldPredicate>): ElaboratedTextNode[] {
   if (!textSpec) {
-    // leaf node
+    // base case (leaf node)
     const datums = selectionTest(data, {predicate: fullPredicate}, fields);
     return datums.map(datum => {
       return {
@@ -18,26 +18,42 @@ export function textNodeToPredicateTextNode(textSpec: TextNode[], fields: Elabor
     });
   };
   return textSpec.map(node => {
-    const preds = fieldToPredicates(node.field, fields, data);
-    const maybeField = preds.length ? preds[0].field : undefined;
-    const field = maybeField && preds.every(p => p.field === maybeField) ? maybeField : undefined;
-    return {
-      fullPredicate,
-      field,
-      children: preds.map(p => {
-        const childFullPred = {
-          and: [
-            ...fullPredicate.and,
-            p
-          ]
-        };
-        return {
-          predicate: p,
-          fullPredicate: childFullPred,
-          children: textNodeToPredicateTextNode(node.children, fields, data, childFullPred)
-        }
-      })
+    if ((node as FieldTextNode).field) {
+      const field = (node as FieldTextNode).field;
+      const childPreds = fieldToPredicates(field, fields, data);
+      return {
+        fullPredicate,
+        field,
+        children: childPreds.map(p => {
+          const childFullPred = {
+            and: [
+              ...fullPredicate.and,
+              p
+            ]
+          };
+          return {
+            predicate: p,
+            fullPredicate: childFullPred,
+            children: textSpecToFullPredicateSpec(node.children, fields, data, childFullPred)
+          }
+        })
+      }
     }
+    else if ((node as PredTextNode).predicate) {
+      const predicate = (node as PredTextNode).predicate;
+      const nextFullPred = {
+        and: [
+          ...fullPredicate.and,
+          predicate
+        ]
+      };
+      return {
+        fullPredicate: nextFullPred,
+        predicate,
+        children: textSpecToFullPredicateSpec(node.children, fields, data, nextFullPred)
+      }
+    }
+
   });
 }
 
