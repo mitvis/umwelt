@@ -105,7 +105,7 @@ export interface ElaboratedPredNode extends ElaboratedLeafNode {
 }
 
 export interface ElaboratedGroupNode extends ElaboratedLeafNode {
-  field: string
+  field?: string
   children: ElaboratedPredNode[]
 }
 

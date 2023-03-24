@@ -53,7 +53,12 @@ export function textSpecToFullPredicateSpec(textSpec: TextNode[], fields: Elabor
         children: textSpecToFullPredicateSpec(node.children, fields, data, nextFullPred)
       }
     }
-
+    else {
+      return {
+        fullPredicate,
+        children: textSpecToFullPredicateSpec(node.children, fields, data, fullPredicate)
+      }
+    }
   });
 }
 

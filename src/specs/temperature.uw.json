@@ -32,15 +32,33 @@
       "interaction": ["month", "city"]
     }
   },
-  "text": {
-    "field": "city",
-    "children": [
-      {
-        "field": "month"
-      },
-      {
-        "field": "mean_temp"
-      }
-    ]
-  }
+  "text": [
+    {
+      "field": "city",
+      "children": [
+        {
+          "field": "month"
+        },
+        {
+          "field": "mean_temp"
+        }
+      ]
+    },
+    {
+      "children": [
+        {
+          "predicate": {
+            "field": "mean_temp",
+            "lte": 32
+          }
+        },
+        {
+          "predicate": {
+            "field": "mean_temp",
+            "gt": 32
+          }
+        }
+      ]
+    }
+  ]
 }
