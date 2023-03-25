@@ -2,7 +2,7 @@ import {Type} from 'vega-lite/src/type';
 import {DataSource, NamedData} from 'vega-lite/src/data';
 import {Mark} from 'vega-lite/src/mark';
 import { Scale } from 'vega-lite/src/scale';
-import { FieldDefBase } from 'vega-lite/src/channeldef';
+import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
 import { OlliDataset } from 'olli';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
@@ -26,23 +26,29 @@ export type AudioAggregateOp = "count" | "mean" // | "median" | "min" | "max"; /
 type FieldName = string;
 
 export interface ElaboratedFieldDef {
-  name: string,
+  name: FieldName,
   type: MeasureType,
   scale: ScaleDomain
 }
 
 export interface FieldDef {
-  name: string
+  name: FieldName
   type?: MeasureType,
   scale?: ScaleDomain
 }
 
+export interface EncodingFieldDef {
+  field: FieldName,
+  aggregate?: NonArgAggregateOp,
+  bin?: boolean
+}
+
 export type VisualEncoding = {
-  [prop in VisualPropName]: FieldName | FieldDefBase<FieldName>
+  [prop in VisualPropName]: FieldName | EncodingFieldDef
 }
 
 export type ElaboratedVisualEncoding = {
-  [prop in VisualPropName]: FieldDefBase<FieldName>
+  [prop in VisualPropName]: EncodingFieldDef
 }
 
 export type VisualSpec = {
@@ -56,21 +62,21 @@ export type ElaboratedVisualSpec = {
 }
 
 export type AudioEncoding = {
-  [prop in AudioPropName]: FieldName | Exclude<FieldDefBase<FieldName>, 'bin'>
+  [prop in AudioPropName]: FieldName | Exclude<EncodingFieldDef, 'bin'>
 }
 
 export type ElaboratedAudioEncoding = {
-  [prop in AudioPropName]: Exclude<FieldDefBase<FieldName>, 'bin'>
+  [prop in AudioPropName]: Exclude<EncodingFieldDef, 'bin'>
 }
 
 export type AudioTraversal = {
-  interaction?: (string | Exclude<FieldDefBase<FieldName>, 'aggregate'>) | (string | Exclude<FieldDefBase<FieldName>, 'aggregate'>)[]
-  sequence?: (string | Exclude<FieldDefBase<FieldName>, 'aggregate'>) | (string | Exclude<FieldDefBase<FieldName>, 'aggregate'>)[]
+  interaction?: (string | Exclude<EncodingFieldDef, 'aggregate'>) | (string | Exclude<EncodingFieldDef, 'aggregate'>)[]
+  sequence?: (string | Exclude<EncodingFieldDef, 'aggregate'>) | (string | Exclude<EncodingFieldDef, 'aggregate'>)[]
 }
 
 export type ElaboratedAudioTraversal = {
-  interaction: Exclude<FieldDefBase<FieldName>, 'aggregate'>[]
-  sequence: Exclude<FieldDefBase<FieldName>, 'aggregate'>[]
+  interaction: Exclude<EncodingFieldDef, 'aggregate'>[]
+  sequence: Exclude<EncodingFieldDef, 'aggregate'>[]
 }
 
 export type AudioSpec = {
