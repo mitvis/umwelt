@@ -1,0 +1,1317 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "definitions": {
+    "DateTime": {
+      "additionalProperties": false,
+      "description": "Object for defining datetime in Vega-Lite Filter. If both month and quarter are provided, month has higher precedence. `day` cannot be combined with other date. We accept string for month and day names.",
+      "properties": {
+        "date": {
+          "description": "Integer value representing the date (day of the month) from 1-31.",
+          "maximum": 31,
+          "minimum": 1,
+          "type": "number"
+        },
+        "day": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Day"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Value representing the day of a week. This can be one of: (1) integer value -- `1` represents Monday; (2) case-insensitive day name (e.g., `\"Monday\"`); (3) case-insensitive, 3-character short day name (e.g., `\"Mon\"`).\n\n**Warning:** A DateTime definition object with `day`** should not be combined with `year`, `quarter`, `month`, or `date`."
+        },
+        "hours": {
+          "description": "Integer value representing the hour of a day from 0-23.",
+          "maximum": 24,
+          "minimum": 0,
+          "type": "number"
+        },
+        "milliseconds": {
+          "description": "Integer value representing the millisecond segment of time.",
+          "maximum": 1000,
+          "minimum": 0,
+          "type": "number"
+        },
+        "minutes": {
+          "description": "Integer value representing the minute segment of time from 0-59.",
+          "maximum": 60,
+          "minimum": 0,
+          "type": "number"
+        },
+        "month": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Month"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "One of: (1) integer value representing the month from `1`-`12`. `1` represents January; (2) case-insensitive month name (e.g., `\"January\"`); (3) case-insensitive, 3-character short month name (e.g., `\"Jan\"`)."
+        },
+        "quarter": {
+          "description": "Integer value representing the quarter of the year (from 1-4).",
+          "maximum": 4,
+          "minimum": 1,
+          "type": "number"
+        },
+        "seconds": {
+          "description": "Integer value representing the second segment (0-59) of a time value",
+          "maximum": 60,
+          "minimum": 0,
+          "type": "number"
+        },
+        "utc": {
+          "description": "A boolean flag indicating if date time is in utc time. If false, the date time is in local time",
+          "type": "boolean"
+        },
+        "year": {
+          "description": "Integer value representing the year.",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "Day": {
+      "maximum": 7,
+      "minimum": 1,
+      "type": "number"
+    },
+    "DomainUnionWith": {
+      "additionalProperties": false,
+      "properties": {
+        "unionWith": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "$ref": "#/definitions/DateTime"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Customized domain values to be union with the field's values or explicitly defined domain. Should be an array of valid scale domain values."
+        }
+      },
+      "required": [
+        "unionWith"
+      ],
+      "type": "object"
+    },
+    "ElaboratedAudioEncoding": {
+      "additionalProperties": false,
+      "properties": {
+        "duration": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "pitch": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "volume": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        }
+      },
+      "required": [
+        "pitch",
+        "duration",
+        "volume"
+      ],
+      "type": "object"
+    },
+    "ElaboratedAudioSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "encoding": {
+          "$ref": "#/definitions/ElaboratedAudioEncoding"
+        },
+        "traversal": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ElaboratedAudioTraversal"
+            },
+            {
+              "const": "selection",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [
+        "encoding",
+        "traversal"
+      ],
+      "type": "object"
+    },
+    "ElaboratedAudioTraversal": {
+      "additionalProperties": false,
+      "properties": {
+        "interaction": {
+          "items": {
+            "$ref": "#/definitions/EncodingFieldDef"
+          },
+          "type": "array"
+        },
+        "sequence": {
+          "items": {
+            "$ref": "#/definitions/EncodingFieldDef"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "interaction",
+        "sequence"
+      ],
+      "type": "object"
+    },
+    "ElaboratedFieldDef": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "scale": {
+          "additionalProperties": false,
+          "properties": {
+            "domain": {
+              "anyOf": [
+                {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/definitions/DateTime"
+                      },
+                      {
+                        "$ref": "#/definitions/ExprRef"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                },
+                {
+                  "const": "unaggregated",
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/ParameterExtent"
+                },
+                {
+                  "$ref": "#/definitions/DomainUnionWith"
+                },
+                {
+                  "$ref": "#/definitions/ExprRef"
+                }
+              ],
+              "description": "Customized domain values in the form of constant values or dynamic values driven by a parameter.\n\n1) Constant `domain` for _quantitative_ fields can take one of the following forms:\n\n- A two-element array with minimum and maximum values. To create a diverging scale, this two-element array can be combined with the `domainMid` property.\n- An array with more than two entries, for [Piecewise quantitative scales](https://vega.github.io/vega-lite/docs/scale.html#piecewise).\n- A string value `\"unaggregated\"`, if the input field is aggregated, to indicate that the domain should include the raw data values prior to the aggregation.\n\n2) Constant `domain` for _temporal_ fields can be a two-element array with minimum and maximum values, in the form of either timestamps or the [DateTime definition objects](https://vega.github.io/vega-lite/docs/types.html#datetime).\n\n3) Constant `domain` for _ordinal_ and _nominal_ fields can be an array that lists valid input values.\n\n4) To combine (union) specified constant domain with the field's values, `domain` can be an object with a `unionWith` property that specify constant domain to be combined. For example, `domain: {unionWith: [0, 100]}` for a quantitative scale means that the scale domain always includes `[0, 100]`, but will include other values in the fields beyond `[0, 100]`.\n\n5) Domain can also takes an object defining a field or encoding of a parameter that [interactively determines](https://vega.github.io/vega-lite/docs/selection.html#scale-domains) the scale domain."
+            },
+            "nice": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "$ref": "#/definitions/TimeInterval"
+                },
+                {
+                  "$ref": "#/definitions/TimeIntervalStep"
+                },
+                {
+                  "$ref": "#/definitions/ExprRef"
+                }
+              ],
+              "description": "Extending the domain so that it starts and ends on nice round values. This method typically modifies the scale’s domain, and may only extend the bounds to the nearest round value. Nicing is useful if the domain is computed from data and may be irregular. For example, for a domain of _[0.201479…, 0.996679…]_, a nice domain might be _[0.2, 1.0]_.\n\nFor quantitative scales such as linear, `nice` can be either a boolean flag or a number. If `nice` is a number, it will represent a desired tick count. This allows greater control over the step size used to extend the bounds, guaranteeing that the returned ticks will exactly cover the domain.\n\nFor temporal fields with time and utc scales, the `nice` value can be a string indicating the desired time interval. Legal values are `\"millisecond\"`, `\"second\"`, `\"minute\"`, `\"hour\"`, `\"day\"`, `\"week\"`, `\"month\"`, and `\"year\"`. Alternatively, `time` and `utc` scales can accept an object-valued interval specifier of the form `{\"interval\": \"month\", \"step\": 3}`, which includes a desired number of interval steps. Here, the domain would snap to quarter (Jan, Apr, Jul, Oct) boundaries.\n\n__Default value:__ `true` for unbinned _quantitative_ fields without explicit domain bounds; `false` otherwise."
+            },
+            "zero": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/ExprRef"
+                }
+              ],
+              "description": "If `true`, ensures that a zero baseline value is included in the scale domain.\n\n__Default value:__ `true` for x and y channels if the quantitative field is not binned and no custom `domain` is provided; `false` otherwise.\n\n__Note:__ Log, time, and utc scales do not support `zero`."
+            }
+          },
+          "type": "object"
+        },
+        "type": {
+          "$ref": "#/definitions/MeasureType"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "scale"
+      ],
+      "type": "object"
+    },
+    "ElaboratedGroupNode": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/definitions/ElaboratedPredNode"
+          },
+          "type": "array"
+        },
+        "field": {
+          "type": "string"
+        },
+        "fullPredicate": {
+          "$ref": "#/definitions/LogicalAnd%3CFieldPredicate%3E"
+        }
+      },
+      "required": [
+        "children",
+        "fullPredicate"
+      ],
+      "type": "object"
+    },
+    "ElaboratedLeafNode": {
+      "additionalProperties": false,
+      "properties": {
+        "fullPredicate": {
+          "$ref": "#/definitions/LogicalAnd%3CFieldPredicate%3E"
+        }
+      },
+      "required": [
+        "fullPredicate"
+      ],
+      "type": "object"
+    },
+    "ElaboratedPredNode": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/definitions/ElaboratedGroupNode"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "$ref": "#/definitions/ElaboratedLeafNode"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "fullPredicate": {
+          "$ref": "#/definitions/LogicalAnd%3CFieldPredicate%3E"
+        },
+        "predicate": {
+          "$ref": "#/definitions/FieldPredicate"
+        }
+      },
+      "required": [
+        "children",
+        "fullPredicate",
+        "predicate"
+      ],
+      "type": "object"
+    },
+    "ElaboratedTextNode": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ElaboratedPredNode"
+        },
+        {
+          "$ref": "#/definitions/ElaboratedGroupNode"
+        },
+        {
+          "$ref": "#/definitions/ElaboratedLeafNode"
+        }
+      ]
+    },
+    "ElaboratedVisualEncoding": {
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "column": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "detail": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "facet": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "row": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "shape": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "x": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        },
+        "y": {
+          "$ref": "#/definitions/EncodingFieldDef"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "color",
+        "shape",
+        "detail",
+        "facet",
+        "row",
+        "column"
+      ],
+      "type": "object"
+    },
+    "ElaboratedVisualSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "encoding": {
+          "$ref": "#/definitions/ElaboratedVisualEncoding"
+        },
+        "mark": {
+          "$ref": "#/definitions/Mark"
+        }
+      },
+      "required": [
+        "mark",
+        "encoding"
+      ],
+      "type": "object"
+    },
+    "EncodingFieldDef": {
+      "additionalProperties": false,
+      "properties": {
+        "aggregate": {
+          "$ref": "#/definitions/NonArgAggregateOp"
+        },
+        "bin": {
+          "type": "boolean"
+        },
+        "field": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "field"
+      ],
+      "type": "object"
+    },
+    "ExprRef": {
+      "additionalProperties": false,
+      "properties": {
+        "expr": {
+          "description": "Vega expression (which can refer to Vega-Lite parameters).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expr"
+      ],
+      "type": "object"
+    },
+    "FieldEqualPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "equal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/definitions/DateTime"
+            },
+            {
+              "$ref": "#/definitions/ExprRef"
+            }
+          ],
+          "description": "The value that the field should be equal to."
+        },
+        "field": {
+          "$ref": "#/definitions/FieldName",
+          "description": "Field to be tested."
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TimeUnit"
+            },
+            {
+              "$ref": "#/definitions/TimeUnitParams"
+            }
+          ],
+          "description": "Time unit for the field to be tested."
+        }
+      },
+      "required": [
+        "equal",
+        "field"
+      ],
+      "type": "object"
+    },
+    "FieldGTEPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/FieldName",
+          "description": "Field to be tested."
+        },
+        "gte": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "$ref": "#/definitions/DateTime"
+            },
+            {
+              "$ref": "#/definitions/ExprRef"
+            }
+          ],
+          "description": "The value that the field should be greater than or equals to."
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TimeUnit"
+            },
+            {
+              "$ref": "#/definitions/TimeUnitParams"
+            }
+          ],
+          "description": "Time unit for the field to be tested."
+        }
+      },
+      "required": [
+        "field",
+        "gte"
+      ],
+      "type": "object"
+    },
+    "FieldGTPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/FieldName",
+          "description": "Field to be tested."
+        },
+        "gt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "$ref": "#/definitions/DateTime"
+            },
+            {
+              "$ref": "#/definitions/ExprRef"
+            }
+          ],
+          "description": "The value that the field should be greater than."
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TimeUnit"
+            },
+            {
+              "$ref": "#/definitions/TimeUnitParams"
+            }
+          ],
+          "description": "Time unit for the field to be tested."
+        }
+      },
+      "required": [
+        "field",
+        "gt"
+      ],
+      "type": "object"
+    },
+    "FieldLTEPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/FieldName",
+          "description": "Field to be tested."
+        },
+        "lte": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "$ref": "#/definitions/DateTime"
+            },
+            {
+              "$ref": "#/definitions/ExprRef"
+            }
+          ],
+          "description": "The value that the field should be less than or equals to."
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TimeUnit"
+            },
+            {
+              "$ref": "#/definitions/TimeUnitParams"
+            }
+          ],
+          "description": "Time unit for the field to be tested."
+        }
+      },
+      "required": [
+        "field",
+        "lte"
+      ],
+      "type": "object"
+    },
+    "FieldLTPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/FieldName",
+          "description": "Field to be tested."
+        },
+        "lt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "$ref": "#/definitions/DateTime"
+            },
+            {
+              "$ref": "#/definitions/ExprRef"
+            }
+          ],
+          "description": "The value that the field should be less than."
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TimeUnit"
+            },
+            {
+              "$ref": "#/definitions/TimeUnitParams"
+            }
+          ],
+          "description": "Time unit for the field to be tested."
+        }
+      },
+      "required": [
+        "field",
+        "lt"
+      ],
+      "type": "object"
+    },
+    "FieldName": {
+      "type": "string"
+    },
+    "FieldOneOfPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/FieldName",
+          "description": "Field to be tested."
+        },
+        "oneOf": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "boolean"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "$ref": "#/definitions/DateTime"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "A set of values that the `field`'s value should be a member of, for a data item included in the filtered data."
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TimeUnit"
+            },
+            {
+              "$ref": "#/definitions/TimeUnitParams"
+            }
+          ],
+          "description": "Time unit for the field to be tested."
+        }
+      },
+      "required": [
+        "field",
+        "oneOf"
+      ],
+      "type": "object"
+    },
+    "FieldPredicate": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/FieldEqualPredicate"
+        },
+        {
+          "$ref": "#/definitions/FieldLTPredicate"
+        },
+        {
+          "$ref": "#/definitions/FieldGTPredicate"
+        },
+        {
+          "$ref": "#/definitions/FieldLTEPredicate"
+        },
+        {
+          "$ref": "#/definitions/FieldGTEPredicate"
+        },
+        {
+          "$ref": "#/definitions/FieldRangePredicate"
+        },
+        {
+          "$ref": "#/definitions/FieldOneOfPredicate"
+        },
+        {
+          "$ref": "#/definitions/FieldValidPredicate"
+        }
+      ]
+    },
+    "FieldRangePredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/FieldName",
+          "description": "Field to be tested."
+        },
+        "range": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/definitions/DateTime"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/definitions/ExprRef"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "$ref": "#/definitions/ExprRef"
+            }
+          ],
+          "description": "An array of inclusive minimum and maximum values for a field value of a data item to be included in the filtered data.",
+          "maxItems": 2,
+          "minItems": 2
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TimeUnit"
+            },
+            {
+              "$ref": "#/definitions/TimeUnitParams"
+            }
+          ],
+          "description": "Time unit for the field to be tested."
+        }
+      },
+      "required": [
+        "field",
+        "range"
+      ],
+      "type": "object"
+    },
+    "FieldValidPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/FieldName",
+          "description": "Field to be tested."
+        },
+        "timeUnit": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TimeUnit"
+            },
+            {
+              "$ref": "#/definitions/TimeUnitParams"
+            }
+          ],
+          "description": "Time unit for the field to be tested."
+        },
+        "valid": {
+          "description": "If set to true the field's value has to be valid, meaning both not `null` and not [`NaN`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN).",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field",
+        "valid"
+      ],
+      "type": "object"
+    },
+    "LocalMultiTimeUnit": {
+      "enum": [
+        "yearquarter",
+        "yearquartermonth",
+        "yearmonth",
+        "yearmonthdate",
+        "yearmonthdatehours",
+        "yearmonthdatehoursminutes",
+        "yearmonthdatehoursminutesseconds",
+        "yearweek",
+        "yearweekday",
+        "yearweekdayhours",
+        "yearweekdayhoursminutes",
+        "yearweekdayhoursminutesseconds",
+        "yeardayofyear",
+        "quartermonth",
+        "monthdate",
+        "monthdatehours",
+        "monthdatehoursminutes",
+        "monthdatehoursminutesseconds",
+        "weekday",
+        "weeksdayhours",
+        "weekdayhoursminutes",
+        "weekdayhoursminutesseconds",
+        "dayhours",
+        "dayhoursminutes",
+        "dayhoursminutesseconds",
+        "hoursminutes",
+        "hoursminutesseconds",
+        "minutesseconds",
+        "secondsmilliseconds"
+      ],
+      "type": "string"
+    },
+    "LocalSingleTimeUnit": {
+      "enum": [
+        "year",
+        "quarter",
+        "month",
+        "week",
+        "day",
+        "dayofyear",
+        "date",
+        "hours",
+        "minutes",
+        "seconds",
+        "milliseconds"
+      ],
+      "type": "string"
+    },
+    "LogicalAnd<FieldPredicate>": {
+      "additionalProperties": false,
+      "properties": {
+        "and": {
+          "items": {
+            "$ref": "#/definitions/LogicalComposition%3CFieldPredicate%3E"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "and"
+      ],
+      "type": "object"
+    },
+    "LogicalComposition<FieldPredicate>": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/LogicalNot%3CFieldPredicate%3E"
+        },
+        {
+          "$ref": "#/definitions/LogicalAnd%3CFieldPredicate%3E"
+        },
+        {
+          "$ref": "#/definitions/LogicalOr%3CFieldPredicate%3E"
+        },
+        {
+          "$ref": "#/definitions/FieldPredicate"
+        }
+      ]
+    },
+    "LogicalNot<FieldPredicate>": {
+      "additionalProperties": false,
+      "properties": {
+        "not": {
+          "$ref": "#/definitions/LogicalComposition%3CFieldPredicate%3E"
+        }
+      },
+      "required": [
+        "not"
+      ],
+      "type": "object"
+    },
+    "LogicalOr<FieldPredicate>": {
+      "additionalProperties": false,
+      "properties": {
+        "or": {
+          "items": {
+            "$ref": "#/definitions/LogicalComposition%3CFieldPredicate%3E"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "or"
+      ],
+      "type": "object"
+    },
+    "Mark": {
+      "description": "All types of primitive marks.",
+      "enum": [
+        "arc",
+        "area",
+        "bar",
+        "image",
+        "line",
+        "point",
+        "rect",
+        "rule",
+        "text",
+        "tick",
+        "trail",
+        "circle",
+        "square",
+        "geoshape"
+      ],
+      "type": "string"
+    },
+    "MeasureType": {
+      "description": "Data type based on level of measurement",
+      "enum": [
+        "quantitative",
+        "ordinal",
+        "temporal",
+        "nominal"
+      ],
+      "type": "string"
+    },
+    "Month": {
+      "maximum": 12,
+      "minimum": 1,
+      "type": "number"
+    },
+    "MultiTimeUnit": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/LocalMultiTimeUnit"
+        },
+        {
+          "$ref": "#/definitions/UtcMultiTimeUnit"
+        }
+      ]
+    },
+    "NonArgAggregateOp": {
+      "enum": [
+        "average",
+        "count",
+        "distinct",
+        "max",
+        "mean",
+        "median",
+        "min",
+        "missing",
+        "product",
+        "q1",
+        "q3",
+        "ci0",
+        "ci1",
+        "stderr",
+        "stdev",
+        "stdevp",
+        "sum",
+        "valid",
+        "values",
+        "variance",
+        "variancep"
+      ],
+      "type": "string"
+    },
+    "OlliDataset": {
+      "items": {
+        "$ref": "#/definitions/OlliDatum"
+      },
+      "type": "array"
+    },
+    "OlliDatum": {
+      "additionalProperties": {
+        "$ref": "#/definitions/OlliValue"
+      },
+      "type": "object"
+    },
+    "OlliValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "format": "date-time",
+          "type": "string"
+        }
+      ]
+    },
+    "ParameterExtent": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/definitions/FieldName",
+              "description": "If a selection parameter is specified, the field name to extract selected values for when the selection is [projected](https://vega.github.io/vega-lite/docs/selection.html#project) over multiple fields or encodings."
+            },
+            "param": {
+              "$ref": "#/definitions/ParameterName",
+              "description": "The name of a parameter."
+            }
+          },
+          "required": [
+            "param"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "encoding": {
+              "$ref": "#/definitions/SingleDefUnitChannel",
+              "description": "If a selection parameter is specified, the encoding channel to extract selected values for when a selection is [projected](https://vega.github.io/vega-lite/docs/selection.html#project) over multiple fields or encodings."
+            },
+            "param": {
+              "$ref": "#/definitions/ParameterName",
+              "description": "The name of a parameter."
+            }
+          },
+          "required": [
+            "param"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "ParameterName": {
+      "type": "string"
+    },
+    "SelectionSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "predicate": {
+          "$ref": "#/definitions/LogicalComposition%3CFieldPredicate%3E"
+        }
+      },
+      "required": [
+        "predicate"
+      ],
+      "type": "object"
+    },
+    "SingleDefUnitChannel": {
+      "enum": [
+        "x",
+        "y",
+        "xOffset",
+        "yOffset",
+        "x2",
+        "y2",
+        "longitude",
+        "latitude",
+        "longitude2",
+        "latitude2",
+        "theta",
+        "theta2",
+        "radius",
+        "radius2",
+        "color",
+        "fill",
+        "stroke",
+        "opacity",
+        "fillOpacity",
+        "strokeOpacity",
+        "strokeWidth",
+        "strokeDash",
+        "size",
+        "angle",
+        "shape",
+        "key",
+        "text",
+        "href",
+        "url",
+        "description"
+      ],
+      "type": "string"
+    },
+    "SingleTimeUnit": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/LocalSingleTimeUnit"
+        },
+        {
+          "$ref": "#/definitions/UtcSingleTimeUnit"
+        }
+      ]
+    },
+    "TimeInterval": {
+      "enum": [
+        "millisecond",
+        "second",
+        "minute",
+        "hour",
+        "day",
+        "week",
+        "month",
+        "year"
+      ],
+      "type": "string"
+    },
+    "TimeIntervalStep": {
+      "additionalProperties": false,
+      "properties": {
+        "interval": {
+          "$ref": "#/definitions/TimeInterval"
+        },
+        "step": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "interval",
+        "step"
+      ],
+      "type": "object"
+    },
+    "TimeUnit": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SingleTimeUnit"
+        },
+        {
+          "$ref": "#/definitions/MultiTimeUnit"
+        }
+      ]
+    },
+    "TimeUnitParams": {
+      "additionalProperties": false,
+      "properties": {
+        "maxbins": {
+          "description": "If no `unit` is specified, maxbins is used to infer time units.",
+          "type": "number"
+        },
+        "step": {
+          "description": "The number of steps between bins, in terms of the least significant unit provided.",
+          "type": "number"
+        },
+        "unit": {
+          "$ref": "#/definitions/TimeUnit",
+          "description": "Defines how date-time values should be binned."
+        },
+        "utc": {
+          "description": "True to use UTC timezone. Equivalent to using a `utc` prefixed `TimeUnit`.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "UtcMultiTimeUnit": {
+      "enum": [
+        "utcyearquarter",
+        "utcyearquartermonth",
+        "utcyearmonth",
+        "utcyearmonthdate",
+        "utcyearmonthdatehours",
+        "utcyearmonthdatehoursminutes",
+        "utcyearmonthdatehoursminutesseconds",
+        "utcyearweek",
+        "utcyearweekday",
+        "utcyearweekdayhours",
+        "utcyearweekdayhoursminutes",
+        "utcyearweekdayhoursminutesseconds",
+        "utcyeardayofyear",
+        "utcquartermonth",
+        "utcmonthdate",
+        "utcmonthdatehours",
+        "utcmonthdatehoursminutes",
+        "utcmonthdatehoursminutesseconds",
+        "utcweekday",
+        "utcweeksdayhours",
+        "utcweekdayhoursminutes",
+        "utcweekdayhoursminutesseconds",
+        "utcdayhours",
+        "utcdayhoursminutes",
+        "utcdayhoursminutesseconds",
+        "utchoursminutes",
+        "utchoursminutesseconds",
+        "utcminutesseconds",
+        "utcsecondsmilliseconds"
+      ],
+      "type": "string"
+    },
+    "UtcSingleTimeUnit": {
+      "enum": [
+        "utcyear",
+        "utcquarter",
+        "utcmonth",
+        "utcweek",
+        "utcday",
+        "utcdayofyear",
+        "utcdate",
+        "utchours",
+        "utcminutes",
+        "utcseconds",
+        "utcmilliseconds"
+      ],
+      "type": "string"
+    }
+  },
+  "properties": {
+    "audio": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/definitions/ElaboratedAudioSpec"
+          },
+          "type": "array"
+        },
+        {
+          "const": false,
+          "type": "boolean"
+        }
+      ]
+    },
+    "data": {
+      "additionalProperties": false,
+      "properties": {
+        "values": {
+          "$ref": "#/definitions/OlliDataset"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "type": "object"
+    },
+    "fields": {
+      "items": {
+        "$ref": "#/definitions/ElaboratedFieldDef"
+      },
+      "type": "array"
+    },
+    "selection": {
+      "$ref": "#/definitions/SelectionSpec"
+    },
+    "text": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/definitions/ElaboratedTextNode"
+          },
+          "type": "array"
+        },
+        {
+          "const": false,
+          "type": "boolean"
+        }
+      ]
+    },
+    "visual": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ElaboratedVisualSpec"
+        },
+        {
+          "const": false,
+          "type": "boolean"
+        }
+      ]
+    }
+  },
+  "required": [
+    "data",
+    "fields",
+    "visual",
+    "audio",
+    "text"
+  ],
+  "type": "object"
+}
