@@ -1,73 +1,43 @@
 import { JSONSchema7, JSONSchema7Definition } from 'json-schema';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { isBoolean } from 'vega';
 import { ElaboratedUmweltSpec } from './grammar';
 import './text/TreeStyle.css'
 import * as JSONEditor from '@json-editor/json-editor';
+import { enhancedSchema } from './grammar/schema/enhancedSchema';
 
 interface EditorProps {
   spec: ElaboratedUmweltSpec
   onSpec: (spec: ElaboratedUmweltSpec) => void
 }
 
-const schema: JSONSchema7 = require('./grammar/schema/umwelt.schema.json');
-
 const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
 
-  const [uwSpec, setUwSpec] = useState<ElaboratedUmweltSpec>();
+  const editor = useRef<any>();
+  const setEditor = data => {
+    editor.current = data;
+  };
 
   useEffect(() => {
-    setUwSpec(spec);
-  }, [spec])
-
-  useEffect(() => {
-    console.log(schema);
-    var editor = new JSONEditor.JSONEditor(document.querySelector('.uw-editor'), {schema});
-  })
-
-  function renderSchemaDefinition(def: JSONSchema7Definition) {
-    if (isBoolean(def)) {
-      console.log('base case', def);
+    if (editor.current) {
+      editor.current.destroy();
     }
-    else {
-      return (
-        <ul>
-          {
-            def.required?.map(prop => {
-              return (
-                <li key={prop}>
-                  {prop}
-                  {renderSchemaDefinition(def.properties?.[prop])}
-                </li>
-              )
-            })
-          }
-        </ul>
-      )
-    }
+    console.log(enhancedSchema)
+    const container = document.querySelector('.uw-editor');
+    const e = new JSONEditor.JSONEditor(container, {
+      schema: enhancedSchema,
+      // display_required_only: true,
+      show_opt_in: true,
+      use_default_values: false,
+      startval: spec
+    });
+    setEditor(e);
 
-  }
-
-  function renderEditor() {
-    return renderSchemaDefinition(schema);
-  }
-
-  // function renderData(predNode) {
-  //   return (
-  //     <ul role="group">
-  //       {
-  //         selectionTest(data, {predicate: predNode.predicate}, fields).map(datum => {
-  //           return <li role="treeitem" aria-expanded="false">{JSON.stringify(datum)}</li>
-  //         })
-  //       }
-  //     </ul>
-  //   )
-  // }
+  }, [spec]);
 
   return (
     <div>
       <div className='uw-editor'>
-        {/* {renderEditor()} */}
       </div>
     </div>
   );

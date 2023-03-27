@@ -18,7 +18,7 @@ export type MeasureType = Exclude<Type, "geojson">;
 type UmweltDataSource = UrlData | InlineData
 type ElaboratedUmweltDataSource = { values: OlliDataset }
 
-type VisualPropName = "x" | "y" | "color" | "shape" | "detail" | "facet" | "row" | "column";
+export type VisualPropName = "x" | "y" | "color" | "shape" | "detail" | "facet" | "row" | "column";
 export type AudioPropName = "pitch" | "duration" | "volume";
 
 export type AudioAggregateOp = "count" | "mean" // | "median" | "min" | "max"; //
@@ -43,6 +43,16 @@ export interface EncodingFieldDef {
   bin?: boolean
 }
 
+export interface AudioEncodingFieldDef {
+  field: FieldName,
+  aggregate?: NonArgAggregateOp
+}
+
+export interface AudioTraversalFieldDef {
+  field: FieldName,
+  bin?: boolean
+}
+
 export type VisualEncoding = {
   [prop in VisualPropName]: FieldName | EncodingFieldDef
 }
@@ -62,21 +72,21 @@ export type ElaboratedVisualSpec = {
 }
 
 export type AudioEncoding = {
-  [prop in AudioPropName]: FieldName | Exclude<EncodingFieldDef, 'bin'>
+  [prop in AudioPropName]: FieldName | AudioEncodingFieldDef
 }
 
 export type ElaboratedAudioEncoding = {
-  [prop in AudioPropName]: Exclude<EncodingFieldDef, 'bin'>
+  [prop in AudioPropName]: AudioEncodingFieldDef
 }
 
 export type AudioTraversal = {
-  interaction?: (string | Exclude<EncodingFieldDef, 'aggregate'>) | (string | Exclude<EncodingFieldDef, 'aggregate'>)[]
-  sequence?: (string | Exclude<EncodingFieldDef, 'aggregate'>) | (string | Exclude<EncodingFieldDef, 'aggregate'>)[]
+  interaction?: (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[]
+  sequence?: (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[]
 }
 
 export type ElaboratedAudioTraversal = {
-  interaction: Exclude<EncodingFieldDef, 'aggregate'>[]
-  sequence: Exclude<EncodingFieldDef, 'aggregate'>[]
+  interaction: AudioTraversalFieldDef[]
+  sequence: AudioTraversalFieldDef[]
 }
 
 export type AudioSpec = {
@@ -128,6 +138,11 @@ export interface UmweltSpec {
   visual?: VisualSpec | boolean
   audio?: AudioSpec | AudioSpec[] | boolean
   text?: TextNode | TextNode[] | boolean
+}
+
+
+export interface UIUmweltSpec extends UmweltSpec {
+  data: UrlData | {values: object[]}
 }
 
 export interface ElaboratedUmweltSpec {
