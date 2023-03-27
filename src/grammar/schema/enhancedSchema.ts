@@ -17,6 +17,7 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
   }
 
   schema.definitions = Object.fromEntries(Object.entries(schema.definitions).map(([key, def]: [string, any]) => {
+    def.title = key;
     switch (key) {
       case 'UmweltSpec':
         def.id = 'UmweltSpec';
