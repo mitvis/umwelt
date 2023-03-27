@@ -1,7 +1,7 @@
 import { OlliDataset } from "olli";
 import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate } from "vega-lite/src/predicate";
-import { ElaboratedFieldDef, SelectionSpec, TextNode, ElaboratedPredNode, ElaboratedTextNode, FieldTextNode, PredTextNode } from "../grammar";
+import { ElaboratedFieldDef, SelectionSpec, TextNode, ElaboratedPredNode, ElaboratedTextNode } from "../grammar";
 import { getDomain, getFieldDef } from "./data";
 import { datumToPredicate, selectionTest } from "./selection";
 import { serializeValue } from "./values";
@@ -18,8 +18,8 @@ export function textSpecToFullPredicateSpec(textSpec: TextNode[], fields: Elabor
     });
   };
   return textSpec.map(node => {
-    if ((node as FieldTextNode).field) {
-      const field = (node as FieldTextNode).field;
+    if (node.field) {
+      const field = node.field;
       const childPreds = fieldToPredicates(field, fields, data);
       return {
         fullPredicate,
@@ -39,8 +39,8 @@ export function textSpecToFullPredicateSpec(textSpec: TextNode[], fields: Elabor
         })
       }
     }
-    else if ((node as PredTextNode).predicate) {
-      const predicate = (node as PredTextNode).predicate;
+    else if (node.predicate) {
+      const predicate = node.predicate;
       const nextFullPred = {
         and: [
           ...fullPredicate.and,

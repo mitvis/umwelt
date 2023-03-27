@@ -37,7 +37,7 @@
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "schema": "npx ts-json-schema-generator --path './src/grammar/Types.ts' --type 'UIUmweltSpec' --tsconfig './tsconfig.json' -o './src/grammar/schema/umwelt.schema.json'"
+    "schema": "npx ts-json-schema-generator --path './src/grammar/Types.ts' --type 'UmweltSpec' --tsconfig './tsconfig.json' -o './src/grammar/schema/umwelt.schema.json'"
   },
   "eslintConfig": {
     "extends": [

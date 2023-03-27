@@ -54,11 +54,11 @@ export interface AudioTraversalFieldDef {
 }
 
 export type VisualEncoding = {
-  [prop in VisualPropName]: FieldName | EncodingFieldDef
+  [prop in VisualPropName]?: FieldName | EncodingFieldDef
 }
 
 export type ElaboratedVisualEncoding = {
-  [prop in VisualPropName]: EncodingFieldDef
+  [prop in VisualPropName]?: EncodingFieldDef
 }
 
 export type VisualSpec = {
@@ -72,11 +72,11 @@ export type ElaboratedVisualSpec = {
 }
 
 export type AudioEncoding = {
-  [prop in AudioPropName]: FieldName | AudioEncodingFieldDef
+  [prop in AudioPropName]?: FieldName | AudioEncodingFieldDef
 }
 
 export type ElaboratedAudioEncoding = {
-  [prop in AudioPropName]: AudioEncodingFieldDef
+  [prop in AudioPropName]?: AudioEncodingFieldDef
 }
 
 export type AudioTraversal = {
@@ -99,17 +99,11 @@ export type ElaboratedAudioSpec = {
   traversal: ElaboratedAudioTraversal | "selection"
 }
 
-export interface FieldTextNode {
-  field: string,
+export interface TextNode {
+  field?: string,
+  predicate?: FieldPredicate,
   children?: TextNode[]
 }
-
-export interface PredTextNode {
-  predicate: FieldPredicate,
-  children?: TextNode[]
-}
-
-export type TextNode = FieldTextNode | PredTextNode;
 
 export interface ElaboratedLeafNode {
   fullPredicate: LogicalAnd<FieldPredicate>

@@ -77,7 +77,9 @@ function App() {
         <div className="logo" aria-hidden="true">
           <img src='/umwelt/umwelt.svg' />
         </div>
-        <UmveltEditor spec={specs[selectedSpec]} onSpec={() => {}}></UmveltEditor>
+      </div>
+      <div className='column'>
+        <UmveltEditor spec={specs[selectedSpec]} onSpec={(spec) => { setTextValue(JSON.stringify(spec)) }}></UmveltEditor>
       </div>
       <div className='column'>
         <Debounce ms={250}>

@@ -1,5 +1,5 @@
 {
-  "$ref": "#/definitions/UIUmweltSpec",
+  "$ref": "#/definitions/UmweltSpec",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
     "AudioEncoding": {
@@ -36,11 +36,6 @@
           ]
         }
       },
-      "required": [
-        "pitch",
-        "duration",
-        "volume"
-      ],
       "type": "object"
     },
     "AudioEncodingFieldDef": {
@@ -811,24 +806,6 @@
       ],
       "type": "object"
     },
-    "FieldTextNode": {
-      "additionalProperties": false,
-      "properties": {
-        "children": {
-          "items": {
-            "$ref": "#/definitions/TextNode"
-          },
-          "type": "array"
-        },
-        "field": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "field"
-      ],
-      "type": "object"
-    },
     "FieldValidPredicate": {
       "additionalProperties": false,
       "properties": {
@@ -857,6 +834,61 @@
         "valid"
       ],
       "type": "object"
+    },
+    "InlineData": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "$ref": "#/definitions/DataFormat",
+          "description": "An object that specifies the format for parsing the data."
+        },
+        "name": {
+          "description": "Provide a placeholder name and bind data at runtime.",
+          "type": "string"
+        },
+        "values": {
+          "$ref": "#/definitions/InlineDataset",
+          "description": "The full data set, included inline. This can be an array of objects or primitive values, an object, or a string. Arrays of primitive values are ingested as objects with a `data` property. Strings are parsed according to the specified format type."
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "type": "object"
+    },
+    "InlineDataset": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "boolean"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "object"
+        }
+      ]
     },
     "JsonDataFormat": {
       "additionalProperties": false,
@@ -1136,24 +1168,6 @@
         }
       ]
     },
-    "PredTextNode": {
-      "additionalProperties": false,
-      "properties": {
-        "children": {
-          "items": {
-            "$ref": "#/definitions/TextNode"
-          },
-          "type": "array"
-        },
-        "predicate": {
-          "$ref": "#/definitions/FieldPredicate"
-        }
-      },
-      "required": [
-        "predicate"
-      ],
-      "type": "object"
-    },
     "SelectionSpec": {
       "additionalProperties": false,
       "properties": {
@@ -1212,14 +1226,22 @@
       ]
     },
     "TextNode": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/FieldTextNode"
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/definitions/TextNode"
+          },
+          "type": "array"
         },
-        {
-          "$ref": "#/definitions/PredTextNode"
+        "field": {
+          "type": "string"
+        },
+        "predicate": {
+          "$ref": "#/definitions/FieldPredicate"
         }
-      ]
+      },
+      "type": "object"
     },
     "TimeInterval": {
       "enum": [
@@ -1312,7 +1334,7 @@
       },
       "type": "object"
     },
-    "UIUmweltSpec": {
+    "UmweltSpec": {
       "additionalProperties": false,
       "properties": {
         "audio": {
@@ -1337,19 +1359,7 @@
               "$ref": "#/definitions/UrlData"
             },
             {
-              "additionalProperties": false,
-              "properties": {
-                "values": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                }
-              },
-              "required": [
-                "values"
-              ],
-              "type": "object"
+              "$ref": "#/definitions/InlineData"
             }
           ]
         },
@@ -1550,16 +1560,6 @@
           ]
         }
       },
-      "required": [
-        "x",
-        "y",
-        "color",
-        "shape",
-        "detail",
-        "facet",
-        "row",
-        "column"
-      ],
       "type": "object"
     },
     "VisualSpec": {

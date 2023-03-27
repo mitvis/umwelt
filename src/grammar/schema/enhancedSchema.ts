@@ -8,7 +8,7 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
 
   const fieldNameWatcher = {
     "watch": {
-      "fieldNames": "UIUmweltSpec.fields"
+      "fieldNames": "UmweltSpec.fields"
     },
     "enumSource": [{
       "source": "fieldNames",
@@ -18,14 +18,14 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
 
   schema.definitions = Object.fromEntries(Object.entries(schema.definitions).map(([key, def]: [string, any]) => {
     switch (key) {
-      case 'UIUmweltSpec':
-        def.id = 'UIUmweltSpec';
+      case 'UmweltSpec':
+        def.id = 'UmweltSpec';
         def.properties.data.propertyOrder = 1;
         def.properties.fields.propertyOrder = 2;
         break;
-      case 'FieldTextNode':
-      case 'PredTextNode':
+      case 'TextNode':
         def.properties.children.propertyOrder = 1001;
+        def.defaultProperties = ['field', 'children'];
         break;
       case 'EncodingFieldDef':
       case 'AudioEncodingFieldDef':
@@ -34,6 +34,13 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
           ...def.properties.field,
           ...fieldNameWatcher
         }
+        def.properties.field.propertyOrder = 1;
+        break;
+      case 'VisualEncoding':
+        def.defaultProperties = ['x', 'y', 'color'];
+        break;
+      case 'AudioEncoding':
+        def.defaultProperties = ['pitch'];
         break;
       case 'VisualEncoding':
       case 'AudioEncoding':
@@ -44,6 +51,39 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
           }
           return [prop, encDef];
         }))
+        break;
+      case 'UrlData':
+        def.defaultProperties = ['url'];
+        break;
+      case 'InlineData':
+        def.defaultProperties = ['values'];
+        break;
+      case 'InlineDataset':
+        def = {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        };
+        break;
+      case 'FieldDef':
+        def.defaultProperties = ['name', 'type'];
+      case "FieldEqualPredicate":
+      case "FieldLTPredicate":
+      case "FieldGTPredicate":
+      case "FieldLTEPredicate":
+      case "FieldGTEPredicate":
+      case "FieldRangePredicate":
+      case "FieldOneOfPredicate":
+      case "FieldValidPredicate":
+        def.defaultProperties = def.required;
+        Object.entries(def.properties).forEach(([key, def]: [string, any]) => {
+          if (def.anyOf) {
+            def.anyOf = def.anyOf.filter(d => {
+              return !["#/definitions/DateTime", "#/definitions/ExprRef"].includes(d["$ref"]);
+            })
+          }
+        })
         break;
     }
     return [key, def]

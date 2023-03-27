@@ -7,12 +7,20 @@
   height: 90%;
 }
 
+.App {
+  display: flex;
+  width: 100vw;
+  overflow-x: hidden;
+}
+
 .App .column {
   display: inline-block;
-  width: 50%;
+  max-width: 33%;
+  flex: 1;
   height: 100vh;
   vertical-align: top;
   margin: 0;
+  overflow-y: scroll;
 }
 
 .audio-spec {
