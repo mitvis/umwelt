@@ -4,18 +4,18 @@
   "private": true,
   "homepage": "https://mitvis.github.io/umwelt",
   "dependencies": {
+    "@json-editor/json-editor": "^2.9.1",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
     "@testing-library/user-event": "^13.2.1",
     "@types/jest": "^27.0.1",
+    "@types/json-schema": "^7.0.11",
     "@types/node": "^16.7.13",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "compassql": "^0.21.2",
     "dayjs": "^1.11.7",
     "jsonc-simple-parser": "^3.0.0",
-    "jsoneditor": "^9.9.2",
-    "jsoneditor-react": "^3.1.2",
     "olli": "^1.0.7",
     "olli-adapters": "^1.0.7",
     "react": "^18.2.0",
@@ -37,7 +37,7 @@
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "schema": "npx ts-json-schema-generator --path './src/grammar/Types.ts' --type 'ElaboratedUmweltSpec' --tsconfig './tsconfig.json' -o './src/grammar/schema/umwelt.schema.json' --no-top-ref"
+    "schema": "npx ts-json-schema-generator --path './src/grammar/Types.ts' --type 'UmweltSpec' --tsconfig './tsconfig.json' -o './src/grammar/schema/umwelt.schema.json' --no-top-ref"
   },
   "eslintConfig": {
     "extends": [

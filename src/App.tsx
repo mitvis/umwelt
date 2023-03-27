@@ -5,6 +5,7 @@ import Umwelt from './Umwelt';
 import { umwelt } from './grammar';
 import JSONC from 'jsonc-simple-parser';
 import { debounce } from 'vega';
+import UmveltEditor from './UmweltEditor';
 
 function App() {
 
@@ -76,6 +77,7 @@ function App() {
         <div className="logo" aria-hidden="true">
           <img src='/umwelt/umwelt.svg' />
         </div>
+        <UmveltEditor spec={specs[selectedSpec]} onSpec={() => {}}></UmveltEditor>
       </div>
       <div className='column'>
         <Debounce ms={250}>

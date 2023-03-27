@@ -1,5 +1,5 @@
 import {Type} from 'vega-lite/src/type';
-import {DataSource, NamedData} from 'vega-lite/src/data';
+import {UrlData, InlineData} from 'vega-lite/src/data';
 import {Mark} from 'vega-lite/src/mark';
 import { Scale } from 'vega-lite/src/scale';
 import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
@@ -15,7 +15,7 @@ export type VgSpec = Spec;
 type ScaleDomain = Pick<Scale, "domain" | "zero" | "nice">
 
 export type MeasureType = Exclude<Type, "geojson">;
-type UmweltDataSource = Exclude<DataSource, NamedData>
+type UmweltDataSource = UrlData | InlineData
 type ElaboratedUmweltDataSource = { values: OlliDataset }
 
 type VisualPropName = "x" | "y" | "color" | "shape" | "detail" | "facet" | "row" | "column";

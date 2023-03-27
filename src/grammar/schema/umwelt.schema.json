@@ -2,6 +2,160 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
   "definitions": {
+    "AudioEncoding": {
+      "additionalProperties": false,
+      "properties": {
+        "duration": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "pitch": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "volume": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        }
+      },
+      "required": [
+        "pitch",
+        "duration",
+        "volume"
+      ],
+      "type": "object"
+    },
+    "AudioSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "encoding": {
+          "$ref": "#/definitions/AudioEncoding"
+        },
+        "traversal": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AudioTraversal"
+            },
+            {
+              "const": "selection",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "AudioTraversal": {
+      "additionalProperties": false,
+      "properties": {
+        "interaction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/EncodingFieldDef"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "sequence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/EncodingFieldDef"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "CsvDataFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "parse": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Parse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "If set to `null`, disable type inference based on the spec and only use type inference based on the data. Alternatively, a parsing directive object can be provided for explicit data types. Each property of the object corresponds to a field name, and the value to the desired data type (one of `\"number\"`, `\"boolean\"`, `\"date\"`, or null (do not parse the field)). For example, `\"parse\": {\"modified_on\": \"date\"}` parses the `modified_on` field in each input record a Date value.\n\nFor `\"date\"`, we parse data based using JavaScript's [`Date.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). For Specific date formats can be provided (e.g., `{foo: \"date:'%m%d%Y'\"}`), using the [d3-time-format syntax](https://github.com/d3/d3-time-format#locale_format). UTC date format parsing is supported similarly (e.g., `{foo: \"utc:'%m%d%Y'\"}`). See more about [UTC time](https://vega.github.io/vega-lite/docs/timeunit.html#utc)"
+        },
+        "type": {
+          "description": "Type of input data: `\"json\"`, `\"csv\"`, `\"tsv\"`, `\"dsv\"`.\n\n__Default value:__  The default format type is determined by the extension of the file URL. If no extension is detected, `\"json\"` will be used by default.",
+          "enum": [
+            "csv",
+            "tsv"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "DataFormat": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/CsvDataFormat"
+        },
+        {
+          "$ref": "#/definitions/DsvDataFormat"
+        },
+        {
+          "$ref": "#/definitions/JsonDataFormat"
+        },
+        {
+          "$ref": "#/definitions/TopoDataFormat"
+        }
+      ]
+    },
     "DateTime": {
       "additionalProperties": false,
       "description": "Object for defining datetime in Vega-Lite Filter. If both month and quarter are provided, month has higher precedence. `day` cannot be combined with other date. We accept string for month and day names.",
@@ -118,73 +272,69 @@
       ],
       "type": "object"
     },
-    "ElaboratedAudioEncoding": {
+    "DsvDataFormat": {
       "additionalProperties": false,
       "properties": {
-        "duration": {
-          "$ref": "#/definitions/EncodingFieldDef"
+        "delimiter": {
+          "description": "The delimiter between records. The delimiter must be a single character (i.e., a single 16-bit code unit); so, ASCII delimiters are fine, but emoji delimiters are not.",
+          "maxLength": 1,
+          "minLength": 1,
+          "type": "string"
         },
-        "pitch": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        },
-        "volume": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        }
-      },
-      "required": [
-        "pitch",
-        "duration",
-        "volume"
-      ],
-      "type": "object"
-    },
-    "ElaboratedAudioSpec": {
-      "additionalProperties": false,
-      "properties": {
-        "encoding": {
-          "$ref": "#/definitions/ElaboratedAudioEncoding"
-        },
-        "traversal": {
+        "parse": {
           "anyOf": [
             {
-              "$ref": "#/definitions/ElaboratedAudioTraversal"
+              "$ref": "#/definitions/Parse"
             },
             {
-              "const": "selection",
-              "type": "string"
+              "type": "null"
             }
-          ]
+          ],
+          "description": "If set to `null`, disable type inference based on the spec and only use type inference based on the data. Alternatively, a parsing directive object can be provided for explicit data types. Each property of the object corresponds to a field name, and the value to the desired data type (one of `\"number\"`, `\"boolean\"`, `\"date\"`, or null (do not parse the field)). For example, `\"parse\": {\"modified_on\": \"date\"}` parses the `modified_on` field in each input record a Date value.\n\nFor `\"date\"`, we parse data based using JavaScript's [`Date.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). For Specific date formats can be provided (e.g., `{foo: \"date:'%m%d%Y'\"}`), using the [d3-time-format syntax](https://github.com/d3/d3-time-format#locale_format). UTC date format parsing is supported similarly (e.g., `{foo: \"utc:'%m%d%Y'\"}`). See more about [UTC time](https://vega.github.io/vega-lite/docs/timeunit.html#utc)"
+        },
+        "type": {
+          "const": "dsv",
+          "description": "Type of input data: `\"json\"`, `\"csv\"`, `\"tsv\"`, `\"dsv\"`.\n\n__Default value:__  The default format type is determined by the extension of the file URL. If no extension is detected, `\"json\"` will be used by default.",
+          "type": "string"
         }
       },
       "required": [
-        "encoding",
-        "traversal"
+        "delimiter"
       ],
       "type": "object"
     },
-    "ElaboratedAudioTraversal": {
+    "EncodingFieldDef": {
       "additionalProperties": false,
       "properties": {
-        "interaction": {
-          "items": {
-            "$ref": "#/definitions/EncodingFieldDef"
-          },
-          "type": "array"
+        "aggregate": {
+          "$ref": "#/definitions/NonArgAggregateOp"
         },
-        "sequence": {
-          "items": {
-            "$ref": "#/definitions/EncodingFieldDef"
-          },
-          "type": "array"
+        "bin": {
+          "type": "boolean"
+        },
+        "field": {
+          "type": "string"
         }
       },
       "required": [
-        "interaction",
-        "sequence"
+        "field"
       ],
       "type": "object"
     },
-    "ElaboratedFieldDef": {
+    "ExprRef": {
+      "additionalProperties": false,
+      "properties": {
+        "expr": {
+          "description": "Vega expression (which can refer to Vega-Lite parameters).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expr"
+      ],
+      "type": "object"
+    },
+    "FieldDef": {
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -275,176 +425,7 @@
         }
       },
       "required": [
-        "name",
-        "type",
-        "scale"
-      ],
-      "type": "object"
-    },
-    "ElaboratedGroupNode": {
-      "additionalProperties": false,
-      "properties": {
-        "children": {
-          "items": {
-            "$ref": "#/definitions/ElaboratedPredNode"
-          },
-          "type": "array"
-        },
-        "field": {
-          "type": "string"
-        },
-        "fullPredicate": {
-          "$ref": "#/definitions/LogicalAnd%3CFieldPredicate%3E"
-        }
-      },
-      "required": [
-        "children",
-        "fullPredicate"
-      ],
-      "type": "object"
-    },
-    "ElaboratedLeafNode": {
-      "additionalProperties": false,
-      "properties": {
-        "fullPredicate": {
-          "$ref": "#/definitions/LogicalAnd%3CFieldPredicate%3E"
-        }
-      },
-      "required": [
-        "fullPredicate"
-      ],
-      "type": "object"
-    },
-    "ElaboratedPredNode": {
-      "additionalProperties": false,
-      "properties": {
-        "children": {
-          "anyOf": [
-            {
-              "items": {
-                "$ref": "#/definitions/ElaboratedGroupNode"
-              },
-              "type": "array"
-            },
-            {
-              "items": {
-                "$ref": "#/definitions/ElaboratedLeafNode"
-              },
-              "type": "array"
-            }
-          ]
-        },
-        "fullPredicate": {
-          "$ref": "#/definitions/LogicalAnd%3CFieldPredicate%3E"
-        },
-        "predicate": {
-          "$ref": "#/definitions/FieldPredicate"
-        }
-      },
-      "required": [
-        "children",
-        "fullPredicate",
-        "predicate"
-      ],
-      "type": "object"
-    },
-    "ElaboratedTextNode": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/ElaboratedPredNode"
-        },
-        {
-          "$ref": "#/definitions/ElaboratedGroupNode"
-        },
-        {
-          "$ref": "#/definitions/ElaboratedLeafNode"
-        }
-      ]
-    },
-    "ElaboratedVisualEncoding": {
-      "additionalProperties": false,
-      "properties": {
-        "color": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        },
-        "column": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        },
-        "detail": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        },
-        "facet": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        },
-        "row": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        },
-        "shape": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        },
-        "x": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        },
-        "y": {
-          "$ref": "#/definitions/EncodingFieldDef"
-        }
-      },
-      "required": [
-        "x",
-        "y",
-        "color",
-        "shape",
-        "detail",
-        "facet",
-        "row",
-        "column"
-      ],
-      "type": "object"
-    },
-    "ElaboratedVisualSpec": {
-      "additionalProperties": false,
-      "properties": {
-        "encoding": {
-          "$ref": "#/definitions/ElaboratedVisualEncoding"
-        },
-        "mark": {
-          "$ref": "#/definitions/Mark"
-        }
-      },
-      "required": [
-        "mark",
-        "encoding"
-      ],
-      "type": "object"
-    },
-    "EncodingFieldDef": {
-      "additionalProperties": false,
-      "properties": {
-        "aggregate": {
-          "$ref": "#/definitions/NonArgAggregateOp"
-        },
-        "bin": {
-          "type": "boolean"
-        },
-        "field": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "field"
-      ],
-      "type": "object"
-    },
-    "ExprRef": {
-      "additionalProperties": false,
-      "properties": {
-        "expr": {
-          "description": "Vega expression (which can refer to Vega-Lite parameters).",
-          "type": "string"
-        }
-      },
-      "required": [
-        "expr"
+        "name"
       ],
       "type": "object"
     },
@@ -800,6 +781,24 @@
       ],
       "type": "object"
     },
+    "FieldTextNode": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/definitions/TextNode"
+          },
+          "type": "array"
+        },
+        "field": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "field"
+      ],
+      "type": "object"
+    },
     "FieldValidPredicate": {
       "additionalProperties": false,
       "properties": {
@@ -827,6 +826,87 @@
         "field",
         "valid"
       ],
+      "type": "object"
+    },
+    "InlineData": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "$ref": "#/definitions/DataFormat",
+          "description": "An object that specifies the format for parsing the data."
+        },
+        "name": {
+          "description": "Provide a placeholder name and bind data at runtime.",
+          "type": "string"
+        },
+        "values": {
+          "$ref": "#/definitions/InlineDataset",
+          "description": "The full data set, included inline. This can be an array of objects or primitive values, an object, or a string. Arrays of primitive values are ingested as objects with a `data` property. Strings are parsed according to the specified format type."
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "type": "object"
+    },
+    "InlineDataset": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "boolean"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
+    "JsonDataFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "parse": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Parse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "If set to `null`, disable type inference based on the spec and only use type inference based on the data. Alternatively, a parsing directive object can be provided for explicit data types. Each property of the object corresponds to a field name, and the value to the desired data type (one of `\"number\"`, `\"boolean\"`, `\"date\"`, or null (do not parse the field)). For example, `\"parse\": {\"modified_on\": \"date\"}` parses the `modified_on` field in each input record a Date value.\n\nFor `\"date\"`, we parse data based using JavaScript's [`Date.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). For Specific date formats can be provided (e.g., `{foo: \"date:'%m%d%Y'\"}`), using the [d3-time-format syntax](https://github.com/d3/d3-time-format#locale_format). UTC date format parsing is supported similarly (e.g., `{foo: \"utc:'%m%d%Y'\"}`). See more about [UTC time](https://vega.github.io/vega-lite/docs/timeunit.html#utc)"
+        },
+        "property": {
+          "description": "The JSON property containing the desired data. This parameter can be used when the loaded JSON file may have surrounding structure or meta-data. For example `\"property\": \"values.features\"` is equivalent to retrieving `json.values.features` from the loaded JSON object.",
+          "type": "string"
+        },
+        "type": {
+          "const": "json",
+          "description": "Type of input data: `\"json\"`, `\"csv\"`, `\"tsv\"`, `\"dsv\"`.\n\n__Default value:__  The default format type is determined by the extension of the file URL. If no extension is detected, `\"json\"` will be used by default.",
+          "type": "string"
+        }
+      },
       "type": "object"
     },
     "LocalMultiTimeUnit": {
@@ -1008,32 +1088,6 @@
       ],
       "type": "string"
     },
-    "OlliDataset": {
-      "items": {
-        "$ref": "#/definitions/OlliDatum"
-      },
-      "type": "array"
-    },
-    "OlliDatum": {
-      "additionalProperties": {
-        "$ref": "#/definitions/OlliValue"
-      },
-      "type": "object"
-    },
-    "OlliValue": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "number"
-        },
-        {
-          "format": "date-time",
-          "type": "string"
-        }
-      ]
-    },
     "ParameterExtent": {
       "anyOf": [
         {
@@ -1074,6 +1128,56 @@
     },
     "ParameterName": {
       "type": "string"
+    },
+    "Parse": {
+      "additionalProperties": {
+        "$ref": "#/definitions/ParseValue"
+      },
+      "type": "object"
+    },
+    "ParseValue": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "const": "string",
+          "type": "string"
+        },
+        {
+          "const": "boolean",
+          "type": "string"
+        },
+        {
+          "const": "date",
+          "type": "string"
+        },
+        {
+          "const": "number",
+          "type": "string"
+        }
+      ]
+    },
+    "PredTextNode": {
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/definitions/TextNode"
+          },
+          "type": "array"
+        },
+        "predicate": {
+          "$ref": "#/definitions/FieldPredicate"
+        }
+      },
+      "required": [
+        "predicate"
+      ],
+      "type": "object"
     },
     "SelectionSpec": {
       "additionalProperties": false,
@@ -1129,6 +1233,16 @@
         },
         {
           "$ref": "#/definitions/UtcSingleTimeUnit"
+        }
+      ]
+    },
+    "TextNode": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/FieldTextNode"
+        },
+        {
+          "$ref": "#/definitions/PredTextNode"
         }
       ]
     },
@@ -1193,6 +1307,57 @@
       },
       "type": "object"
     },
+    "TopoDataFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "feature": {
+          "description": "The name of the TopoJSON object set to convert to a GeoJSON feature collection. For example, in a map of the world, there may be an object set named `\"countries\"`. Using the feature property, we can extract this set and generate a GeoJSON feature object for each country.",
+          "type": "string"
+        },
+        "mesh": {
+          "description": "The name of the TopoJSON object set to convert to mesh. Similar to the `feature` option, `mesh` extracts a named TopoJSON object set.  Unlike the `feature` option, the corresponding geo data is returned as a single, unified mesh instance, not as individual GeoJSON features. Extracting a mesh is useful for more efficiently drawing borders or other geographic elements that you do not need to associate with specific regions such as individual countries, states or counties.",
+          "type": "string"
+        },
+        "parse": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Parse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "If set to `null`, disable type inference based on the spec and only use type inference based on the data. Alternatively, a parsing directive object can be provided for explicit data types. Each property of the object corresponds to a field name, and the value to the desired data type (one of `\"number\"`, `\"boolean\"`, `\"date\"`, or null (do not parse the field)). For example, `\"parse\": {\"modified_on\": \"date\"}` parses the `modified_on` field in each input record a Date value.\n\nFor `\"date\"`, we parse data based using JavaScript's [`Date.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). For Specific date formats can be provided (e.g., `{foo: \"date:'%m%d%Y'\"}`), using the [d3-time-format syntax](https://github.com/d3/d3-time-format#locale_format). UTC date format parsing is supported similarly (e.g., `{foo: \"utc:'%m%d%Y'\"}`). See more about [UTC time](https://vega.github.io/vega-lite/docs/timeunit.html#utc)"
+        },
+        "type": {
+          "const": "topojson",
+          "description": "Type of input data: `\"json\"`, `\"csv\"`, `\"tsv\"`, `\"dsv\"`.\n\n__Default value:__  The default format type is determined by the extension of the file URL. If no extension is detected, `\"json\"` will be used by default.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "UrlData": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "$ref": "#/definitions/DataFormat",
+          "description": "An object that specifies the format for parsing the data."
+        },
+        "name": {
+          "description": "Provide a placeholder name and bind data at runtime.",
+          "type": "string"
+        },
+        "url": {
+          "description": "An URL from which to load the data set. Use the `format.type` property to ensure the loaded data is correctly parsed.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "type": "object"
+    },
     "UtcMultiTimeUnit": {
       "enum": [
         "utcyearquarter",
@@ -1242,38 +1407,146 @@
         "utcmilliseconds"
       ],
       "type": "string"
+    },
+    "VisualEncoding": {
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "facet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "row": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "x": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        },
+        "y": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/EncodingFieldDef"
+            }
+          ]
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "color",
+        "shape",
+        "detail",
+        "facet",
+        "row",
+        "column"
+      ],
+      "type": "object"
+    },
+    "VisualSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "encoding": {
+          "$ref": "#/definitions/VisualEncoding"
+        },
+        "mark": {
+          "$ref": "#/definitions/Mark"
+        }
+      },
+      "type": "object"
     }
   },
   "properties": {
     "audio": {
       "anyOf": [
         {
+          "$ref": "#/definitions/AudioSpec"
+        },
+        {
           "items": {
-            "$ref": "#/definitions/ElaboratedAudioSpec"
+            "$ref": "#/definitions/AudioSpec"
           },
           "type": "array"
         },
         {
-          "const": false,
           "type": "boolean"
         }
       ]
     },
     "data": {
-      "additionalProperties": false,
-      "properties": {
-        "values": {
-          "$ref": "#/definitions/OlliDataset"
+      "anyOf": [
+        {
+          "$ref": "#/definitions/UrlData"
+        },
+        {
+          "$ref": "#/definitions/InlineData"
         }
-      },
-      "required": [
-        "values"
-      ],
-      "type": "object"
+      ]
     },
     "fields": {
       "items": {
-        "$ref": "#/definitions/ElaboratedFieldDef"
+        "$ref": "#/definitions/FieldDef"
       },
       "type": "array"
     },
@@ -1283,13 +1556,15 @@
     "text": {
       "anyOf": [
         {
+          "$ref": "#/definitions/TextNode"
+        },
+        {
           "items": {
-            "$ref": "#/definitions/ElaboratedTextNode"
+            "$ref": "#/definitions/TextNode"
           },
           "type": "array"
         },
         {
-          "const": false,
           "type": "boolean"
         }
       ]
@@ -1297,10 +1572,9 @@
     "visual": {
       "anyOf": [
         {
-          "$ref": "#/definitions/ElaboratedVisualSpec"
+          "$ref": "#/definitions/VisualSpec"
         },
         {
-          "const": false,
           "type": "boolean"
         }
       ]
@@ -1308,10 +1582,7 @@
   },
   "required": [
     "data",
-    "fields",
-    "visual",
-    "audio",
-    "text"
+    "fields"
   ],
   "type": "object"
 }
