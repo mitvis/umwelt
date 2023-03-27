@@ -24,6 +24,7 @@ const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
     }
     console.log(enhancedSchema)
     const container = document.querySelector('.uw-editor');
+    container.replaceChildren();
     const e = new JSONEditor.JSONEditor(container, {
       schema: enhancedSchema,
       // display_required_only: true,
