@@ -29,6 +29,31 @@
   margin-bottom: 15px;
 }
 
+.uw-editor h3.je-header {
+  font-size: medium;
+  margin: 0;
+}
+
+.uw-editor[data-theme="html"] [data-schemapath="root"] > .je-indented-panel {
+  border: none;
+  padding-left: 0;
+}
+
+.uw-editor[data-theme="html"] .je-indented-panel {
+  border: none;
+  border-left: 1px solid #ccc;
+  border-radius: 0;
+  margin-left: 0;
+  padding: 0;
+  padding-left: 10px;
+  margin-bottom: 60px;
+}
+
+.uw-editor[data-theme="html"] p.je-form-input-label {
+  font-weight: normal;
+  font-size: 10px;
+}
+
 .logo {
   /* font-family: 'Knewave', cursive; */
   /* font-size: 72px; */

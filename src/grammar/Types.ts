@@ -134,11 +134,6 @@ export interface UmweltSpec {
   text?: TextNode | TextNode[] | boolean
 }
 
-
-export interface UIUmweltSpec extends UmweltSpec {
-  data: UrlData | {values: object[]}
-}
-
 export interface ElaboratedUmweltSpec {
   data: ElaboratedUmweltDataSource
   selection?: SelectionSpec

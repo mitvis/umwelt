@@ -17,10 +17,10 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
   }
 
   schema.definitions = Object.fromEntries(Object.entries(schema.definitions).map(([key, def]: [string, any]) => {
-    def.title = key;
     switch (key) {
       case 'UmweltSpec':
         def.id = 'UmweltSpec';
+        def.title = key;
         def.properties.data.propertyOrder = 1;
         def.properties.fields.propertyOrder = 2;
         break;
@@ -31,6 +31,7 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
       case 'EncodingFieldDef':
       case 'AudioEncodingFieldDef':
       case 'AudioTraversalFieldDef':
+        def.title = key;
         def.properties.field = {
           ...def.properties.field,
           ...fieldNameWatcher
@@ -54,9 +55,11 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
         }))
         break;
       case 'UrlData':
+        def.title = key;
         def.defaultProperties = ['url'];
         break;
       case 'InlineData':
+        def.title = key;
         def.defaultProperties = ['values'];
         break;
       case 'InlineDataset':
@@ -77,6 +80,7 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
       case "FieldRangePredicate":
       case "FieldOneOfPredicate":
       case "FieldValidPredicate":
+        def.title = key;
         def.defaultProperties = def.required;
         Object.entries(def.properties).forEach(([key, def]: [string, any]) => {
           if (def.anyOf) {

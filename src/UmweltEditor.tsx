@@ -30,6 +30,7 @@ const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
       // display_required_only: true,
       show_opt_in: true,
       use_default_values: false,
+      array_controls_top: true,
       startval: spec
     });
     setEditor(e);
