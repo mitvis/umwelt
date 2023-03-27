@@ -1,5 +1,5 @@
 import { JSONSchema7, JSONSchema7Definition } from 'json-schema';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { isBoolean } from 'vega';
 import { ElaboratedUmweltSpec } from './grammar';
 import './text/TreeStyle.css'
@@ -18,8 +18,13 @@ const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
     editor.current = data;
   };
 
+  const onChange = useCallback(() => {
+    onSpec(editor.current.getValue());
+  }, [])
+
   useEffect(() => {
     if (editor.current) {
+      editor.current.off('change', onChange);
       editor.current.destroy();
     }
     console.log(enhancedSchema)
@@ -33,8 +38,9 @@ const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
       array_controls_top: true,
       startval: spec
     });
-    setEditor(e);
+    e.on('change', onChange);
 
+    setEditor(e);
   }, [spec]);
 
   return (

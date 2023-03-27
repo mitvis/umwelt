@@ -79,7 +79,7 @@ function App() {
         </div>
       </div>
       <div className='column'>
-        <UmveltEditor spec={specs[selectedSpec]} onSpec={(spec) => { setTextValue(JSON.stringify(spec)) }}></UmveltEditor>
+        <UmveltEditor spec={specs[selectedSpec]} onSpec={(spec) => { setTextValue(JSON.stringify(spec, null, 2)) }}></UmveltEditor>
       </div>
       <div className='column'>
         <Debounce ms={250}>
