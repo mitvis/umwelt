@@ -4,7 +4,6 @@ import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure
 import { getFieldDef } from "../utils/data";
 import { textSpecToFullPredicateSpec } from "../utils/text";
 import { isString } from "vega";
-import { FieldDefBase } from "vega-lite/src/channeldef";
 
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): ElaboratedFieldDef[] {
@@ -74,7 +73,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     try {
       return recommendVisuals(spec, data, partial);
     } catch (e) {
-      console.error(e);
+      console.warn(e);
       return partial as ElaboratedVisualSpec;
     }
   }

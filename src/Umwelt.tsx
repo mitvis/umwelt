@@ -2,14 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ElaboratedUmweltSpec, SelectionSpec, VlSpec } from './grammar';
 import { getOnFocus } from './utils/render';
 import { selectionStoreToSelectionSpec, selectionTest } from './utils/selection';
-import UmweltAudio, { AudioSpecState } from './UmweltAudio';
+import UmweltAudio, { AudioDomain, AudioSpecState } from './UmweltAudio';
 import { debounce } from 'vega';
 import UmweltOlli from './UmweltOlli';
 import React from 'react';
 import { Axis, chart, OlliDataset, OlliVisSpec } from 'olli';
 import { audioStateToSelectionSpec } from './utils/audioState';
 import UmweltVegaLite from './UmweltVegaLite';
-import { axisValuesToIntervals } from './utils/bin';
 import { getFieldDef } from './utils/data';
 import UmweltText from './UmweltText';
 import { LogicalAnd } from 'vega-lite/src/logical';
@@ -35,8 +34,6 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
     _setSelectionCtrl(data);
   };
 
-  const [axisBins, setAxisBins] = useState<{[field: string]: ([number, number])[]}>({});
-
   /* ********************** initialize state *********************** */
 
   useEffect(() => {
@@ -49,29 +46,12 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
       setSelectionSpec(undefined);
     }
 
-    // initialize binning information
-    let axes: Axis[] = [];
-    if (olliSpec.type === 'facetedChart') {
-      axes = [...olliSpec.charts.values()]?.[0]?.axes || [];
-    }
-    else {
-      axes = olliSpec.axes;
-    }
-    const bins = Object.fromEntries(axes.filter(axis => {
-      const fieldDef = getFieldDef(axis.field, uvSpec.fields);
-      return fieldDef.type === 'quantitative' || fieldDef.type === 'temporal';
-    }).map(axis => {
-      return [axis.field, axisValuesToIntervals(axis.values)]
-    }));
-    setAxisBins(bins);
-
   }, [uvSpec]);
 
   /* *********** define listeners to update selection state from children ************ */
 
-  const onAudioState = useCallback((audioState: AudioSpecState) => {
+  const onAudioState = useCallback((selectionSpec: SelectionSpec) => {
     // update umwelt selection from audio state
-    const selectionSpec = audioStateToSelectionSpec(audioState);
     setSelectionCtrl('audio');
     setSelectionSpec(selectionSpec);
     console.log('update', selectionSpec);
@@ -118,7 +98,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
       <br/>
 
       {
-        uvSpec.audio ? <UmweltAudio audio={uvSpec.audio} fields={uvSpec.fields} data={data} onAudioState={onAudioState} selectionSpec={selectionSpec} selectionCtrl={selectionCtrl.current} axisBins={axisBins}></UmweltAudio> : null
+        uvSpec.audio ? <UmweltAudio audio={uvSpec.audio} fields={uvSpec.fields} data={data} onAudioState={onAudioState} selectionSpec={selectionSpec} selectionCtrl={selectionCtrl.current}></UmweltAudio> : null
       }
       <br/>
       <br/>

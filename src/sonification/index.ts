@@ -7,6 +7,11 @@ export type SonifiedNote = {
   duration?: number;
 }
 
+export type SonifierSequence = {
+  ramp: boolean,
+  sequence: SonifiedNote[]
+}
+
 let instance;
 
 class Sonifier {
@@ -20,7 +25,7 @@ class Sonifier {
   private noiseDuration = 0.25; // in seconds
   private defaultDuration = 0.5; // in seconds
 
-  private notes: SonifiedNote[];
+  private notes: SonifierSequence[];
 
   constructor() {
     if (instance) {
@@ -41,11 +46,11 @@ class Sonifier {
               this.play(null);
             }
             else if (this.notes.length === 1) {
-              this.play(this.notes[0]);
+              // this.play(this.notes[0]);
             }
             else {
               if (Tone.Transport.state !== 'started') {
-                this.playSequence(this.notes);
+                // this.playSequence(this.notes);
               }
               else {
                 Tone.Transport.stop();
@@ -80,7 +85,7 @@ class Sonifier {
     return this;
   }
 
-  setNotes(notes: SonifiedNote[]) {
+  setNotes(notes: SonifierSequence[]) {
     this.notes = notes;
   }
 
@@ -162,10 +167,10 @@ class Sonifier {
         this.ping(null);
       }
       else if (this.notes.length === 1) {
-        this.ping(this.notes[0]);
+        // this.ping(this.notes[0]);
       }
       else {
-        this.playSequence(this.notes);
+        // this.playSequence(this.notes);
       }
     }
   }

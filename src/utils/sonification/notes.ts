@@ -67,33 +67,7 @@ function sequenceToNotes(audioSpec: ElaboratedAudioSpec, fields: ElaboratedField
   }
 }
 
-export function selectionToNotes(selected: OlliDataset, audio: ElaboratedAudioSpec[], fields: ElaboratedFieldDef[], data: OlliDataset): SonifiedNote[] {
-  // const selectionAudioSpec = audio.find(audioSpec => audioSpec.traversal === 'selection');
-  // TODO idk what to do with the above^
-  const sequenceAudioSpec = audio.find(audioSpec => {
-    if (audioSpec.traversal === 'selection') return false;
-    return audioSpec.traversal.sequence.length;
-  }); // TODO what if there's more than one
-  if (sequenceAudioSpec) {
-    return sequenceToNotes(sequenceAudioSpec, fields, selected, data);
-  }
-  return [];
-};
-
-export function audioCtrlSelectionToNotes(selectionSpec: SelectionSpec, audio: ElaboratedAudioSpec[], fields: ElaboratedFieldDef[], data: OlliDataset): SonifiedNote[] {
-  const selected = selectionTest(data, selectionSpec, fields);
-
-  const audioStateFields = (selectionSpec.predicate as any).and.map((fp: FieldPredicate) => {
-    return fp.field
-  });
-
-  const audioSpec = audio.find(audioSpec => {
-    return audioStateFields.every(field => {
-      if (audioSpec.traversal === 'selection') return false;
-      return audioSpec.traversal.interaction.find(f => f.field === field);
-    })
-  });
-
+export function selectionToNotes(selected: OlliDataset, audioSpec: ElaboratedAudioSpec, fields: ElaboratedFieldDef[], data: OlliDataset): SonifiedNote[] {
   if (audioSpec) {
     if (audioSpec.traversal === 'selection') return []; // TODO shrug
     if (audioSpec.traversal.sequence.length) {
@@ -114,9 +88,9 @@ export function audioCtrlSelectionToNotes(selectionSpec: SelectionSpec, audio: E
 }
 
 function getAggregateIfExists(encoding: ElaboratedAudioEncoding, data: OlliDataset) {
-  const [_, aggEncFieldDef] = Object.entries(encoding).find(([_, encFieldDef]) => {
+  const aggEncFieldDef = Object.values(encoding).find((encFieldDef) => {
     return encFieldDef.aggregate;
-  }) || [null, null];
+  });
   if (aggEncFieldDef) {
     const agg = aggregate(aggEncFieldDef, data);
     return agg;
