@@ -191,7 +191,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                       const specStates = [...audioState.specStates];
                       specStates[audioSpecIdx] = {
                         ...specStates[audioSpecIdx],
-                        [field]: domain.findIndex(val => String(val) === String(e.target.value)) // TODO is there a better way to just get the index of selected
+                        [field]: e.target.selectedIndex
                       }
                       setAudioState({
                         ...audioState,
@@ -204,7 +204,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                     return (
                       <div key={field}>
                         <label htmlFor={id}>{field}</label>
-                        <select onChange={onchange} id={id} value={String(audioState.specStates?.[audioSpecIdx]?.[field])}>
+                        <select onChange={onchange} id={id} value={String(domain[audioState.specStates?.[audioSpecIdx]?.[field]])}>
                           {domain.map(val => {
                             return <option key={String(val)} value={String(val)}>{String(val)}</option>
                           })}
