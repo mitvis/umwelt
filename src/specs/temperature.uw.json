@@ -30,7 +30,7 @@
     },
     "traversal": {
       "interaction": ["month", "city"],
-      "sequence": ["city", "month"]
+      "sequence": ["month", "city"]
     }
   },
   "text": [

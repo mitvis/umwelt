@@ -117,6 +117,7 @@ export function tickSequenceAudioState(audioState: AudioState, audio: Elaborated
   // else increment index(es)
   const nextAudioState: AudioState = structuredClone(audioState);
   const sequenceFields = [...audioSpec.traversal.sequence.map(f => f.field)].reverse();
+  console.log(sequenceFields);
   for (let field of sequenceFields) {
     const fIdx = audioSpecState[field];
     if (fIdx === audioSpecDomain[field].length - 1) {

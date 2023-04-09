@@ -145,7 +145,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         setAudioState(tickSequenceAudioState(audioStateRef.current, audio));
       }
     }
-  }, []);
+  }, [audio]);
 
   useEffect(() => {
     window.addEventListener('keydown', onKeyDown);
@@ -154,7 +154,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, []);
+  });
 
   function audioStateFieldsAreCurrent() {
     return audioState.specStates.every(audioSpecState => {
