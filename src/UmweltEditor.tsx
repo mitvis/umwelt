@@ -1,14 +1,13 @@
 import { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { isBoolean } from 'vega';
-import { ElaboratedUmweltSpec } from './grammar';
+import { UmweltSpec } from './grammar';
 import './text/TreeStyle.css'
 import * as JSONEditor from '@json-editor/json-editor';
 import { enhancedSchema } from './grammar/schema/enhancedSchema';
 
 interface EditorProps {
-  spec: ElaboratedUmweltSpec
-  onSpec: (spec: ElaboratedUmweltSpec) => void
+  spec: UmweltSpec
+  onSpec: (spec: UmweltSpec) => void
 }
 
 const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
@@ -19,7 +18,7 @@ const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
   };
 
   const onChange = useCallback(() => {
-    onSpec(editor.current.getValue());
+    // onSpec(editor.current.getValue());
   }, [])
 
   useEffect(() => {

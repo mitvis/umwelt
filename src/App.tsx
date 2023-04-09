@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import Debounce from 'react-debounce-component';
 import Umwelt from './Umwelt';
-import { umwelt } from './grammar';
+import { umwelt, UmweltSpec } from './grammar';
 import JSONC from 'jsonc-simple-parser';
 import { debounce } from 'vega';
 import UmveltEditor from './UmweltEditor';
@@ -33,25 +33,19 @@ function App() {
     // useState("barley-facet-agg.uw.json");
 
   const [textValue, setTextValue] = useState("");
+  const [specValue, setSpecValue] = useState<UmweltSpec>();
   const [props, setProps] = useState(null);
 
   useEffect(() => {
     const spec = specs[selectedSpec];
     setTextValue(JSON.stringify(spec, null, 2));
-
-    umwelt(spec).then((props) => {
-      setProps(props);
-      console.log(props);
-    })
   }, [selectedSpec]);
 
   const onTextValue = useCallback(debounce(250, (textValue) => {
     try {
       console.log('onvalue');
       const spec = JSONC.parse(textValue);
-      umwelt(spec).then((props) => {
-        setProps(props);
-      })
+      setSpecValue(spec);
     }
     catch (e) {}
   }), []);
@@ -59,6 +53,14 @@ function App() {
   useEffect(() => {
     onTextValue(textValue);
   }, [textValue]);
+
+  useEffect(() => {
+    if (specValue) {
+      umwelt(specValue).then((props) => {
+        setProps(props);
+      });
+    }
+  }, [specValue]);
 
   return (
     <div className="App">
@@ -79,7 +81,7 @@ function App() {
         </div>
       </div>
       <div className='column'>
-        <UmveltEditor spec={specs[selectedSpec]} onSpec={(spec) => { setTextValue(JSON.stringify(spec, null, 2)) }}></UmveltEditor>
+        <UmveltEditor spec={specValue} onSpec={(spec) => { setTextValue(JSON.stringify(spec, null, 2)) }}></UmveltEditor>
       </div>
       <div className='column'>
         <Debounce ms={250}>

@@ -1,12 +1,15 @@
 import { OlliDataset, OlliValue } from 'olli';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
+import useState from 'react-usestateref';
 import { ElaboratedAudioSpec, ElaboratedFieldDef, SelectionSpec } from './grammar';
 import { getDomain, getFieldDef } from './utils/data';
 import { selectionTest } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
 import Sonifier from './sonification';
-import { audioStateToSelectionSpec, selectionSpecToAudioState } from './utils/audioState';
+import { audioStateToSelectionSpec, selectionSpecToAudioState, tickSequenceAudioState } from './utils/audioState';
 import { getBins } from './utils/bin';
+import * as Tone from 'tone';
+import { nodeIsTextInput } from './utils/events';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -36,7 +39,7 @@ export type AudioState = {
 
 function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectionCtrl}: AudioProps) {
 
-  const [audioState, setAudioState] = useState<AudioState>(getInitialAudioState(audio));
+  const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio));
   const [shouldUpdateUmwelt, setShouldUpdateUmwelt] = useState<boolean>(false); // state is propagated upward to umwelt only when set to true
 
   function getInitialAudioState(audio: ElaboratedAudioSpec[]) {
@@ -135,6 +138,24 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     }
   }, [selectionSpec, selectionCtrl])
 
+  const onKeyDown = useCallback(async (e) => {
+    if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement)) {
+      if (e.key === 'p' && !e.repeat) {
+        await Tone.start();
+        setAudioState(tickSequenceAudioState(audioStateRef.current, audio));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', onKeyDown);
+
+    // cleanup this component
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, []);
+
   function audioStateFieldsAreCurrent() {
     return audioState.specStates.every(audioSpecState => {
       if (audioSpecState) {
@@ -227,3 +248,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
 }
 
 export default UmweltAudio;
+
+
+

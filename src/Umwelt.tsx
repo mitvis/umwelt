@@ -1,15 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import useState from 'react-usestateref';
 import { ElaboratedUmweltSpec, SelectionSpec, VlSpec } from './grammar';
-import { getOnFocus } from './utils/render';
 import { selectionStoreToSelectionSpec, selectionTest } from './utils/selection';
-import UmweltAudio, { AudioDomain, AudioSpecState } from './UmweltAudio';
+import UmweltAudio, {  } from './UmweltAudio';
 import { debounce } from 'vega';
-import UmweltOlli from './UmweltOlli';
 import React from 'react';
-import { Axis, chart, OlliDataset, OlliVisSpec } from 'olli';
-import { audioStateToSelectionSpec } from './utils/audioState';
+import { OlliDataset, OlliVisSpec } from 'olli';
 import UmweltVegaLite from './UmweltVegaLite';
-import { getFieldDef } from './utils/data';
 import UmweltText from './UmweltText';
 import { LogicalAnd } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
@@ -27,12 +24,8 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
 
   const [selectionSpec, _setSelectionSpec] = useState<SelectionSpec>(uvSpec.selection);
   const setSelectionSpec = useCallback(debounce(50, _setSelectionSpec), []);
-  const [_selectionCtrl, _setSelectionCtrl] = useState<SelectionCtrl>('spec');
-  const selectionCtrl = useRef<SelectionCtrl>(_selectionCtrl);
-  const setSelectionCtrl = data => {
-    selectionCtrl.current = data;
-    _setSelectionCtrl(data);
-  };
+  const [_selectionCtrl, setSelectionCtrl, selectionCtrl] = useState<SelectionCtrl>('spec');
+  const container = useRef();
 
   /* ********************** initialize state *********************** */
 
@@ -86,7 +79,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
   /* ***************** write the selection state into all the renders **************************** */
 
   return (
-    <div>
+    <div className='umwelt' ref={container}>
       <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} setSelectionCtrl={setSelectionCtrl} selectionSpec={selectionSpec} fields={uvSpec.fields} ></UmweltVegaLite>
       <br/>
 
