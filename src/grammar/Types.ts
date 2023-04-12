@@ -3,7 +3,7 @@ import {UrlData, InlineData} from 'vega-lite/src/data';
 import {Mark} from 'vega-lite/src/mark';
 import { Scale } from 'vega-lite/src/scale';
 import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
-import { OlliDataset } from 'olli';
+import { OlliDataset, OlliValue } from 'olli';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
 import { Spec } from 'vega';
@@ -12,7 +12,10 @@ import { TopLevelUnitSpec } from 'vega-lite/src/spec/unit';
 export type VlSpec = TopLevelUnitSpec<any>
 export type VgSpec = Spec;
 
-type ScaleDomain = Pick<Scale, "domain" | "zero" | "nice">
+type ScaleDomain = {domain: OlliValue[]} & Pick<Scale, "zero" | "nice"> //  | "type"
+type ScaleRange = Pick<Scale, "range"> //  | "reverse"
+
+export type ScaleFunction = (value: any) => any;
 
 export type MeasureType = Exclude<Type, "geojson">;
 type UmweltDataSource = UrlData | InlineData
@@ -20,6 +23,7 @@ type ElaboratedUmweltDataSource = { values: OlliDataset }
 
 export type VisualPropName = "x" | "y" | "color" | "shape" | "detail" | "facet" | "row" | "column";
 export type AudioPropName = "pitch" | "duration" | "volume";
+export type EncodingPropName = VisualPropName | AudioPropName;
 
 export type AudioAggregateOp = "count" | "mean" // | "median" | "min" | "max"; //
 
@@ -28,7 +32,7 @@ type FieldName = string;
 export interface ElaboratedFieldDef {
   name: FieldName,
   type: MeasureType,
-  scale: ScaleDomain
+  scale?: ScaleDomain
 }
 
 export interface FieldDef {
@@ -39,19 +43,16 @@ export interface FieldDef {
 
 export interface EncodingFieldDef {
   field: FieldName,
+  scale?: ScaleDomain & ScaleRange,
   aggregate?: NonArgAggregateOp,
   bin?: boolean
 }
 
-export interface AudioEncodingFieldDef {
-  field: FieldName,
-  aggregate?: NonArgAggregateOp
+export interface AudioEncodingFieldDef extends EncodingFieldDef {
+  bin: undefined;
 }
 
-export interface AudioTraversalFieldDef {
-  field: FieldName,
-  bin?: boolean
-}
+export type AudioTraversalFieldDef = Omit<EncodingFieldDef, 'aggregate'>;
 
 export type VisualEncoding = {
   [prop in VisualPropName]?: FieldName | EncodingFieldDef

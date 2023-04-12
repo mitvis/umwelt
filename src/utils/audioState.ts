@@ -101,7 +101,7 @@ function rangeIndexInBins(field: string, fields: ElaboratedFieldDef[], data: Oll
   })
 }
 
-export function tickSequenceAudioState(audioState: AudioState, audio: ElaboratedAudioSpec[]): AudioState {
+export function tickSequenceAudioState(audioState: AudioState, audio: ElaboratedAudioSpec[], fields: ElaboratedFieldDef[]): AudioState {
   const audioSpecState = audioState.specStates[audioState.activeState];
   const audioSpecDomain = audioState.specDomains[audioState.activeState];
   const audioSpec = audio[audioState.activeState];
@@ -117,17 +117,33 @@ export function tickSequenceAudioState(audioState: AudioState, audio: Elaborated
   // else increment index(es)
   const nextAudioState: AudioState = structuredClone(audioState);
   const sequenceFields = [...audioSpec.traversal.sequence.map(f => f.field)].reverse();
-  console.log(sequenceFields);
+
+  let ramp = false;
+  let end = false;
+
   for (let field of sequenceFields) {
     const fIdx = audioSpecState[field];
     if (fIdx === audioSpecDomain[field].length - 1) {
       nextAudioState.specStates[audioState.activeState][field] = 0;
+      end = true;
       continue; // increment next level up of nesting
     }
     else {
       nextAudioState.specStates[audioState.activeState][field] += 1;
+      const fieldDef = getFieldDef(field, fields);
+      if (!end && (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal')) {
+        ramp = true; // if slider field, ramp (interpolate) the sonification to make continuous tone
+      }
+      else {
+        ramp = false;
+      }
       break;
     }
+  }
+
+  nextAudioState.playback = {
+    ramp,
+    end
   }
 
   return nextAudioState;

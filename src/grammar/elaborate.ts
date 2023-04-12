@@ -11,7 +11,7 @@ export function elaborateFields(fields: FieldDef[], data: OlliDataset): Elaborat
     return {
       name: fieldDef.name,
       type: fieldDef.type || typeInference(data, fieldDef.name),
-      scale: fieldDef.scale || {}
+      scale: fieldDef.scale
     }
   });
 }

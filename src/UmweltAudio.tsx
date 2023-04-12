@@ -10,6 +10,7 @@ import { audioStateToSelectionSpec, selectionSpecToAudioState, tickSequenceAudio
 import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
+import { audioStateToNote } from './utils/sonification/notes';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -30,11 +31,17 @@ export type AudioDomain = {
 
 export type AudioCtrl = 'interaction' | 'sequence' | 'umwelt';
 
+export type AudioPlaybackConfig = {
+  ramp: boolean, // interpolate the note?
+  end: boolean // just ended a sequence? i.e. pause before playing this note
+}
+
 export type AudioState = {
   specStates: AudioSpecState[],
   specDomains: AudioDomain[],
   activeState: number // index of active audio spec
   ctrl: AudioCtrl
+  playback: AudioPlaybackConfig
 }
 
 function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectionCtrl}: AudioProps) {
@@ -46,7 +53,8 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     return {
       specStates: audio.map(audioSpec => {
         if (audioSpec.traversal !== 'selection') {
-          return Object.fromEntries(audioSpec.traversal.interaction.map(({field}) => {
+          const traversalFields = audioSpec.traversal.interaction.concat(audioSpec.traversal.sequence);
+          return Object.fromEntries(traversalFields.map(({field}) => {
             return [field, 0];
           }));
         }
@@ -54,16 +62,20 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       }),
       specDomains: getAudioDomains(audio),
       activeState: 0,
-      ctrl: 'interaction' as AudioCtrl
+      ctrl: 'interaction' as AudioCtrl,
+      playback: {
+        ramp: false,
+        end: false,
+      }
     }
   }
 
   function getAudioDomains(audio: ElaboratedAudioSpec[], selection?: OlliDataset): AudioDomain[] {
     return audio.map(audioSpec => {
       if (audioSpec.traversal !== 'selection') {
+        const traversalFields = audioSpec.traversal.interaction.concat(audioSpec.traversal.sequence);
         return Object.fromEntries(
-          audioSpec.traversal.interaction
-            .concat(audioSpec.traversal.sequence)
+          traversalFields
             .map(({field, bin}) => {
               return [field, (
                 bin ?
@@ -89,12 +101,16 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     const currentAudioSpecState = audioState.specStates[audioState.activeState];
     const currentAudioSpecDomain = audioState.specDomains[audioState.activeState];
 
-    // update sonifier state on audio state change
     if (currentAudioSpecState && Object.keys(currentAudioSpecState).length) {
       const selectionSpec = audioStateToSelectionSpec(currentAudioSpecState, currentAudioSpecDomain);
       console.log('audio ctrl sonifier update', selectionSpec);
-      // const notes = audioCtrlSelectionToNotes(selectionSpec, audio, fields, data);
-      // Sonifier.setNotes(notes);
+
+      const currentAudioSpec = audio[audioState.activeState];
+      const note = audioStateToNote(currentAudioSpec, currentAudioSpecState, currentAudioSpecDomain, data, fields, audioState.playback);
+
+      console.log(note);
+
+      Sonifier.play(note);
 
       if (shouldUpdateUmwelt) {
         // update umwelt selection on audio state change
@@ -103,6 +119,8 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       }
     }
     else {
+      // empty audio state
+
       // const notes = selectionToNotes(data, audio, fields, data);
       // console.log('empty audio state sonifier update', notes);
       // if (notes.length) {
@@ -113,10 +131,12 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }, [audioState, shouldUpdateUmwelt]);
 
   useEffect(() => {
+    // TODO think about desired behavior of outside selections (should they update the domain?)
     // update audio state on umwelt selection change
     if (selectionCtrl !== 'audio' && selectionSpec) {
       const as = selectionSpecToAudioState(selectionSpec, audio, fields, data);
       if (as.specStates.map(state => Object.keys(state).length).some(n => n >= 1)) {
+        // selection spec maps to a valid audio state
         const mergedSpecStates = audioState.specStates.map((state, idx) => {return {...state, ...as.specStates[idx]}});
         setShouldUpdateUmwelt(false);
         setAudioState({
@@ -127,6 +147,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         });
       }
       else {
+        // TODO think about desired behavior of outside selections (should they update the domain?)
         console.log('non-audio-ctrl sonifier update', selectionSpec);
         const selection = selectionTest(data, selectionSpec, fields);
         // setAudioDomains(getAudioDomains(audio, selection));
@@ -142,10 +163,10 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement)) {
       if (e.key === 'p' && !e.repeat) {
         await Tone.start();
-        setAudioState(tickSequenceAudioState(audioStateRef.current, audio));
+        setAudioState(tickSequenceAudioState(audioStateRef.current, audio, fields));
       }
     }
-  }, [audio]);
+  }, [audio, fields]);
 
   useEffect(() => {
     window.addEventListener('keydown', onKeyDown);

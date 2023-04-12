@@ -1,9 +1,11 @@
 import * as Tone from 'tone';
+import { nodeIsTextInput } from '../utils/events';
 
 export type SonifiedNote = {
   pitch?: number;
   volume?: number;
   duration?: number;
+  ramp?: boolean;
 }
 
 export type SonifierSequence = {
@@ -24,7 +26,9 @@ class Sonifier {
   private noiseDuration = 0.25; // in seconds
   private defaultDuration = 0.5; // in seconds
 
-  private notes: SonifierSequence[];
+  // private notes: SonifierSequence[];
+
+  private isPlaying = false;
 
   constructor() {
     if (instance) {
@@ -35,6 +39,7 @@ class Sonifier {
   }
 
   private init() {
+
     this.vol = new Tone.Volume().toDestination();
     this.vol.mute = false;
 
@@ -47,95 +52,55 @@ class Sonifier {
     return this;
   }
 
-  setNotes(notes: SonifierSequence[]) {
-    this.notes = notes;
-  }
-
-  setVolume(value: number) {
-    if (value) {
-      this.vol.volume.rampTo(value, this.rampDuration);
-    }
-  }
-
   mute(shouldMute: boolean) {
     this.vol.mute = shouldMute;
   }
 
   play(note: SonifiedNote) {
     if (note) {
-      this.setVolume(note?.volume);
-      this.synth.triggerAttack(note?.pitch);
+      if (note.ramp) {
+        if (note.volume) {
+          this.synth.volume.rampTo(note.volume, this.rampDuration);
+        }
+        if (note.pitch) {
+          this.synth.frequency.rampTo(note.pitch, this.rampDuration);
+        }
+      }
+      else {
+        if (note.volume) {
+          this.synth.volume.value = note.volume;
+        }
+        if (note.pitch) {
+          this.synth.frequency.value = note.pitch;
+        }
+      }
+      if (!this.isPlaying) {
+        this.synth.triggerAttack(note.pitch); // TODO set default pitch
+        this.isPlaying = true;
+      }
     }
     else {
-      this.noise.triggerAttack();
+      // TODO noise
     }
+  }
+
+  pause() {
+    this.isPlaying = true;
+    this.synth.triggerRelease();
   }
 
   ping(note: SonifiedNote) {
     if (note) {
-      this.setVolume(note?.volume);
-      this.synth.triggerAttackRelease(note?.pitch, this.defaultDuration);
+      if (note.volume) {
+        this.synth.volume.value = note.volume;
+      }
+      this.synth.triggerAttackRelease(note.pitch, note.duration || this.defaultDuration);
     }
     else {
       this.noise.triggerAttackRelease(this.defaultDuration);
     }
   }
 
-  pause() {
-    this.synth.triggerRelease();
-  }
-
-  playSequence(notes: SonifiedNote[]) {
-    Tone.Transport.stop();
-    Tone.Transport.position = 0;
-    Tone.Transport.cancel();
-    let elapsed = 0;
-
-    notes.forEach(note => {
-      Tone.Transport.schedule((time) => {
-        if (note) {
-          if (Object.keys(note).length === 1 && note.duration) {
-            // duration-only object to denote pause (janky i know)
-          }
-          else {
-            this.setVolume(note?.volume);
-            this.synth.triggerAttackRelease(note.pitch, note.duration || this.defaultDuration, time);
-            console.log('synth', note.pitch, note.duration || this.defaultDuration, time)
-          }
-        }
-        else {
-          this.noise.triggerAttackRelease(this.noiseDuration, time);
-          console.log('noise')
-        }
-      }, elapsed);
-
-      elapsed += (note ? (note.duration || this.defaultDuration) : this.noiseDuration) + this.pauseDuration;
-    })
-
-    Tone.Transport.schedule(() => {
-      Tone.Transport.stop();
-      Tone.Transport.position = 0;
-      Tone.Transport.cancel();
-      elapsed = 0;
-    }, elapsed - this.pauseDuration);
-
-    Tone.Transport.start();
-
-  }
-
-  pingCurrentNotes() {
-    if (this.notes) {
-      if (this.notes.length === 0) {
-        this.ping(null);
-      }
-      else if (this.notes.length === 1) {
-        // this.ping(this.notes[0]);
-      }
-      else {
-        // this.playSequence(this.notes);
-      }
-    }
-  }
 
 }
 
