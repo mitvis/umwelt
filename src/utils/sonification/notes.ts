@@ -42,7 +42,7 @@ export function audioStateToNote(audioSpec: ElaboratedAudioSpec, audioSpecState:
   }
 
   let note: SonifiedNote = {
-    ramp: playback.ramp
+    ...playback
   };
 
   Object.entries(audioSpec.encoding).forEach(([prop, encodingFieldDef]) => {

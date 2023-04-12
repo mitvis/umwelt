@@ -143,7 +143,7 @@ export function tickSequenceAudioState(audioState: AudioState, audio: Elaborated
 
   nextAudioState.playback = {
     ramp,
-    end
+    pauseBefore: end
   }
 
   return nextAudioState;

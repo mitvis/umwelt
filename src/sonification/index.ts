@@ -6,6 +6,7 @@ export type SonifiedNote = {
   volume?: number;
   duration?: number;
   ramp?: boolean;
+  pauseBefore?: boolean;
 }
 
 export type SonifierSequence = {
@@ -22,9 +23,9 @@ class Sonifier {
   private synth: Tone.Synth;
 
   private rampDuration = 0.1; // in seconds
-  private pauseDuration = .150; // in seconds
   private noiseDuration = 0.25; // in seconds
-  private defaultDuration = 0.5; // in seconds
+  pauseDuration = .20; // in seconds
+  defaultDuration = 0.5; // in seconds
 
   // private notes: SonifierSequence[];
 
@@ -57,50 +58,53 @@ class Sonifier {
   }
 
   play(note: SonifiedNote) {
-    if (note) {
-      if (note.ramp) {
-        if (note.volume) {
-          this.synth.volume.rampTo(note.volume, this.rampDuration);
+
+    Tone.Transport.stop();
+    Tone.Transport.position = 0;
+    Tone.Transport.cancel();
+
+    if (note.pauseBefore) {
+      this.pause();
+    }
+
+    Tone.Transport.schedule((time) => {
+      if (note) {
+        if (note.ramp) {
+          if (note.volume) {
+            this.synth.volume.rampTo(note.volume, this.rampDuration);
+          }
+          if (note.pitch) {
+            const freq = Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency();
+            this.synth.frequency.rampTo(freq, this.rampDuration);
+          }
         }
-        if (note.pitch) {
-          this.synth.frequency.rampTo(note.pitch, this.rampDuration);
+        else {
+          if (note.volume) {
+            this.synth.volume.value = note.volume;
+          }
+          if (note.pitch) {
+            const freq = Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency();
+            this.synth.frequency.value = freq;
+          }
+        }
+        if (!this.isPlaying) {
+          this.isPlaying = true;
+          this.synth.triggerAttack(note.pitch); // TODO set default pitch
         }
       }
       else {
-        if (note.volume) {
-          this.synth.volume.value = note.volume;
-        }
-        if (note.pitch) {
-          this.synth.frequency.value = note.pitch;
-        }
+        // TODO noise
       }
-      if (!this.isPlaying) {
-        this.synth.triggerAttack(note.pitch); // TODO set default pitch
-        this.isPlaying = true;
-      }
-    }
-    else {
-      // TODO noise
-    }
+
+    }, note.pauseBefore ? this.pauseDuration : 0);
+
+    Tone.Transport.start();
   }
 
   pause() {
-    this.isPlaying = true;
+    this.isPlaying = false;
     this.synth.triggerRelease();
   }
-
-  ping(note: SonifiedNote) {
-    if (note) {
-      if (note.volume) {
-        this.synth.volume.value = note.volume;
-      }
-      this.synth.triggerAttackRelease(note.pitch, note.duration || this.defaultDuration);
-    }
-    else {
-      this.noise.triggerAttackRelease(this.defaultDuration);
-    }
-  }
-
 
 }
 

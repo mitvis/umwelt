@@ -33,7 +33,7 @@ export type AudioCtrl = 'interaction' | 'sequence' | 'umwelt';
 
 export type AudioPlaybackConfig = {
   ramp: boolean, // interpolate the note?
-  end: boolean // just ended a sequence? i.e. pause before playing this note
+  pauseBefore: boolean // just ended a sequence? i.e. pause before playing this note
 }
 
 export type AudioState = {
@@ -48,6 +48,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
 
   const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio));
   const [shouldUpdateUmwelt, setShouldUpdateUmwelt] = useState<boolean>(false); // state is propagated upward to umwelt only when set to true
+  const [muted, setMuted] = useState(false);
 
   function getInitialAudioState(audio: ElaboratedAudioSpec[]) {
     return {
@@ -65,7 +66,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       ctrl: 'interaction' as AudioCtrl,
       playback: {
         ramp: false,
-        end: false,
+        pauseBefore: false,
       }
     }
   }
@@ -80,7 +81,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
               return [field, (
                 bin ?
                 getBins(field, data) :
-                // getDomain(field, selection || data) // umwelt selection can filter the audio domain
+                // getDomain(field, selection || data) // TODO umwelt selection can filter the audio domain?
                 getDomain(field, data)
               )];
             })
@@ -96,6 +97,10 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     setAudioState(getInitialAudioState(audio));
     console.log('re-initialized audiostate')
   }, [fields, audio, data])
+
+  useEffect(() => {
+    Sonifier.mute(muted)
+  }, [muted])
 
   useEffect(() => {
     const currentAudioSpecState = audioState.specStates[audioState.activeState];
@@ -160,10 +165,27 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }, [selectionSpec, selectionCtrl])
 
   const onKeyDown = useCallback(async (e) => {
-    if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement)) {
+    if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
       if (e.key === 'p' && !e.repeat) {
         await Tone.start();
-        setAudioState(tickSequenceAudioState(audioStateRef.current, audio, fields));
+
+        const tick = () => {
+          const nextAudioState = tickSequenceAudioState(audioStateRef.current, audio, fields);
+
+          if (nextAudioState !== audioStateRef.current) {
+            setTimeout(tick, nextAudioState.playback.pauseBefore ? Sonifier.pauseDuration * 1000 + Sonifier.defaultDuration * 1000 : Sonifier.defaultDuration * 1000)
+          }
+          else {
+            Sonifier.pause();
+          }
+
+          setAudioState(nextAudioState);
+        };
+
+        setTimeout(tick, Sonifier.defaultDuration * 1000);
+      }
+      if (e.key === 'm') {
+        setMuted(!muted);
       }
     }
   }, [audio, fields]);
@@ -215,7 +237,11 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                         ...audioState,
                         activeState: audioSpecIdx,
                         specStates,
-                        ctrl: 'interaction'
+                        ctrl: 'interaction',
+                        playback: {
+                          pauseBefore: false,
+                          ramp: true
+                        }
                       });
                       setShouldUpdateUmwelt(true);
                     };
@@ -239,7 +265,11 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                         ...audioState,
                         activeState: audioSpecIdx,
                         specStates,
-                        ctrl: 'interaction'
+                        ctrl: 'interaction',
+                        playback: {
+                          pauseBefore: false,
+                          ramp: false
+                        }
                       });
                       setShouldUpdateUmwelt(true);
                     }
@@ -259,8 +289,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           </div>)
         })
       }
-      <label htmlFor="uv_mute">Mute</label>
-      <input type="checkbox" id="uv_mute" onChange={(e) => Sonifier.mute(e.target.checked)} />
+      <label><input type="checkbox" className="uv_mute" checked={muted} onChange={(e) => setMuted(e.target.checked)} /> Mute</label>
       <pre>
         {JSON.stringify(audioState, null, 2)}
       </pre>
