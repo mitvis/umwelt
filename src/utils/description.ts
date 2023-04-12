@@ -8,6 +8,8 @@ const configuration = new Configuration(secrets);
 
 const openai = new OpenAIApi(configuration);
 
+const FLAG = false;
+
 export async function describe(selection: OlliDataset): Promise<string> {
   const stringData = JSON.stringify(selection);
 
@@ -16,7 +18,7 @@ export async function describe(selection: OlliDataset): Promise<string> {
     console.log('cache hit', stringData, cache);
     return cache;
   }
-  else {
+  else if (FLAG) {
     console.log('attempting api call');
     const response = await backOff(() => {
       return openai.createCompletion({
