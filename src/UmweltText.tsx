@@ -1,24 +1,29 @@
 import { OlliDataset } from 'olli';
-import React, { createRef, useEffect, useRef, useState } from 'react';
-import { ElaboratedFieldDef, SelectionSpec, ElaboratedGroupNode, ElaboratedLeafNode, TextNode, ElaboratedPredNode, ElaboratedTextNode } from './grammar';
+import React, { createRef, useEffect, useRef } from 'react';
+import { ElaboratedFieldDef, SelectionSpec, ElaboratedGroupNode, ElaboratedPredNode, ElaboratedTextNode } from './grammar';
 import { Tree } from './text/Tree';
-import { textSpecToFullPredicateSpec } from './utils/text';
 import './text/TreeStyle.css'
 import { LogicalAnd } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 import { SelectionCtrl } from './Umwelt';
+import { selectionTest } from './utils/selection';
+import { describe } from './utils/description';
+import useState from 'react-usestateref';
 
 interface TextProps {
   textSpec: ElaboratedTextNode[],
   selectionCtrl: SelectionCtrl
   selectionSpec: SelectionSpec,
+  data: OlliDataset,
+  fields: ElaboratedFieldDef[],
   onTextPred: (predicate: LogicalAnd<FieldPredicate>) => void;
 }
 
-const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextPred }: TextProps) => {
+const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, data, fields, onTextPred }: TextProps) => {
 
   const treeContainer = createRef<HTMLDivElement>();
   const nodeMap = useRef<{[key: string]: ElaboratedTextNode}>({});
+  const [descriptionMap, setDescriptionMap, descriptionMapRef] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     const el = treeContainer.current;
@@ -33,16 +38,45 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextP
         t.init();
       }
     }
+    buildNodeMap(textSpec, 0, '0');
   }, [textSpec])
 
-  function renderPredTree(predTree: ElaboratedTextNode[], depth: number, id: string) {
+  useEffect(() => {
+    Object.entries(nodeMap.current).reduce(async (memo, [nodeId, node]) => {
+      await memo;
+      const selection = selectionTest(data, {predicate: node.fullPredicate}, fields);
+      const description = await describe(selection);
+      console.log('setting description map', nodeId, description, {
+        ...descriptionMapRef.current,
+        [nodeId]: description
+      })
+      setDescriptionMap({
+        ...descriptionMapRef.current,
+        [nodeId]: description
+      })
+    }, undefined as any)
+  }, [nodeMap])
+
+  function buildNodeMap(predTree: ElaboratedTextNode[], depth: number, idPrefix: string) {
+    predTree.map((predNode, idx) => {
+      if (!predNode) return null;
+      const nodeId = `${idPrefix}-${idx}`;
+      nodeMap.current[nodeId] = predNode;
+
+      const children = (predNode as ElaboratedGroupNode | ElaboratedPredNode)?.children;
+      if (children) {
+        buildNodeMap(children, depth + 1, nodeId);
+      }
+    });
+  }
+
+  function renderPredTree(predTree: ElaboratedTextNode[], depth: number, idPrefix: string) {
     return (
       <ul role={depth === 0 ? "tree" : "group"}>
         {
           predTree.map((predNode, idx) => {
             if (!predNode) return null;
-            const nodeId = `${id}-${idx}`;
-            nodeMap.current[nodeId] = predNode;
+            const nodeId = `${idPrefix}-${idx}`;
             let description = `${idx + 1} of ${predTree.length}. `;
             if ((predNode as ElaboratedGroupNode).field) {
               description += `Group of ${(predNode as ElaboratedGroupNode).field}`;
@@ -50,10 +84,13 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, onTextP
             else if ((predNode as ElaboratedPredNode).predicate) {
               description += JSON.stringify((predNode as ElaboratedPredNode).predicate);
             }
-            else if ((predNode as ElaboratedLeafNode).fullPredicate) {
-              description += JSON.stringify((predNode as ElaboratedLeafNode).fullPredicate);
-            }
+            // description += JSON.stringify(predNode.fullPredicate);
             description += `. ${(predNode as ElaboratedPredNode).children?.length || '0'} children.`;
+
+            if (descriptionMapRef.current[nodeId]) {
+              description = descriptionMapRef.current[nodeId] + ' ' + description;
+            }
+
             return (
               <li role="treeitem" aria-expanded="false" data-nodeid={nodeId} key={nodeId}>
                 <span>{description.trim()}</span>

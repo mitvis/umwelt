@@ -86,7 +86,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
       {/* <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} fields={uvSpec.fields} onFocus={onFocus}></UmweltOlli> */}
 
       {
-        uvSpec.text ? <UmweltText textSpec={uvSpec.text} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} onTextPred={onTextPred}></UmweltText> : null
+        uvSpec.text ? <UmweltText textSpec={uvSpec.text} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} data={data} fields={uvSpec.fields} onTextPred={onTextPred}></UmweltText> : null
       }
       <br/>
 
