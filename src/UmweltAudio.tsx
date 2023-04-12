@@ -182,7 +182,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           setAudioState(nextAudioState);
         };
 
-        setTimeout(tick, Sonifier.defaultDuration * 1000);
+        setTimeout(tick, Sonifier.defaultDuration * 1000); // TODO uh oh, what about encoded durations
       }
       if (e.key === 'm') {
         setMuted(!muted);
