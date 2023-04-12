@@ -87,13 +87,9 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, data, f
             // description += JSON.stringify(predNode.fullPredicate);
             description += `. ${(predNode as ElaboratedPredNode).children?.length || '0'} children.`;
 
-            if (descriptionMapRef.current[nodeId]) {
-              description = descriptionMapRef.current[nodeId] + ' ' + description;
-            }
-
             return (
               <li role="treeitem" aria-expanded="false" data-nodeid={nodeId} key={nodeId}>
-                <span>{description.trim()}</span>
+                <span style={{color: 'blue'}}>{descriptionMapRef.current[nodeId] ? descriptionMapRef.current[nodeId] : null}</span> <span>{description.trim()}</span>
                 {
                   (predNode as ElaboratedGroupNode | ElaboratedPredNode)?.children ?
                     renderPredTree((predNode as ElaboratedGroupNode | ElaboratedPredNode)?.children, depth + 1, nodeId) :

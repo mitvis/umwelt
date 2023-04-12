@@ -20,6 +20,7 @@ export async function describe(selection: OlliDataset): Promise<string> {
     console.log('attempting api call');
     const response = await backOff(() => {
       return openai.createCompletion({
+        // model: "text-davinci-003",
         model: "text-ada-001",
         prompt: `describe patterns or trends in this data. return a concise description less than 50 words: ${stringData}`,
         max_tokens: 75,
