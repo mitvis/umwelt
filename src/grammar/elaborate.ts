@@ -95,8 +95,6 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
       if (traversal === 'selection') return traversal;
       // TODO should probably inherit properties from the umvelt fields definition?
 
-      function elaborateTraversalDef(def) {
-
         function wrapFieldInDef(s) {
           if (isString(s)) {
             const {name, type, ...fieldDef} = getFieldDef(s, fields);
@@ -105,23 +103,17 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
           return s;
         }
 
-        if (def) {
-          if (Array.isArray(def)) {
-            return def.map((s) => {
+        if (traversal) {
+          if (Array.isArray(traversal)) {
+            return traversal.map((s) => {
               return wrapFieldInDef(s);
             });
           }
           else {
-            return [ wrapFieldInDef(def) ];
+            return [ wrapFieldInDef(traversal) ];
           }
         }
         return [];
-      }
-
-      return {
-        interaction: elaborateTraversalDef(traversal.interaction),
-        sequence: elaborateTraversalDef(traversal.sequence)
-      }
     }
 
     if (Array.isArray(audio)) {

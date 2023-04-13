@@ -43,9 +43,6 @@
     "encoding": {
       "pitch": "median_yield"
     },
-    "traversal": {
-      "sequence": ["site", "year"],
-      "interaction": "variety"
-    }
+    "traversal": ["site", "year", "variety"]
   }
 }

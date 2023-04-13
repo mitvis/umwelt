@@ -28,10 +28,7 @@
         "field": "mean_temp"
       }
     },
-    "traversal": {
-      "interaction": ["month", "city"],
-      "sequence": ["month", "city"]
-    }
+    "traversal": ["month", "city"]
   },
   "text": [
     {

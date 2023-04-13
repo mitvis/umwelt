@@ -27,8 +27,6 @@
     "pitch": "price",
     "duration": "price"
    },
-   "traversal": {
-    "sequence": ["date", "symbol"]
-   }
+   "traversal": ["date", "symbol"]
   }
 }

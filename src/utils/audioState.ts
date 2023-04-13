@@ -38,7 +38,7 @@ export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: E
   specStates: audio.map((audioSpec, audioSpecIdx) => {
       if (audioSpec.traversal !== 'selection') {
         if (predicate) {
-          const partialStates = audioSpec.traversal.interaction.map(({field, bin}) => {
+          const partialStates = audioSpec.traversal.map(({field, bin}) => {
             return {
               [field]: fieldValueIndexFromPredicate(predicate, field, bin, fields, data)
             }
@@ -116,7 +116,7 @@ export function tickSequenceAudioState(audioState: AudioState, audio: Elaborated
 
   // else increment index(es)
   const nextAudioState: AudioState = structuredClone(audioState);
-  const sequenceFields = [...audioSpec.traversal.sequence.map(f => f.field)].reverse();
+  const sequenceFields = [...audioSpec.traversal.map(f => f.field)].reverse();
 
   let ramp = false;
   let end = false;

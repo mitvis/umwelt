@@ -80,15 +80,9 @@ export type ElaboratedAudioEncoding = {
   [prop in AudioPropName]?: AudioEncodingFieldDef
 }
 
-export type AudioTraversal = {
-  interaction?: (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[]
-  sequence?: (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[]
-}
+export type AudioTraversal = (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[];
 
-export type ElaboratedAudioTraversal = {
-  interaction: AudioTraversalFieldDef[]
-  sequence: AudioTraversalFieldDef[]
-}
+export type ElaboratedAudioTraversal = AudioTraversalFieldDef[];
 
 export type AudioSpec = {
   encoding?: AudioEncoding,

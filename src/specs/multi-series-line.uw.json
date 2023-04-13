@@ -35,8 +35,6 @@
    "encoding": {
     "pitch": "price"
    },
-   "traversal": {
-    "interaction": ["date", "symbol"]
-   }
+   "traversal": ["date", "symbol"]
   }
 }

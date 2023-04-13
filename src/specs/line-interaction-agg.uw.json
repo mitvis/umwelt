@@ -29,8 +29,6 @@
       "aggregate": "mean"
     }
    },
-   "traversal": {
-    "interaction": "date"
-   }
+   "traversal": "date"
   }
 }

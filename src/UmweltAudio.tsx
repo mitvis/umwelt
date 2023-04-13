@@ -54,8 +54,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     return {
       specStates: audio.map(audioSpec => {
         if (audioSpec.traversal !== 'selection') {
-          const traversalFields = audioSpec.traversal.interaction.concat(audioSpec.traversal.sequence);
-          return Object.fromEntries(traversalFields.map(({field}) => {
+          return Object.fromEntries(audioSpec.traversal.map(({field}) => {
             return [field, 0];
           }));
         }
@@ -74,17 +73,15 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   function getAudioDomains(audio: ElaboratedAudioSpec[], selection?: OlliDataset): AudioDomain[] {
     return audio.map(audioSpec => {
       if (audioSpec.traversal !== 'selection') {
-        const traversalFields = audioSpec.traversal.interaction.concat(audioSpec.traversal.sequence);
         return Object.fromEntries(
-          traversalFields
-            .map(({field, bin}) => {
-              return [field, (
-                bin ?
-                getBins(field, data) :
-                // getDomain(field, selection || data) // TODO umwelt selection can filter the audio domain?
-                getDomain(field, data)
-              )];
-            })
+          audioSpec.traversal.map(({field, bin}) => {
+            return [field, (
+              bin ?
+              getBins(field, data) :
+              // getDomain(field, selection || data) // TODO umwelt selection can filter the audio domain?
+              getDomain(field, data)
+            )];
+          })
         );
       }
       return null;
@@ -220,7 +217,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           return (
             <div key={audioSpecIdx} className="audio-spec">
               {
-                audioSpec.traversal.interaction.map(({field, bin}) => {
+                audioSpec.traversal.map(({field, bin}) => {
                   const fieldDef = getFieldDef(field, fields);
                   const domain = getDomain(field, data);
 

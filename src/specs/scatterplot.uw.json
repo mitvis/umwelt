@@ -38,10 +38,8 @@
         }
       },
       "traversal": {
-        "interaction": {
-          "field": "Flipper Length (mm)",
-          "bin": true
-        }
+        "field": "Flipper Length (mm)",
+        "bin": true
       }
     },
     {
@@ -52,10 +50,8 @@
         }
       },
       "traversal": {
-        "interaction": {
-          "field": "Body Mass (g)",
-          "bin": true
-        }
+        "field": "Body Mass (g)",
+        "bin": true
       }
     }
   ]

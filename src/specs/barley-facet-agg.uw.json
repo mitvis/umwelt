@@ -46,9 +46,6 @@
         "aggregate": "mean"
       }
     },
-    "traversal": {
-      "interaction": "variety",
-      "sequence": "year"
-    }
+    "traversal": ["year", "variety"]
   }
 }
