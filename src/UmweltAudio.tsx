@@ -1,16 +1,15 @@
 import { OlliDataset, OlliValue } from 'olli';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import useState from 'react-usestateref';
 import { ElaboratedAudioSpec, ElaboratedFieldDef, SelectionSpec } from './grammar';
 import { getDomain, getFieldDef } from './utils/data';
 import { selectionTest } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
-import Sonifier from './sonification';
-import { audioStateToSelectionSpec, selectionSpecToAudioState, tickSequenceAudioState } from './utils/audioState';
+import { Sonifier } from './sonification';
+import { audioStateToSelectionSpec, selectionSpecToAudioState, tickSequenceAudioState, audioStateToNote } from './utils/audioState';
 import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
-import { audioStateToNote } from './utils/sonification/notes';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -49,6 +48,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio));
   const [shouldUpdateUmwelt, setShouldUpdateUmwelt] = useState<boolean>(false); // state is propagated upward to umwelt only when set to true
   const [muted, setMuted] = useState(false);
+  const sequenceTimeout = useRef<any>();
 
   function getInitialAudioState(audio: ElaboratedAudioSpec[]) {
     return {
@@ -112,12 +112,20 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
 
       console.log(note);
 
-      Sonifier.play(note);
+      if (audioState.ctrl === 'interaction') {
+        Sonifier.pause();
+      }
+      else if (audioState.ctrl === 'sequence') {
+        Sonifier.play(note);
+      }
 
       if (shouldUpdateUmwelt) {
         // update umwelt selection on audio state change
         onAudioState(selectionSpec);
         // Sonifier.pingCurrentNotes();
+        if (audioState.ctrl === 'interaction') {
+          Sonifier.ping(note);
+        }
       }
     }
     else {
@@ -161,38 +169,67 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     }
   }, [selectionSpec, selectionCtrl])
 
+  function stopSequence() {
+    setAudioState({
+      ...audioStateRef.current,
+      'ctrl': 'interaction'
+    })
+    if (sequenceTimeout.current) {
+      clearTimeout(sequenceTimeout.current);
+    }
+    sequenceTimeout.current = null;
+    Sonifier.pause();
+  }
+
   const onKeyDown = useCallback(async (e) => {
+    await Tone.start();
     if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
       if (e.key === 'p' && !e.repeat) {
-        await Tone.start();
+        if (sequenceTimeout.current) {
+          stopSequence();
+        }
+        else {
+          const tick = () => {
+            const nextAudioState = tickSequenceAudioState(audioStateRef.current, audio, fields);
 
-        const tick = () => {
-          const nextAudioState = tickSequenceAudioState(audioStateRef.current, audio, fields);
+            if (nextAudioState !== audioStateRef.current) {
+              sequenceTimeout.current = setTimeout(tick, nextAudioState.playback.pauseBefore ? Sonifier.pauseDuration * 1000 + Sonifier.defaultDuration * 1000 : Sonifier.defaultDuration * 1000)
+              setAudioState(nextAudioState);
+            }
+            else {
+              stopSequence();
+            }
+          };
 
-          if (nextAudioState !== audioStateRef.current) {
-            setTimeout(tick, nextAudioState.playback.pauseBefore ? Sonifier.pauseDuration * 1000 + Sonifier.defaultDuration * 1000 : Sonifier.defaultDuration * 1000)
-          }
-          else {
-            Sonifier.pause();
-          }
-
-          setAudioState(nextAudioState);
-        };
-
-        setTimeout(tick, Sonifier.defaultDuration * 1000); // TODO uh oh, what about encoded durations
+          setAudioState({
+            ...audioStateRef.current,
+            ctrl: 'sequence',
+            playback: {
+              ...audioStateRef.current.playback,
+              ramp: false
+            }
+          });
+          sequenceTimeout.current = setTimeout(tick, Sonifier.defaultDuration * 1000); // TODO uh oh, what about encoded durations
+        }
       }
-      if (e.key === 'm') {
+      if (e.key === 'm') { // this should be global probably
         setMuted(!muted);
       }
     }
   }, [audio, fields]);
 
+  const onClick = useCallback(async (e) => {
+    await Tone.start();
+  }, []);
+
   useEffect(() => {
     window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('click', onClick);
 
     // cleanup this component
     return () => {
       window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('click', onClick);
     };
   });
 
@@ -241,6 +278,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                         }
                       });
                       setShouldUpdateUmwelt(true);
+                      stopSequence();
                     };
                     const sliderDomain = bin ? getBins(field, data) : domain;
                     return (

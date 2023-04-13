@@ -9,33 +9,26 @@ export type SonifiedNote = {
   pauseBefore?: boolean;
 }
 
-export type SonifierSequence = {
-  ramp: boolean,
-  sequence: SonifiedNote[]
-}
-
-let instance;
-
-class Sonifier {
+class UmweltSonifier {
 
   private vol: Tone.Volume;
   private noise: Tone.NoiseSynth;
   private synth: Tone.Synth;
 
-  private rampDuration = 0.1; // in seconds
-  private noiseDuration = 0.25; // in seconds
-  pauseDuration = .20; // in seconds
+  pauseDuration = .25; // in seconds
   defaultDuration = 0.5; // in seconds
+  private rampDuration = this.defaultDuration / 2; // in seconds
+  private noiseDuration = 0.25; // in seconds
 
   // private notes: SonifierSequence[];
 
   private isPlaying = false;
 
   constructor() {
-    if (instance) {
+    if ((window as any)._uw_sonifier) {
       throw new Error("Tried to create more than one instance of Sonifier");
     }
-    instance = this;
+    (window as any)._uw_sonifier = this;
     this.init();
   }
 
@@ -50,7 +43,7 @@ class Sonifier {
   }
 
   getInstance() {
-    return this;
+    return (window as any)._uw_sonifier;
   }
 
   mute(shouldMute: boolean) {
@@ -64,7 +57,8 @@ class Sonifier {
     Tone.Transport.cancel();
 
     if (note.pauseBefore) {
-      this.pause();
+      this.synth.triggerRelease();
+      this.isPlaying = false;
     }
 
     Tone.Transport.schedule((time) => {
@@ -89,11 +83,11 @@ class Sonifier {
         }
         if (!this.isPlaying) {
           this.isPlaying = true;
-          this.synth.triggerAttack(note.pitch); // TODO set default pitch
+          this.synth.triggerAttack(Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency()); // TODO set default pitch
         }
       }
       else {
-        // TODO noise
+        this.noise.triggerAttackRelease(this.noiseDuration);
       }
 
     }, note.pauseBefore ? this.pauseDuration : 0);
@@ -102,11 +96,46 @@ class Sonifier {
   }
 
   pause() {
-    this.isPlaying = false;
-    this.synth.triggerRelease();
+    window.requestAnimationFrame(() => {
+      Tone.Transport.cancel();
+      if (this.isPlaying) {
+        this.synth.triggerRelease();
+        this.isPlaying = false;
+      }
+    })
+  }
+
+  ping(note: SonifiedNote) {
+    console.log('ping')
+    window.requestAnimationFrame(() => {
+      if (note) {
+        // if (note.ramp) {
+        //   if (note.volume) {
+        //     this.synth.volume.rampTo(note.volume, this.rampDuration);
+        //   }
+        //   if (note.pitch) {
+        //     const freq = Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency();
+        //     this.synth.frequency.rampTo(freq, this.rampDuration);
+        //   }
+        // }
+        // else {
+          if (note.volume) {
+            this.synth.volume.value = note.volume;
+          }
+        // }
+        this.synth.triggerAttackRelease(Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency(), note.duration || this.defaultDuration); // TODO set default pitch
+      }
+      else {
+        this.noise.triggerAttackRelease(this.noiseDuration);
+      }
+
+    })
   }
 
 }
 
-const singleton = new Sonifier();
-export default singleton;
+if (!(window as any)._uw_sonifier) {
+  (window as any)._uw_sonifier = new UmweltSonifier();
+}
+
+export const Sonifier: UmweltSonifier = (window as any)._uw_sonifier;

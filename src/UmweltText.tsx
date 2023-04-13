@@ -54,10 +54,6 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, data, f
         return;
       }
       const description = await describe(selection);
-      console.log('setting description map', nodeId, description, {
-        ...descriptionMapRef.current,
-        [nodeId]: description
-      })
       setDescriptionMap({
         ...descriptionMapRef.current,
         [nodeId]: description

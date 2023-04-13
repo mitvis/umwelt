@@ -2,10 +2,14 @@ import { OlliDataset } from "olli";
 import { Bin } from "vega-lite/src/bin";
 import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from "vega-lite/src/predicate";
-import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef } from "../grammar";
-import { AudioDomain, AudioSpecState, AudioState } from "../UmweltAudio";
+import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingFieldDef, AudioPropName } from "../grammar";
+import { SonifiedNote } from "../sonification";
+import { AudioDomain, AudioPlaybackConfig, AudioSpecState, AudioState } from "../UmweltAudio";
+import { aggregate } from "./aggregate";
 import { getBins } from "./bin";
 import { getDomain, getFieldDef } from "./data";
+import { getScaleFunction } from "./scales";
+import { selectionTest } from "./selection";
 import { rangesAreEqual, serializeValue } from "./values";
 
 export function audioStateToSelectionSpec(audioState: AudioSpecState, audioDomains: AudioDomain): SelectionSpec {
@@ -145,6 +149,52 @@ export function tickSequenceAudioState(audioState: AudioState, audio: Elaborated
     ramp,
     pauseBefore: end
   }
+  nextAudioState.ctrl = 'sequence';
 
   return nextAudioState;
+}
+
+
+export function audioStateToNote(audioSpec: ElaboratedAudioSpec, audioSpecState: AudioSpecState, audioDomain: AudioDomain, data: OlliDataset, fields: ElaboratedFieldDef[], playback: AudioPlaybackConfig): SonifiedNote {
+
+  const selectionSpec = audioStateToSelectionSpec(audioSpecState, audioDomain);
+  const selection = selectionTest(data, selectionSpec, fields);
+
+  function audioEncoding(encodingPropName: AudioPropName, encodingFieldDef: AudioEncodingFieldDef, selection: OlliDataset) {
+    const scale = getScaleFunction(encodingPropName, encodingFieldDef, fields, data);
+
+    if (encodingFieldDef?.field) {
+      const field = encodingFieldDef.field;
+      if (selection.length > 1 && encodingFieldDef.aggregate) {
+        const aggregatedValue = aggregate(encodingFieldDef, selection);
+
+        console.log(field, selection, aggregatedValue);
+
+        return {
+          [encodingPropName]: scale(aggregatedValue)
+        }
+      }
+      else if (selection.length === 1) {
+        // val is a value
+        return {
+          [encodingPropName]: scale(selection[0][field])
+        }
+      }
+    }
+    return {};
+  }
+
+  let note: SonifiedNote = {
+    ...playback
+  };
+
+  Object.entries(audioSpec.encoding).forEach(([prop, encodingFieldDef]) => {
+    const partial = audioEncoding(prop as AudioPropName, encodingFieldDef, selection);
+    note = {
+      ...note,
+      ...partial
+    }
+  });
+
+  return note;
 }
