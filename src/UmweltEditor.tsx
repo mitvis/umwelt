@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { UmweltSpec } from './grammar';
 import './text/TreeStyle.css'
 import * as JSONEditor from '@json-editor/json-editor';
-import { enhancedSchema } from './grammar/schema/enhancedSchema';
+import { uiSchema } from './grammar/schema/uiSchema';
 
 interface EditorProps {
   spec: UmweltSpec
@@ -26,11 +26,11 @@ const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
       editor.current.off('change', onChange);
       editor.current.destroy();
     }
-    console.log(enhancedSchema)
+    console.log(uiSchema)
     const container = document.querySelector('.uw-editor');
     container.replaceChildren();
     const e = new JSONEditor.JSONEditor(container, {
-      schema: enhancedSchema,
+      schema: uiSchema,
       // display_required_only: true,
       show_opt_in: true,
       use_default_values: false,

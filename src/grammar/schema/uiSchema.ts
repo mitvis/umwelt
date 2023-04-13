@@ -100,4 +100,4 @@ const postProcessSchema = (originalSchema: JSONSchema7) => {
 
 // "defaultProperties": ["name"]
 
-export const enhancedSchema = postProcessSchema(originalSchema);
+export const uiSchema = postProcessSchema(originalSchema);
