@@ -110,14 +110,28 @@ export interface ElaboratedLeafNode {
   fullPredicate: LogicalAnd<FieldPredicate>
 }
 
-export interface ElaboratedPredNode extends ElaboratedLeafNode {
+export interface ElaboratedPredNode {
+  fullPredicate: LogicalAnd<FieldPredicate>
   predicate: FieldPredicate
   children: ElaboratedGroupNode[] | ElaboratedLeafNode[]
 }
 
-export interface ElaboratedGroupNode extends ElaboratedLeafNode {
+export interface ElaboratedGroupNode {
+  fullPredicate: LogicalAnd<FieldPredicate>
   field?: string
   children: ElaboratedPredNode[]
+}
+
+export function isPredNode(node: ElaboratedTextNode): node is ElaboratedPredNode {
+  return (node as any).predicate;
+}
+
+export function isGroupNode(node: ElaboratedTextNode): node is ElaboratedGroupNode {
+  return Boolean((node as ElaboratedGroupNode).field) || (node as any).children && !(node as any).predicate;
+}
+
+export function isLeafNode(node: ElaboratedTextNode): node is ElaboratedLeafNode {
+  return !(node as any).children;
 }
 
 export type ElaboratedTextNode = ElaboratedPredNode | ElaboratedGroupNode | ElaboratedLeafNode;

@@ -1,6 +1,6 @@
 import { OlliDataset } from 'olli';
 import React, { createRef, useEffect, useRef } from 'react';
-import { ElaboratedFieldDef, SelectionSpec, ElaboratedGroupNode, ElaboratedPredNode, ElaboratedTextNode } from './grammar';
+import { ElaboratedFieldDef, SelectionSpec, ElaboratedGroupNode, ElaboratedPredNode, ElaboratedTextNode, isGroupNode, isLeafNode, isPredNode } from './grammar';
 import { Tree } from './text/Tree';
 import './text/TreeStyle.css'
 import { LogicalAnd } from 'vega-lite/src/logical';
@@ -43,8 +43,16 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, data, f
 
   useEffect(() => {
     Object.entries(nodeMap.current).reduce(async (memo, [nodeId, node]) => {
-      await memo;
+      await memo; // necessary to run the api calls sequentially, to avoid triggering rate limit
+      if (isGroupNode(node) && node.field) {
+        // group nodes e.g. axes have the same pred as their parent
+        return;
+      }
       const selection = selectionTest(data, {predicate: node.fullPredicate}, fields);
+      if (selection.length === 1) {
+        // don't ask gpt to describe single data points
+        return;
+      }
       const description = await describe(selection);
       console.log('setting description map', nodeId, description, {
         ...descriptionMapRef.current,
@@ -81,10 +89,10 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, data, f
             if ((predNode as ElaboratedGroupNode).field) {
               description += `Group of ${(predNode as ElaboratedGroupNode).field}`;
             }
-            else if ((predNode as ElaboratedPredNode).predicate) {
-              description += JSON.stringify((predNode as ElaboratedPredNode).predicate);
-            }
-            // description += JSON.stringify(predNode.fullPredicate);
+            // else if ((predNode as ElaboratedPredNode).predicate) {
+            //   description += JSON.stringify((predNode as ElaboratedPredNode).predicate);
+            // }
+            description += JSON.stringify(predNode.fullPredicate);
             description += `. ${(predNode as ElaboratedPredNode).children?.length || '0'} children.`;
 
             return (
