@@ -184,9 +184,7 @@ export function audioStateToNote(audioSpec: ElaboratedAudioSpec, audioSpecState:
     return {};
   }
 
-  let note: SonifiedNote = {
-    ...playback
-  };
+  let note: SonifiedNote = {};
 
   Object.entries(audioSpec.encoding).forEach(([prop, encodingFieldDef]) => {
     const partial = audioEncoding(prop as AudioPropName, encodingFieldDef, selection);
@@ -195,6 +193,15 @@ export function audioStateToNote(audioSpec: ElaboratedAudioSpec, audioSpecState:
       ...partial
     }
   });
+
+  if (!Object.keys(note).length) {
+    return null;
+  }
+
+  note = {
+    ...note,
+    ...playback
+  }
 
   return note;
 }

@@ -170,10 +170,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }, [selectionSpec, selectionCtrl])
 
   function stopSequence() {
-    setAudioState({
-      ...audioStateRef.current,
-      'ctrl': 'interaction'
-    })
     if (sequenceTimeout.current) {
       clearTimeout(sequenceTimeout.current);
     }

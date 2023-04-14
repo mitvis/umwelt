@@ -56,7 +56,7 @@ class UmweltSonifier {
     Tone.Transport.position = 0;
     Tone.Transport.cancel();
 
-    if (note.pauseBefore) {
+    if (note?.pauseBefore) {
       this.synth.triggerRelease();
       this.isPlaying = false;
     }
@@ -87,10 +87,12 @@ class UmweltSonifier {
         }
       }
       else {
+        this.synth.triggerRelease();
+        this.isPlaying = false;
         this.noise.triggerAttackRelease(this.noiseDuration);
       }
 
-    }, note.pauseBefore ? this.pauseDuration : 0);
+    }, note?.pauseBefore ? this.pauseDuration : 0);
 
     Tone.Transport.start();
   }

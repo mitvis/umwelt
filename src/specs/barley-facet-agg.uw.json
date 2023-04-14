@@ -3,7 +3,7 @@
   "fields": [
     {
       "name": "site",
-      "type": "ordinal"
+      "type": "nominal"
     },
     {
       "name": "median_yield",
@@ -12,7 +12,7 @@
     },
     {
       "name": "variety",
-      "type": "ordinal"
+      "type": "nominal"
     },
     {
       "name": "year",
@@ -47,5 +47,6 @@
       }
     },
     "traversal": ["year", "variety"]
+
   }
 }
