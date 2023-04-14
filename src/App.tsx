@@ -78,9 +78,9 @@ function App() {
           <img src='/umwelt/umwelt.svg' />
         </div>
       </div>
-      <div className='column'>
+      {/* <div className='column'>
         <UmveltEditor spec={specValue} onSpec={(spec) => { setTextValue(JSON.stringify(spec, null, 2)) }}></UmveltEditor>
-      </div>
+      </div> */}
       <div className='column'>
         <Debounce ms={250}>
           {

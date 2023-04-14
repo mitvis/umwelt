@@ -22,24 +22,27 @@ const UmveltEditor = React.memo(({ spec, onSpec }: EditorProps) => {
   }, [])
 
   useEffect(() => {
-    if (editor.current) {
-      editor.current.off('change', onChange);
-      editor.current.destroy();
-    }
-    console.log(uiSchema)
-    const container = document.querySelector('.uw-editor');
-    container.replaceChildren();
-    const e = new JSONEditor.JSONEditor(container, {
-      schema: uiSchema,
-      // display_required_only: true,
-      show_opt_in: true,
-      use_default_values: false,
-      array_controls_top: true,
-      startval: spec
-    });
-    e.on('change', onChange);
+    if (spec) {
+      // if (editor.current) {
+      //   editor.current.off('change', onChange);
+      //   editor.current.destroy();
+      // }
+      console.log(uiSchema)
+      // const container = document.querySelector('.uw-editor');
+      // container.replaceChildren();
+      // const e = new JSONEditor.JSONEditor(container, {
+      //   schema: uiSchema,
+      //   // display_required_only: true,
+      //   show_opt_in: true,
+      //   use_default_values: false,
+      //   array_controls_top: true,
+      //   max_depth: 1,
+      //   startval: spec
+      // });
+      // e.on('change', onChange);
 
-    setEditor(e);
+      // setEditor(e);
+    }
   }, [spec]);
 
   return (

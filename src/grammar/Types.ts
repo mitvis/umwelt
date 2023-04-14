@@ -1,7 +1,6 @@
 import {Type} from 'vega-lite/src/type';
 import {UrlData, InlineData} from 'vega-lite/src/data';
 import {Mark} from 'vega-lite/src/mark';
-import { Scale } from 'vega-lite/src/scale';
 import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
 import { OlliDataset, OlliValue } from 'olli';
 import { FieldPredicate } from 'vega-lite/src/predicate';
@@ -12,8 +11,14 @@ import { TopLevelUnitSpec } from 'vega-lite/src/spec/unit';
 export type VlSpec = TopLevelUnitSpec<any>
 export type VgSpec = Spec;
 
-type ScaleDomain = {domain: OlliValue[]} & Pick<Scale, "zero" | "nice"> //  | "type"
-type ScaleRange = Pick<Scale, "range"> //  | "reverse"
+type ScaleDomain = {
+  domain?: OlliValue[],
+  zero?: boolean,
+  nice?: boolean | number
+} //  | "type"
+type ScaleRange = {
+  range?: number[] | string[]
+} //  | "reverse"
 
 export type ScaleFunction = (value: any) => any;
 
@@ -52,7 +57,9 @@ export interface AudioEncodingFieldDef extends EncodingFieldDef {
   bin: undefined;
 }
 
-export type AudioTraversalFieldDef = Omit<EncodingFieldDef, 'aggregate'>;
+export interface AudioTraversalFieldDef extends EncodingFieldDef {
+  aggregate: undefined;
+}
 
 export type VisualEncoding = {
   [prop in VisualPropName]?: FieldName | EncodingFieldDef
@@ -121,7 +128,7 @@ export function isPredNode(node: ElaboratedTextNode): node is ElaboratedPredNode
 }
 
 export function isGroupNode(node: ElaboratedTextNode): node is ElaboratedGroupNode {
-  return Boolean((node as ElaboratedGroupNode).field) || (node as any).children && !(node as any).predicate;
+  return Boolean((node as ElaboratedGroupNode).field) || ((node as any).children && !(node as any).predicate);
 }
 
 export function isLeafNode(node: ElaboratedTextNode): node is ElaboratedLeafNode {
