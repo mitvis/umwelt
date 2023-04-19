@@ -49,8 +49,8 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, data, f
         return;
       }
       const selection = selectionTest(data, {predicate: node.fullPredicate}, fields);
-      if (selection.length === 1) {
-        // don't ask gpt to describe single data points
+      if (selection.length <= 1) {
+        // don't ask gpt to describe single data points or empty data
         return;
       }
       const description = await describe(selection);
