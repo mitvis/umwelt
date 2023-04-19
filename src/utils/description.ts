@@ -31,7 +31,25 @@ export async function describe(selection: OlliDataset): Promise<string> {
         messages: [
           // {role: "system", content: "You help write text descriptions of patterns or trends in data. Do not explain what the query matches. Do not report errors. Answer concisely in 50 words or less."},
           // {role: "user", content: `the full dataset is ${stringData}. describe the data matching this query: ${stringPred}`}
-          {role: "user", content: `describe trends or patterns in the data: ${stringData}. answer concisely in 50 words or less. round all numbers to 2 decimal places.`}
+          {role: "user", content: `You are an expert chart captioner. You will be given a JSON data structure that is a list of data points from a visualization.
+Please describe trends or patterns in the data.
+
+### Response Format ###
+
+Respond with the following format:
+
+# Thought #
+You should always think about what to do. Work this out in a step by step way to be sure we produce the right output.
+
+# Output #
+A description of the trends or patterns in the data. Answer concisely in 50 words or less. Round all numbers to 2 decimal places.
+
+Begin!
+
+### Data ###
+
+${stringData}
+`}
         ],
       })
     });
