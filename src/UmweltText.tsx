@@ -53,6 +53,10 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, data, f
         // don't ask gpt to describe single data points or empty data
         return;
       }
+      if (selection.length > 50) {
+        // it will probably be too long for the token limit
+        return;
+      }
       const description = await describe(selection);
       setDescriptionMap({
         ...descriptionMapRef.current,

@@ -10,6 +10,7 @@ import { audioStateToSelectionSpec, selectionSpecToAudioState, tickSequenceAudio
 import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
+import { debounce } from 'vega';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -78,7 +79,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
             return [field, (
               bin ?
               getBins(field, data) :
-              // getDomain(field, selection || data) // TODO umwelt selection can filter the audio domain?
+              // getDomain(field, selection || data) // umwelt selection can filter the audio domain
               getDomain(field, data)
             )];
           })
@@ -99,7 +100,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     Sonifier.mute(muted)
   }, [muted])
 
-  useEffect(() => {
+  useEffect(debounce(250, () => {
     const currentAudioSpecState = audioState.specStates[audioState.activeState];
     const currentAudioSpecDomain = audioState.specDomains[audioState.activeState];
 
@@ -138,34 +139,37 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       // }
     }
 
-  }, [audioState, shouldUpdateUmwelt]);
+  }), [audioState, shouldUpdateUmwelt]);
 
   useEffect(() => {
     // TODO think about desired behavior of outside selections (should they update the domain?)
     // update audio state on umwelt selection change
     if (selectionCtrl !== 'audio' && selectionSpec) {
       const as = selectionSpecToAudioState(selectionSpec, audio, fields, data);
+      console.log('as', as);
       if (as.specStates.map(state => Object.keys(state).length).some(n => n >= 1)) {
         // selection spec maps to a valid audio state
+        const selection = selectionTest(data, selectionSpec, fields);
         const mergedSpecStates = audioState.specStates.map((state, idx) => {return {...state, ...as.specStates[idx]}});
         setShouldUpdateUmwelt(false);
         setAudioState({
           ...audioState,
           specStates: mergedSpecStates,
+          specDomains: getAudioDomains(audio, selection),
           activeState: as.activeState || audioState.activeState,
           ctrl: 'umwelt'
         });
       }
-      else {
-        // TODO think about desired behavior of outside selections (should they update the domain?)
-        console.log('non-audio-ctrl sonifier update', selectionSpec);
-        const selection = selectionTest(data, selectionSpec, fields);
-        // setAudioDomains(getAudioDomains(audio, selection));
-        // const notes = selectionToNotes(selection, audio, fields, data);
-        // if (notes.length) {
-          // Sonifier.setNotes(notes);
-        // }
-      }
+      // else {
+      //   // TODO think about desired behavior of outside selections (should they update the domain?)
+      //   console.log('non-audio-ctrl sonifier update', selectionSpec);
+      //   const selection = selectionTest(data, selectionSpec, fields);
+      //   // setAudioDomains(getAudioDomains(audio, selection));
+      //   // const notes = selectionToNotes(selection, audio, fields, data);
+      //   // if (notes.length) {
+      //     // Sonifier.setNotes(notes);
+      //   // }
+      // }
     }
   }, [selectionSpec, selectionCtrl])
 

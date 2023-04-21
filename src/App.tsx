@@ -21,9 +21,9 @@ function App() {
   }
 
   const [selectedSpec, setSelectedSpec] =
-    // useState("multi-series-line.uw.json");
+    useState("multi-series-line.uw.json");
     // useState("scatterplot.uw.json");
-    useState("temperature.uw.json");
+    // useState("temperature.uw.json");
     // useState("line-sequence-d-s.uw.json");
     // useState("line-sequence-s-d.uw.json");
     // useState("line-interaction-agg.uw.json");

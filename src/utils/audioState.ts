@@ -13,6 +13,7 @@ import { selectionTest } from "./selection";
 import { rangesAreEqual, serializeValue } from "./values";
 
 export function audioStateToSelectionSpec(audioState: AudioSpecState, audioDomains: AudioDomain): SelectionSpec {
+  console.log(audioState, audioDomains);
   return {
     predicate: {
       and: Object.entries(audioState).map(([field, idx]) => {
@@ -46,7 +47,7 @@ export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: E
             return {
               [field]: fieldValueIndexFromPredicate(predicate, field, bin, fields, data)
             }
-          }).filter(s => Object.values(s).every(x => x));
+          }).filter(s => Object.values(s).every(x => x !== undefined));
           if (partialStates.length) {
             const state = partialStates.reduce((prev, curr) => {return {...prev, ...curr}});
             if (Object.keys(state).length) {
@@ -68,7 +69,7 @@ export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: E
 
 function fieldValueIndexFromPredicate(predicate: LogicalComposition<FieldPredicate>, field: string, bin: Bin, fields: ElaboratedFieldDef[], data: OlliDataset) {
   if ((predicate as LogicalAnd<FieldPredicate>).and) {
-    return (predicate as LogicalAnd<FieldPredicate>).and.map(p => fieldValueIndexFromPredicate(p as FieldPredicate, field, bin, fields, data)).find(x => x);
+    return (predicate as LogicalAnd<FieldPredicate>).and.map(p => fieldValueIndexFromPredicate(p as FieldPredicate, field, bin, fields, data)).find(x => x !== undefined);
   }
   else {
     const eq = (predicate as FieldEqualPredicate).equal;
@@ -88,7 +89,7 @@ function fieldValueIndexFromPredicate(predicate: LogicalComposition<FieldPredica
       }
     }
   }
-  return null;
+  return undefined;
 }
 
 function valueIndexInDomain(fields: ElaboratedFieldDef[], data: OlliDataset, field: string, value: any) {
@@ -114,7 +115,7 @@ export function tickSequenceAudioState(audioState: AudioState, audio: Elaborated
 
   // check if sequence reached the end
   const isEndOfSequence = Object.entries(audioSpecState).every(([field, idx]) => {
-    return idx === audioSpecDomain[field].length - 1;
+    return idx >= audioSpecDomain[field].length - 1;
   })
   if (isEndOfSequence) return audioState;
 
@@ -127,7 +128,7 @@ export function tickSequenceAudioState(audioState: AudioState, audio: Elaborated
 
   for (let field of sequenceFields) {
     const fIdx = audioSpecState[field];
-    if (fIdx === audioSpecDomain[field].length - 1) {
+    if (fIdx >= audioSpecDomain[field].length - 1) {
       nextAudioState.specStates[audioState.activeState][field] = 0;
       end = true;
       continue; // increment next level up of nesting
