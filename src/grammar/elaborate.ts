@@ -50,12 +50,18 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     const copy = structuredClone(encoding);
     // elaborate string field names into object field references
     Object.entries(encoding).forEach(([k, v]) => {
+      const {name, ...fieldDef} = getFieldDef(v, fields);
       if (typeof v === 'string') {
-        const {name, ...fieldDef} = getFieldDef(v, fields);
         copy[k] = {
-          field: name,
-          ...fieldDef
+          ...fieldDef,
+          field: name
         };
+      }
+      else {
+        copy[k] = {
+          ...fieldDef,
+          ...encoding[k]
+        }
       }
     });
     return copy;
