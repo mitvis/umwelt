@@ -1,6 +1,8 @@
 import { OlliDataset } from "olli";
-import { ElaboratedFieldDef, EncodingFieldDef, EncodingPropName, ScaleFunction } from "../grammar";
+import { ElaboratedFieldDef, EncodingFieldDef, EncodingPropName } from "../grammar";
 import { getDomain } from "./data";
+
+export type ScaleFunction = (value: any) => any;
 
 const DEFAULT_RANGES: {[prop: string]: [number, number]} = {
   volume: [-60, 0], // in decibels

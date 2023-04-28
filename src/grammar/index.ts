@@ -15,6 +15,8 @@ export async function umwelt(spec: UmweltSpec) {
 
   const elaboratedSpec = elaborate(spec, niceData, elaboratedFields);
 
+  console.log('elaborated', elaboratedSpec)
+
   const vlSpec = umweltToVegaLiteSpec(elaboratedSpec);
   const olliSpec = await umweltToOlliSpec(elaboratedSpec);
 

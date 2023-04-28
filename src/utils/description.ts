@@ -6,7 +6,6 @@ import { FieldPredicate } from "vega-lite/src/predicate";
 import { isDate } from "vega";
 
 const secrets = require('../secrets/openai.json');
-console.log(secrets);
 const configuration = new Configuration(secrets);
 
 const openai = new OpenAIApi(configuration);
@@ -23,7 +22,7 @@ export async function describe(selection: OlliDataset): Promise<string> {
 
   const cache = localStorage.getItem(storageKey);
   if (cache) {
-    console.log('cache hit', cache);
+    console.log('cache hit');
     return cache;
   }
   else if (FLAG) {
@@ -42,7 +41,6 @@ export async function describe(selection: OlliDataset): Promise<string> {
     console.log('api call returned');
 
     localStorage.setItem(storageKey, description);
-    console.log('cache miss', description);
     return description;
   }
 }

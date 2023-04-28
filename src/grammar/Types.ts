@@ -20,8 +20,6 @@ type ScaleRange = {
   range?: number[] | string[]
 } //  | "reverse"
 
-export type ScaleFunction = (value: any) => any;
-
 export type MeasureType = Exclude<Type, "geojson">;
 type UmweltDataSource = UrlData | InlineData
 type ElaboratedUmweltDataSource = { values: OlliDataset }
