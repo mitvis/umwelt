@@ -79,7 +79,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
             return [field, (
               bin ?
               getBins(field, data) :
-              // getDomain(field, selection || data) // umwelt selection can filter the audio domain
+              // getDomain(field, selection || data) // TODO umwelt selection can filter the audio domain
               getDomain(field, data)
             )];
           })
@@ -325,9 +325,9 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         })
       }
       <label><input type="checkbox" className="uv_mute" checked={muted} onChange={(e) => setMuted(e.target.checked)} /> Mute</label>
-      <pre>
+      {/* <pre>
         {JSON.stringify(audioState, null, 2)}
-      </pre>
+      </pre> */}
     </div>
   );
 }

@@ -47,13 +47,13 @@
         {
           "predicate": {
             "field": "mean_temp",
-            "lte": "32"
+            "lte": 32
           }
         },
         {
           "predicate": {
             "field": "mean_temp",
-            "gt": "32"
+            "gt": 32
           }
         }
       ]

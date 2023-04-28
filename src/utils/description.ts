@@ -15,11 +15,11 @@ const openai = new OpenAIApi(configuration);
 const FLAG = false;
 
 export async function describe(selection: OlliDataset): Promise<string> {
-  let stringData = '';
-  stringData += Object.keys(selection[0]).join() + '\n';
-  stringData += selection.map(d => Object.values(d).map(v => isDate(v) ? v.toLocaleDateString() : v.toString()).join()).join('\n');
+  let csvData: string = '';
+  csvData += Object.keys(selection[0]).join() + '\n';
+  csvData += selection.map(d => Object.values(d).map(v => isDate(v) ? v.toLocaleDateString() : v.toString()).join()).join('\n');
 
-  const storageKey = String(hashCode(stringData));
+  const storageKey = String(hashCode(csvData));
 
   const cache = localStorage.getItem(storageKey);
   if (cache) {
@@ -34,7 +34,7 @@ export async function describe(selection: OlliDataset): Promise<string> {
         messages: [
           // {role: "system", content: "You help write text descriptions of patterns or trends in data. Do not explain what the query matches. Do not report errors. Answer concisely in 50 words or less."},
           // {role: "user", content: `the full dataset is ${stringData}. describe the data matching this query: ${stringPred}`}
-          {role: "user", content: prompt(stringData)}
+          {role: "user", content: prompt(csvData)}
         ],
       })
     });
@@ -57,7 +57,7 @@ function hashCode(str) {
   return hash;
 }
 
-function prompt(stringData) {
+function prompt(stringData: string): string {
 //   const prompt =
 // `You are an expert chart captioner. You will be given a JSON data structure that is a list of data points from a visualization.
 // Please describe trends or patterns in the data.
