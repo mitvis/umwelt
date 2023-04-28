@@ -1,5 +1,5 @@
 import { OlliDataset } from "olli";
-import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, ElaboratedTextNode, UmweltSpec, VisualSpec } from "./Types"
+import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, ElaboratedTextNode, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding } from "./Types"
 import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from "../utils/inference";
 import { getFieldDef } from "../utils/data";
 import { textSpecToFullPredicateSpec } from "../utils/text";
@@ -46,18 +46,19 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
   // const encoding = assembleEncoding(structure);
   // const recommender = elaborateRecommender(structure, spec.render.visual, encoding);
 
-  function elaborateEncoding(encoding, fields: ElaboratedFieldDef[]) {
-    const copy = structuredClone(encoding);
+  function elaborateEncoding<T extends VisualEncoding | AudioEncoding>(encoding: T, fields: ElaboratedFieldDef[]) {
+    const copy: T = structuredClone(encoding);
     // elaborate string field names into object field references
     Object.entries(encoding).forEach(([k, v]) => {
-      const {name, ...fieldDef} = getFieldDef(v, fields);
       if (typeof v === 'string') {
+        const {name, ...fieldDef} = getFieldDef(v, fields);
         copy[k] = {
           ...fieldDef,
           field: name
         };
       }
       else {
+        const {name, ...fieldDef} = getFieldDef(v.field, fields);
         copy[k] = {
           ...fieldDef,
           ...encoding[k]
