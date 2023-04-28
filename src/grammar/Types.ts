@@ -44,9 +44,16 @@ export interface FieldDef {
   scale?: ScaleDomain
 }
 
-export interface EncodingFieldDef {
+export interface EncodingFieldDef extends Omit<FieldDef, 'name'> {
   field: FieldName,
   scale?: ScaleDomain & ScaleRange,
+  aggregate?: NonArgAggregateOp,
+  bin?: boolean
+}
+
+export interface ElaboratedEncodingFieldDef extends Omit<ElaboratedFieldDef, 'name'> {
+  field: FieldName,
+  scale: ScaleDomain & ScaleRange,
   aggregate?: NonArgAggregateOp,
   bin?: boolean
 }
@@ -56,6 +63,14 @@ export interface AudioEncodingFieldDef extends EncodingFieldDef {
 }
 
 export interface AudioTraversalFieldDef extends EncodingFieldDef {
+  aggregate: undefined;
+}
+
+export interface ElaboratedAudioEncodingFieldDef extends ElaboratedEncodingFieldDef {
+  bin: undefined;
+}
+
+export interface ElaboratedAudioTraversalFieldDef extends ElaboratedEncodingFieldDef {
   aggregate: undefined;
 }
 
@@ -82,12 +97,12 @@ export type AudioEncoding = {
 }
 
 export type ElaboratedAudioEncoding = {
-  [prop in AudioPropName]?: AudioEncodingFieldDef
+  [prop in AudioPropName]?: ElaboratedAudioEncodingFieldDef
 }
 
 export type AudioTraversal = (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[];
 
-export type ElaboratedAudioTraversal = AudioTraversalFieldDef[];
+export type ElaboratedAudioTraversal = ElaboratedAudioTraversalFieldDef[];
 
 export type AudioSpec = {
   encoding?: AudioEncoding,

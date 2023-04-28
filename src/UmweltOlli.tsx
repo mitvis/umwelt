@@ -22,7 +22,7 @@ const UmweltOlli = React.memo(({ olliSpec, onFocus, selectionCtrl, selectionSpec
       if (selectionSpec && selectionCtrl !== 'olli') {
         spec = {
           ...spec,
-          selection: selectionTest(olliSpec.data, selectionSpec, fields)
+          selection: selectionTest(olliSpec.data, selectionSpec)
         }
       }
       renderOlli(spec, '#olli-container', {

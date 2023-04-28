@@ -80,7 +80,7 @@ export function selectionStoreToSelectionSpec(store): SelectionSpec {
   }
 }
 
-export function selectionSpecToSelectionStore(selectionSpec: SelectionSpec, fields: ElaboratedFieldDef[]) {
+export function selectionSpecToSelectionStore(selectionSpec: SelectionSpec) {
   if (selectionSpec.predicate) {
     const predicate = selectionSpec.predicate;
     const and = (predicate as LogicalAnd<FieldPredicate>).and;
@@ -113,9 +113,9 @@ export function selectionSpecToSelectionStore(selectionSpec: SelectionSpec, fiel
   }
 }
 
-export function selectionTest(data: OlliDataset, selectionSpec: SelectionSpec, fields: ElaboratedFieldDef[]): OlliDataset {
+export function selectionTest(data: OlliDataset, selectionSpec: SelectionSpec): OlliDataset {
   try {
-    const store = selectionSpecToSelectionStore(selectionSpec, fields);
+    const store = selectionSpecToSelectionStore(selectionSpec);
     return data.filter(datum => {
       return testPoint(datum, store);
     })

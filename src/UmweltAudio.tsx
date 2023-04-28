@@ -75,12 +75,12 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     return audio.map(audioSpec => {
       if (audioSpec.traversal !== 'selection') {
         return Object.fromEntries(
-          audioSpec.traversal.map(({field, bin}) => {
-            return [field, (
-              bin ?
-              getBins(field, data) :
-              // getDomain(field, selection || data) // TODO umwelt selection can filter the audio domain
-              getDomain(field, data)
+          audioSpec.traversal.map((fieldDef) => {
+            return [fieldDef.field, (
+              fieldDef.bin ?
+              getBins(fieldDef, data) :
+              getDomain(fieldDef, data, selectionSpec) // TODO umwelt selection can filter the audio domain
+              // getDomain(field, data)
             )];
           })
         );
@@ -109,7 +109,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       console.log('audio ctrl sonifier update', selectionSpec);
 
       const currentAudioSpec = audio[audioState.activeState];
-      const note = audioStateToNote(currentAudioSpec, currentAudioSpecState, currentAudioSpecDomain, data, fields, audioState.playback);
+      const note = audioStateToNote(currentAudioSpec, currentAudioSpecState, currentAudioSpecDomain, data, audioState.playback);
 
       console.log(note);
 
@@ -142,33 +142,23 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }), [audioState, shouldUpdateUmwelt]);
 
   useEffect(() => {
-    // TODO think about desired behavior of outside selections (should they update the domain?)
     // update audio state on umwelt selection change
     if (selectionCtrl !== 'audio' && selectionSpec) {
-      const as = selectionSpecToAudioState(selectionSpec, audio, fields, data);
-      console.log('as', as);
-      if (as.specStates.map(state => Object.keys(state).length).some(n => n >= 1)) {
+      // const as = selectionSpecToAudioState(selectionSpec, audio, data);
+      // console.log('as', as);
+      // if (as.specStates.map(state => Object.keys(state).length).some(n => n >= 1)) {
         // selection spec maps to a valid audio state
-        const selection = selectionTest(data, selectionSpec, fields);
-        const mergedSpecStates = audioState.specStates.map((state, idx) => {return {...state, ...as.specStates[idx]}});
+        // const selection = selectionTest(data, selectionSpec);
+        // const mergedSpecStates = audioState.specStates.map((state, idx) => {return {...state, ...as.specStates[idx]}});
         setShouldUpdateUmwelt(false);
+        console.log(getAudioDomains(audio));
         setAudioState({
           ...audioState,
-          specStates: mergedSpecStates,
-          specDomains: getAudioDomains(audio, selection),
-          activeState: as.activeState || audioState.activeState,
+          // specStates: mergedSpecStates,
+          specDomains: getAudioDomains(audio),
+          // activeState: as.activeState || audioState.activeState,
           ctrl: 'umwelt'
         });
-      }
-      // else {
-      //   // TODO think about desired behavior of outside selections (should they update the domain?)
-      //   console.log('non-audio-ctrl sonifier update', selectionSpec);
-      //   const selection = selectionTest(data, selectionSpec, fields);
-      //   // setAudioDomains(getAudioDomains(audio, selection));
-      //   // const notes = selectionToNotes(selection, audio, fields, data);
-      //   // if (notes.length) {
-      //     // Sonifier.setNotes(notes);
-      //   // }
       // }
     }
   }, [selectionSpec, selectionCtrl])
@@ -254,9 +244,10 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           return (
             <div key={audioSpecIdx} className="audio-spec">
               {
-                audioSpec.traversal.map(({field, bin}) => {
-                  const fieldDef = getFieldDef(field, fields);
-                  const domain = getDomain(field, data);
+                audioSpec.traversal.map((fieldDef) => {
+                  const field = fieldDef.field;
+                  const bin = fieldDef.bin;
+                  const domain = getDomain(fieldDef, data, selectionSpec);
 
                   if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal' || fieldDef?.type === 'ordinal') {
                     const id = `${field}-slider`;
@@ -280,7 +271,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                       setShouldUpdateUmwelt(true);
                       stopSequence();
                     };
-                    const sliderDomain = bin ? getBins(field, data) : domain;
+                    const sliderDomain = bin ? getBins(fieldDef, data) : domain;
                     return (
                       <div key={field}>
                         <label htmlFor={id}>{field}</label>
@@ -325,9 +316,15 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         })
       }
       <label><input type="checkbox" className="uv_mute" checked={muted} onChange={(e) => setMuted(e.target.checked)} /> Mute</label>
-      {/* <pre>
+      <pre>
+        {selectionCtrl}
+      </pre>
+      <pre>
+        {JSON.stringify(selectionSpec, null, 2)}
+      </pre>
+      <pre>
         {JSON.stringify(audioState, null, 2)}
-      </pre> */}
+      </pre>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import {TopLevelUnitSpec} from 'vega-lite/src/spec/unit';
 import { isNumeric as vlIsNumeric } from "vega-lite";
 import {isString, Spec} from 'vega';
-import { ElaboratedFieldDef } from '../grammar/Types';
+import { ElaboratedEncodingFieldDef, ElaboratedFieldDef } from '../grammar/Types';
 
 // export function traverseStructure(node: ElaboratedStructureNode | ElaboratedStructureNode[], func: (n: ElaboratedStructureNode) => void) {
 //   if (Array.isArray(node)) {
@@ -49,7 +49,7 @@ export function filterObjectByKeys(object, keys): any {
  );
 }
 
-export function rangesAreEqual(range1: any[], range2: any[], fieldDef: ElaboratedFieldDef) {
+export function rangesAreEqual(range1: any[], range2: any[], fieldDef: ElaboratedEncodingFieldDef) {
   if (range1 && range2 && Array.isArray(range1) && Array.isArray(range2)) {
     return serializeValue(range1[0], fieldDef) === serializeValue(range2[0], fieldDef) && serializeValue(range1[1], fieldDef) === serializeValue(range2[1], fieldDef);
   }

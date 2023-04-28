@@ -1,7 +1,8 @@
 import { OlliDataset, OlliValue } from "olli";
 import { isString } from "vega";
 import { compile } from "vega-lite";
-import { ElaboratedFieldDef, UmweltSpec } from "../grammar/Types";
+import { ElaboratedEncodingFieldDef, ElaboratedFieldDef, EncodingFieldDef, SelectionSpec, UmweltSpec } from "../grammar/Types";
+import { selectionTest } from "./selection";
 import { isNumeric } from "./values";
 import { getVegaScene } from "./vega";
 
@@ -60,9 +61,11 @@ export function typeCoerceData(data: OlliDataset, fields: ElaboratedFieldDef[]):
 }
 
 
-export function getDomain(field: string, data: OlliDataset): OlliValue[] {
+export function getDomain(fieldDef: ElaboratedEncodingFieldDef, data: OlliDataset, selectionSpec?: SelectionSpec): OlliValue[] {
   const unique_vals = new Set<OlliValue>();
-  data.map(d => d[field]).forEach((v) => {
+  const dataset = selectionSpec ? selectionTest(data, selectionSpec) : data;
+  // TODO account for domain overrides in the field def
+  dataset.map(d => d[fieldDef.field]).forEach((v) => {
     unique_vals.add(v);
   });
   return [...unique_vals].filter(x => x !== null && x !== undefined).sort((a: any, b: any) => a - b);

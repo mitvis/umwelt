@@ -10,7 +10,7 @@ import { getBinPredicates } from "./bin";
 export function textSpecToFullPredicateSpec(textSpec: TextNode[], fields: ElaboratedFieldDef[], data: OlliDataset, fullPredicate: LogicalAnd<FieldPredicate>): ElaboratedTextNode[] {
   if (!textSpec) {
     // base case (leaf node)
-    const datums = selectionTest(data, {predicate: fullPredicate}, fields);
+    const datums = selectionTest(data, {predicate: fullPredicate});
     return datums.map(datum => {
       return {
         fullPredicate: datumToPredicate(datum, fields)
@@ -65,7 +65,7 @@ export function textSpecToFullPredicateSpec(textSpec: TextNode[], fields: Elabor
 export function fieldToPredicates(field: string, fields: ElaboratedFieldDef[], data: OlliDataset): FieldPredicate[] {
   const fieldDef = getFieldDef(field, fields);
   if (fieldDef.type === 'nominal' || fieldDef.type === 'ordinal') {
-    const domain = getDomain(field, data);
+    const domain = getDomain(fieldDef as any, data); // TODO need to update this when we rethink text specs
     return domain.map(value => {
       return {
         field,
@@ -74,7 +74,7 @@ export function fieldToPredicates(field: string, fields: ElaboratedFieldDef[], d
     });
   }
   else {
-    const bins = getBinPredicates(field, data);
+    const bins = getBinPredicates(fieldDef as any, data); // TODO
     return bins;
   }
 }

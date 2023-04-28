@@ -1,5 +1,5 @@
 import { OlliDataset } from "olli";
-import { ElaboratedFieldDef, EncodingFieldDef, EncodingPropName } from "../grammar";
+import { ElaboratedEncodingFieldDef, ElaboratedFieldDef, EncodingPropName } from "../grammar";
 import { getDomain } from "./data";
 
 export type ScaleFunction = (value: any) => any;
@@ -10,17 +10,10 @@ const DEFAULT_RANGES: {[prop: string]: [number, number]} = {
   duration: [.25, 1], // in seconds
 }
 
-export const getScaleFunction = (encodingPropName: EncodingPropName, encodingFieldDef: EncodingFieldDef, fields: ElaboratedFieldDef[], data: OlliDataset): ScaleFunction => {
-  const field = encodingFieldDef.field;
-  const baseFieldDef = fields.find(f => f.name === field);
-  const scaleDef = {
-    ...(baseFieldDef.scale || {}),
-    ...(encodingFieldDef.scale || {})
-  };
-
-  if (baseFieldDef.type === 'quantitative' || baseFieldDef.type === 'temporal') {
-    const domain = scaleDef.domain || getDomain(field, data);
-    const range = scaleDef.range || DEFAULT_RANGES[encodingPropName];
+export const getScaleFunction = (encodingPropName: EncodingPropName, encodingFieldDef: ElaboratedEncodingFieldDef, data: OlliDataset): ScaleFunction => {
+  if (encodingFieldDef.type === 'quantitative' || encodingFieldDef.type === 'temporal') {
+    const domain = encodingFieldDef.scale.domain || getDomain(encodingFieldDef, data);
+    const range = encodingFieldDef.scale.range || DEFAULT_RANGES[encodingPropName];
 
     return (value) => scale(value, [domain[0], domain[domain.length - 1]] as any, range as any); // TODO type checking
   }

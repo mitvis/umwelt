@@ -2,7 +2,7 @@ import { OlliDataset } from "olli";
 import { Bin } from "vega-lite/src/bin";
 import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from "vega-lite/src/predicate";
-import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingFieldDef, AudioPropName } from "../grammar";
+import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, ElaboratedAudioTraversalFieldDef, ElaboratedAudioEncodingFieldDef } from "../grammar";
 import { SonifiedNote } from "../sonification";
 import { AudioDomain, AudioPlaybackConfig, AudioSpecState, AudioState } from "../UmweltAudio";
 import { aggregate } from "./aggregate";
@@ -36,16 +36,18 @@ export function audioStateToSelectionSpec(audioState: AudioSpecState, audioDomai
 }
 
 // returns an audiostate if selection spec can be mapped onto one, otherwise null
-export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: ElaboratedAudioSpec[], fields: ElaboratedFieldDef[], data: OlliDataset): Partial<AudioState> {
+export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: ElaboratedAudioSpec[], data: OlliDataset): Partial<AudioState> {
   const changedIndexes = [];
   const predicate = selectionSpec?.predicate;
   const audioState: Partial<AudioState> = {
   specStates: audio.map((audioSpec, audioSpecIdx) => {
       if (audioSpec.traversal !== 'selection') {
         if (predicate) {
-          const partialStates = audioSpec.traversal.map(({field, bin}) => {
+          const partialStates = audioSpec.traversal.map((audioFieldDef) => {
+            const field = audioFieldDef.field;
+            const bin = audioFieldDef.bin;
             return {
-              [field]: fieldValueIndexFromPredicate(predicate, field, bin, fields, data)
+              [field]: fieldValueIndexFromPredicate(predicate, audioFieldDef, bin, data)
             }
           }).filter(s => Object.values(s).every(x => x !== undefined));
           if (partialStates.length) {
@@ -67,24 +69,24 @@ export function selectionSpecToAudioState(selectionSpec: SelectionSpec, audio: E
   return audioState;
 }
 
-function fieldValueIndexFromPredicate(predicate: LogicalComposition<FieldPredicate>, field: string, bin: Bin, fields: ElaboratedFieldDef[], data: OlliDataset) {
+function fieldValueIndexFromPredicate(predicate: LogicalComposition<FieldPredicate>, fieldDef: ElaboratedAudioTraversalFieldDef, bin: Bin, data: OlliDataset) {
   if ((predicate as LogicalAnd<FieldPredicate>).and) {
-    return (predicate as LogicalAnd<FieldPredicate>).and.map(p => fieldValueIndexFromPredicate(p as FieldPredicate, field, bin, fields, data)).find(x => x !== undefined);
+    return (predicate as LogicalAnd<FieldPredicate>).and.map(p => fieldValueIndexFromPredicate(p as FieldPredicate, fieldDef, bin, data)).find(x => x !== undefined);
   }
   else {
     const eq = (predicate as FieldEqualPredicate).equal;
     if (eq) {
-      const idx = valueIndexInDomain(fields, data, field, eq);
+      const idx = valueIndexInDomain(data, fieldDef, eq);
       if (idx >= 0) return idx;
     }
     const r = (predicate as FieldRangePredicate).range;
     if (r) {
       if (bin) {
-        const idx = rangeIndexInBins(field, fields, data, r as any[])
+        const idx = rangeIndexInBins(fieldDef, data, r as any[])
         if (idx >= 0) return idx;
       }
       else if (!bin) {
-        const idx = valueIndexInDomain(fields, data, field, r[0])
+        const idx = valueIndexInDomain(data, fieldDef, r[0])
         if (idx >= 0) return idx;
       }
     }
@@ -92,15 +94,13 @@ function fieldValueIndexFromPredicate(predicate: LogicalComposition<FieldPredica
   return undefined;
 }
 
-function valueIndexInDomain(fields: ElaboratedFieldDef[], data: OlliDataset, field: string, value: any) {
-  const fieldDef = getFieldDef(field, fields);
-  const domain = getDomain(field, data);
+function valueIndexInDomain(data: OlliDataset, fieldDef: ElaboratedAudioTraversalFieldDef, value: any) {
+  const domain = getDomain(fieldDef, data);
   return domain.findIndex(v => serializeValue(v, fieldDef) === serializeValue(value, fieldDef));
 }
 
-function rangeIndexInBins(field: string, fields: ElaboratedFieldDef[], data: OlliDataset, range: any[]) {
-  const bins = getBins(field, data);
-  const fieldDef = getFieldDef(field, fields);
+function rangeIndexInBins(fieldDef: ElaboratedAudioTraversalFieldDef, data: OlliDataset, range: any[]) {
+  const bins = getBins(fieldDef, data);
   return bins.findIndex((bin) => {
     return rangesAreEqual(bin, range, fieldDef);
   })
@@ -156,13 +156,13 @@ export function tickSequenceAudioState(audioState: AudioState, audio: Elaborated
 }
 
 
-export function audioStateToNote(audioSpec: ElaboratedAudioSpec, audioSpecState: AudioSpecState, audioDomain: AudioDomain, data: OlliDataset, fields: ElaboratedFieldDef[], playback: AudioPlaybackConfig): SonifiedNote {
+export function audioStateToNote(audioSpec: ElaboratedAudioSpec, audioSpecState: AudioSpecState, audioDomain: AudioDomain, data: OlliDataset, playback: AudioPlaybackConfig): SonifiedNote {
 
   const selectionSpec = audioStateToSelectionSpec(audioSpecState, audioDomain);
-  const selection = selectionTest(data, selectionSpec, fields);
+  const selection = selectionTest(data, selectionSpec);
 
-  function audioEncoding(encodingPropName: AudioPropName, encodingFieldDef: AudioEncodingFieldDef, selection: OlliDataset) {
-    const scale = getScaleFunction(encodingPropName, encodingFieldDef, fields, data);
+  function audioEncoding(encodingPropName: AudioPropName, encodingFieldDef: ElaboratedAudioEncodingFieldDef, selection: OlliDataset) {
+    const scale = getScaleFunction(encodingPropName, encodingFieldDef, data);
 
     if (encodingFieldDef?.field) {
       const field = encodingFieldDef.field;

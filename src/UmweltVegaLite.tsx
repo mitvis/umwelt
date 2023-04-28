@@ -42,7 +42,7 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
 
   useEffect(() => {
     if (vlSpec && view && selectionSpec && selectionCtrl.current !== 'vl') {
-      const store = selectionSpecToSelectionStore(selectionSpec, fields);
+      const store = selectionSpecToSelectionStore(selectionSpec);
       view.data('brush_store', store).run();
     }
   }, [selectionSpec, fields, view])

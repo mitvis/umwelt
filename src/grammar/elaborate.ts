@@ -1,5 +1,5 @@
 import { OlliDataset } from "olli";
-import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, ElaboratedTextNode, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding } from "./Types"
+import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, ElaboratedTextNode, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding, ElaboratedEncodingFieldDef, EncodingFieldDef, ElaboratedAudioTraversalFieldDef } from "./Types"
 import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from "../utils/inference";
 import { getFieldDef } from "../utils/data";
 import { textSpecToFullPredicateSpec } from "../utils/text";
@@ -50,22 +50,33 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     const copy: T = structuredClone(encoding);
     // elaborate string field names into object field references
     Object.entries(encoding).forEach(([k, v]) => {
-      if (typeof v === 'string') {
-        const {name, ...fieldDef} = getFieldDef(v, fields);
-        copy[k] = {
-          ...fieldDef,
-          field: name
-        };
-      }
-      else {
-        const {name, ...fieldDef} = getFieldDef(v.field, fields);
-        copy[k] = {
-          ...fieldDef,
-          ...encoding[k]
-        }
-      }
+      copy[k] = elaborateFieldDef(v);
     });
     return copy;
+  }
+
+  function elaborateFieldDef(v: string | EncodingFieldDef): ElaboratedEncodingFieldDef {
+    if (typeof v === 'string') {
+      const {name, ...fieldDef} = getFieldDef(v, fields);
+      return {
+        ...fieldDef,
+        field: name,
+        scale: {
+          ...(fieldDef.scale || {})
+        }
+      };
+    }
+    else {
+      const {name, ...fieldDef} = getFieldDef(v.field, fields);
+      return {
+        ...fieldDef,
+        ...v,
+        scale: {
+          ...(fieldDef.scale || {}),
+          ...(v.scale || {})
+        }
+      }
+    }
   }
 
   function elaborateVisual(visual: VisualSpec | boolean, fields: ElaboratedFieldDef[]): ElaboratedVisualSpec | false {
@@ -102,22 +113,14 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
       if (traversal === 'selection') return traversal;
       // TODO should probably inherit properties from the umvelt fields definition?
 
-        function wrapFieldInDef(s) {
-          if (isString(s)) {
-            const {name, type, ...fieldDef} = getFieldDef(s, fields);
-            return {...fieldDef, field: s}
-          }
-          return s;
-        }
-
         if (traversal) {
           if (Array.isArray(traversal)) {
             return traversal.map((s) => {
-              return wrapFieldInDef(s);
+              return elaborateFieldDef(s) as ElaboratedAudioTraversalFieldDef;
             });
           }
           else {
-            return [ wrapFieldInDef(traversal) ];
+            return [ elaborateFieldDef(traversal) as ElaboratedAudioTraversalFieldDef ];
           }
         }
         return [];

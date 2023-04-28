@@ -103,7 +103,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
       </pre> */}
       <br/>
       <pre>
-        {data && selectionSpec && uvSpec.fields ? JSON.stringify(selectionTest(data, selectionSpec, uvSpec.fields), null, 2) : null}
+        {data && selectionSpec && uvSpec.fields ? JSON.stringify(selectionTest(data, selectionSpec), null, 2) : null}
       </pre>
     </div>
   );
