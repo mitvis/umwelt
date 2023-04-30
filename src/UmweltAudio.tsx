@@ -129,6 +129,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         console.log('audio ctrl sonifier update', selectionSpec);
         // update umwelt selection on audio state change
         onAudioState(selectionSpec);
+        setShouldUpdateUmwelt(false);
         // if (audioState.ctrl === 'interaction') {
         //   Sonifier.ping(note);
         // }
@@ -145,11 +146,32 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }, [selectionSpec, selectionCtrl]);
 
   useEffect(() => {
-    setAudioState({
+    const nextAudioDomains = getAudioDomains(audio, domainFilter);
+    const nextSpecStates = getSpecStates(audio, domainFilter).map((specState, audioIdx) => {
+      const currentAudioSpecState = audioState.specStates[audioIdx];
+      const currentAudioSpecDomain = audioState.specDomains[audioIdx];
+      const fieldValues = Object.fromEntries(
+        Object.entries(currentAudioSpecState).map(([field, index]) => {
+          return [field, currentAudioSpecDomain[field][index]];
+        })
+      );
+      // if the current values exist in the next domain, update their indices
+      return Object.fromEntries(
+        Object.entries(specState).map(([field, _]) => {
+          const nextIndex = nextAudioDomains[audioIdx][field].findIndex(v => v === fieldValues[field]);
+          console.log(nextIndex, nextAudioDomains[audioIdx][field], fieldValues[field]);
+          return [field, nextIndex === -1 ? 0 : nextIndex];
+        })
+      );
+    });
+    const nextAudioState = {
       ...audioState,
-      specStates: getSpecStates(audio, domainFilter),
-      specDomains: getAudioDomains(audio, domainFilter)
-    })
+      specStates: nextSpecStates,
+      specDomains: nextAudioDomains
+    };
+
+
+    setAudioState(nextAudioState);
   }, [domainFilter]);
 
   function stopSequence() {

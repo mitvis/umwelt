@@ -74,13 +74,14 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
     // update uv selection from vl store
     const spec = selectionStoreToSelectionSpec(store);
     setSelectionSpec(spec);
+    setSelectionCtrl('vl');
   }, []);
 
   /* ***************** write the selection state into all the renders **************************** */
 
   return (
     <div className='umwelt' ref={container}>
-      <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} setSelectionCtrl={setSelectionCtrl} selectionSpec={selectionSpec} fields={uvSpec.fields} ></UmweltVegaLite>
+      <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} selectionSpec={selectionSpec} fields={uvSpec.fields} ></UmweltVegaLite>
       <br/>
 
       {/* <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} selectionSpec={selectionSpec} fields={uvSpec.fields} onFocus={onFocus}></UmweltOlli> */}

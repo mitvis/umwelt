@@ -1,43 +1,48 @@
 import { OlliDataset, OlliVisSpec } from 'olli';
-import React, { MutableRefObject, useState, useRef } from 'react';
+import React, { MutableRefObject, useState, useRef, useCallback } from 'react';
 import { useEffect } from 'react';
 import { ElaboratedFieldDef, SelectionSpec, VlSpec } from './grammar';
 import { renderOlli, renderVegaLite } from './utils/render';
 import { selectionSpecToSelectionStore, selectionStoreToSelectionSpec, selectionTest } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
-import { View } from 'vega';
+import { View, debounce } from 'vega';
 
 interface UmweltVegaLiteProps {
   vlSpec: VlSpec,
   onVegaLiteSelection,
   selectionCtrl: MutableRefObject<SelectionCtrl>,
-  setSelectionCtrl,
   selectionSpec: SelectionSpec,
   fields: ElaboratedFieldDef[]
 }
 
-const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, fields, onVegaLiteSelection, setSelectionCtrl }: UmweltVegaLiteProps) => {
+const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, fields, onVegaLiteSelection }: UmweltVegaLiteProps) => {
 
   const [view, setView] = useState<View>();
   const isMouseOver = useRef<boolean>(false);
+
+  const mouseenter = useCallback(() => {
+    isMouseOver.current = true;
+  }, []);
+  const mouseleave = useCallback(() => {
+    isMouseOver.current = false;
+  }, []);
+  const updateValue = debounce(250, (value) => {
+    if (isMouseOver.current) {
+      onVegaLiteSelection(value);
+    }
+  });
 
   useEffect(() => {
     if (vlSpec) {
       const view = renderVegaLite(vlSpec, '#vl-container');
       setView(view);
 
-      document.getElementById('vl-container').addEventListener('mouseenter', () => {
-        isMouseOver.current = true;
-      })
-      document.getElementById('vl-container').addEventListener('mouseleave', () => {
-        isMouseOver.current = false;
-      })
+      document.getElementById('vl-container').addEventListener('mouseenter', mouseenter)
+      document.getElementById('vl-container').addEventListener('mouseleave', mouseleave)
 
       view.addDataListener('brush_store', (name, value) => {
-        if (isMouseOver.current) {
-          setSelectionCtrl('vl');
-          onVegaLiteSelection(value);
-        }
+        console.log(name, value)
+        updateValue(value);
       });
 
       (window as any).view = view;

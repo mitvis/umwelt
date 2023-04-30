@@ -17,6 +17,15 @@ export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
   //   "source": dataset,
   //   "transform": [{"type": "filter", "expr": "!length(data(\"external_state_store\")) || vlSelectionTest(\"external_state_store\", datum)"}]
   // })
+  vgSpec.signals = vgSpec.signals.map(signal => {
+    if (signal.name === 'external_state_modify') {
+      return {
+        "name": "external_state_modify",
+        "update": "false"
+      }
+    }
+    return signal;
+  })
   if ((vlSpec.mark as any).type === 'line' && (vlSpec.mark as any).point) {
     vgSpec = editLinePointConditionalBehavior(vgSpec);
   }
