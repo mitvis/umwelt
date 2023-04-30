@@ -1,5 +1,5 @@
 import { OlliDataset, OlliVisSpec } from 'olli';
-import React, { MutableRefObject, useState } from 'react';
+import React, { MutableRefObject, useState, useRef } from 'react';
 import { useEffect } from 'react';
 import { ElaboratedFieldDef, SelectionSpec, VlSpec } from './grammar';
 import { renderOlli, renderVegaLite } from './utils/render';
@@ -19,18 +19,23 @@ interface UmweltVegaLiteProps {
 const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, fields, onVegaLiteSelection, setSelectionCtrl }: UmweltVegaLiteProps) => {
 
   const [view, setView] = useState<View>();
+  const isMouseOver = useRef<boolean>(false);
 
   useEffect(() => {
     if (vlSpec) {
       const view = renderVegaLite(vlSpec, '#vl-container');
       setView(view);
 
-      document.getElementById('vl-container').addEventListener('mousemove', () => {
-        setSelectionCtrl('vl');
+      document.getElementById('vl-container').addEventListener('mouseenter', () => {
+        isMouseOver.current = true;
+      })
+      document.getElementById('vl-container').addEventListener('mouseleave', () => {
+        isMouseOver.current = false;
       })
 
       view.addDataListener('brush_store', (name, value) => {
-        if (selectionCtrl.current === 'vl') {
+        if (isMouseOver.current) {
+          setSelectionCtrl('vl');
           onVegaLiteSelection(value);
         }
       });
@@ -41,9 +46,9 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
   }, [vlSpec]);
 
   useEffect(() => {
-    if (vlSpec && view && selectionSpec && selectionCtrl.current !== 'vl') {
+    if (vlSpec && view && selectionSpec && (selectionCtrl.current === 'audio' || selectionCtrl.current === 'olli-nav')) {
       const store = selectionSpecToSelectionStore(selectionSpec);
-      view.data('brush_store', store).run();
+      view.data('external_state_store', store).run();
     }
   }, [selectionSpec, fields, view])
 

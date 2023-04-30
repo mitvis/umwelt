@@ -11,6 +11,7 @@ import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
+import { serializeValue } from './utils/values';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -46,22 +47,16 @@ export type AudioState = {
 
 function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectionCtrl}: AudioProps) {
 
-  const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio));
+  const [domainFilter, setDomainFilter, domainFilterRef] = useState<SelectionSpec>();
+  const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio, domainFilter));
   const [shouldUpdateUmwelt, setShouldUpdateUmwelt] = useState<boolean>(false); // state is propagated upward to umwelt only when set to true
   const [muted, setMuted] = useState(false);
   const sequenceTimeout = useRef<any>();
 
-  function getInitialAudioState(audio: ElaboratedAudioSpec[]) {
+  function getInitialAudioState(audio: ElaboratedAudioSpec[], domainFilter: SelectionSpec) {
     return {
-      specStates: audio.map(audioSpec => {
-        if (audioSpec.traversal !== 'selection') {
-          return Object.fromEntries(audioSpec.traversal.map(({field}) => {
-            return [field, 0];
-          }));
-        }
-        return null;
-      }),
-      specDomains: getAudioDomains(audio),
+      specStates: getSpecStates(audio, domainFilter),
+      specDomains: getAudioDomains(audio, domainFilter),
       activeState: 0,
       ctrl: 'interaction' as AudioCtrl,
       playback: {
@@ -71,7 +66,18 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     }
   }
 
-  function getAudioDomains(audio: ElaboratedAudioSpec[], selection?: OlliDataset): AudioDomain[] {
+  function getSpecStates(audio: ElaboratedAudioSpec[], domainFilter: SelectionSpec): AudioSpecState[] {
+    return audio.map(audioSpec => {
+      if (audioSpec.traversal !== 'selection') {
+        return Object.fromEntries(audioSpec.traversal.map(({field}) => {
+          return [field, 0];
+        }));
+      }
+      return null;
+    })
+  }
+
+  function getAudioDomains(audio: ElaboratedAudioSpec[], domainFilter: SelectionSpec): AudioDomain[] {
     return audio.map(audioSpec => {
       if (audioSpec.traversal !== 'selection') {
         return Object.fromEntries(
@@ -92,7 +98,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   useEffect(() => {
     // re-initialize when spec changes
     setShouldUpdateUmwelt(false);
-    setAudioState(getInitialAudioState(audio));
+    setAudioState(getInitialAudioState(audio, domainFilter));
     console.log('re-initialized audiostate')
   }, [fields, audio, data])
 
@@ -105,63 +111,46 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     const currentAudioSpecDomain = audioState.specDomains[audioState.activeState];
 
     if (currentAudioSpecState && Object.keys(currentAudioSpecState).length) {
-      const selectionSpec = audioStateToSelectionSpec(currentAudioSpecState, currentAudioSpecDomain);
-      console.log('audio ctrl sonifier update', selectionSpec);
 
       const currentAudioSpec = audio[audioState.activeState];
       const note = audioStateToNote(currentAudioSpec, currentAudioSpecState, currentAudioSpecDomain, data, audioState.playback);
 
       console.log(note);
 
-      if (audioState.ctrl === 'interaction') {
-        Sonifier.pause();
-      }
-      else if (audioState.ctrl === 'sequence') {
-        Sonifier.play(note);
-      }
+      // if (audioState.ctrl === 'interaction') {
+      //   Sonifier.pause();
+      // }
+      // else if (audioState.ctrl === 'sequence') {
+      //   Sonifier.play(note);
+      // }
 
       if (shouldUpdateUmwelt) {
+        const selectionSpec = audioStateToSelectionSpec(currentAudioSpecState, currentAudioSpecDomain);
+        console.log('audio ctrl sonifier update', selectionSpec);
         // update umwelt selection on audio state change
         onAudioState(selectionSpec);
-        // Sonifier.pingCurrentNotes();
-        if (audioState.ctrl === 'interaction') {
-          Sonifier.ping(note);
-        }
+        // if (audioState.ctrl === 'interaction') {
+        //   Sonifier.ping(note);
+        // }
       }
-    }
-    else {
-      // empty audio state
-
-      // const notes = selectionToNotes(data, audio, fields, data);
-      // console.log('empty audio state sonifier update', notes);
-      // if (notes.length) {
-        // Sonifier.setNotes(notes);
-      // }
     }
 
   }), [audioState, shouldUpdateUmwelt]);
 
   useEffect(() => {
-    // update audio state on umwelt selection change
+    // update domain filter on external selection change
     if (selectionCtrl !== 'audio' && selectionSpec) {
-      // const as = selectionSpecToAudioState(selectionSpec, audio, data);
-      // console.log('as', as);
-      // if (as.specStates.map(state => Object.keys(state).length).some(n => n >= 1)) {
-        // selection spec maps to a valid audio state
-        // const selection = selectionTest(data, selectionSpec);
-        // const mergedSpecStates = audioState.specStates.map((state, idx) => {return {...state, ...as.specStates[idx]}});
-        setShouldUpdateUmwelt(false);
-        console.log(getAudioDomains(audio));
-        setAudioState({
-          ...audioState,
-          // specStates: mergedSpecStates,
-          specDomains: getAudioDomains(audio),
-          // activeState: as.activeState || audioState.activeState,
-          ctrl: 'umwelt'
-        });
-      // }
+      setDomainFilter(selectionSpec);
     }
-  }, [selectionSpec, selectionCtrl])
+  }, [selectionSpec, selectionCtrl]);
+
+  useEffect(() => {
+    setAudioState({
+      ...audioState,
+      specStates: getSpecStates(audio, domainFilter),
+      specDomains: getAudioDomains(audio, domainFilter)
+    })
+  }, [domainFilter]);
 
   function stopSequence() {
     if (sequenceTimeout.current) {
@@ -246,10 +235,9 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
               {
                 audioSpec.traversal.map((fieldDef) => {
                   const field = fieldDef.field;
-                  const bin = fieldDef.bin;
-                  const domain = getDomain(fieldDef, data, selectionSpec);
+                  const domain = getDomain(fieldDef, data, domainFilter);
 
-                  if (fieldDef?.type === 'quantitative' || fieldDef?.type === 'temporal' || fieldDef?.type === 'ordinal') {
+                  if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
                     const id = `${field}-slider`;
                     const onchange = (e) => {
                       const idx = Number(e.target.value);
@@ -271,10 +259,10 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                       setShouldUpdateUmwelt(true);
                       stopSequence();
                     };
-                    const sliderDomain = bin ? getBins(fieldDef, data) : domain;
+                    const sliderDomain = fieldDef.bin ? getBins(fieldDef, data, domainFilter) : domain;
                     return (
                       <div key={field}>
-                        <label htmlFor={id}>{field}</label>
+                        <label htmlFor={id}>{field + " min:" + serializeValue(sliderDomain[0], fieldDef) + " max: " + serializeValue(sliderDomain[sliderDomain.length - 1], fieldDef)}</label>
                         <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={sliderDomain.length - 1} value={audioState.specStates?.[audioSpecIdx]?.[field]}></input>
                       </div>
                     );

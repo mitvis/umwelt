@@ -6,14 +6,21 @@ import { editLinePointConditionalBehavior } from "./vega";
 
 export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
   let vgSpec = compile(vlSpec).spec;
-  vgSpec.data.push({
-    "name": "selection_materialized",
-    "source": vgSpec.data[vgSpec.data.length - 1].name,
-    "transform": [{"type": "filter", "expr": "!length(data(\"brush_store\")) || vlSelectionTest(\"brush_store\", datum)"}]
-  })
+  // const dataset = vgSpec.data[vgSpec.data.length - 1].name;
+  // vgSpec.data.push({
+  //   "name": "brush_materialized",
+  //   "source": dataset,
+  //   "transform": [{"type": "filter", "expr": "!length(data(\"brush_store\")) || vlSelectionTest(\"brush_store\", datum)"}]
+  // })
+  // vgSpec.data.push({
+  //   "name": "external_state_materialized",
+  //   "source": dataset,
+  //   "transform": [{"type": "filter", "expr": "!length(data(\"external_state_store\")) || vlSelectionTest(\"external_state_store\", datum)"}]
+  // })
   if ((vlSpec.mark as any).type === 'line' && (vlSpec.mark as any).point) {
     vgSpec = editLinePointConditionalBehavior(vgSpec);
   }
+  console.log('vgspec', vgSpec)
   const runtime = parse(vgSpec);
   const view = new View(runtime, {
     'renderer': 'canvas',

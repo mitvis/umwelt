@@ -11,7 +11,7 @@ import UmweltText from './UmweltText';
 import { LogicalAnd } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 
-export type SelectionCtrl = 'vl' | 'olli' | 'audio' | 'spec';
+export type SelectionCtrl = 'vl' | 'audio' | 'olli-nav' | 'olli-int' | 'spec';
 
 interface RenderProps {
   data: OlliDataset,
@@ -65,7 +65,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
   // }), [vlSpec, uvSpec]);
 
   const onTextPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
-    setSelectionCtrl('olli');
+    setSelectionCtrl('olli-nav');
     setSelectionSpec({predicate});
   }, []);
 

@@ -20,6 +20,8 @@ export async function umwelt(spec: UmweltSpec) {
   const vlSpec = umweltToVegaLiteSpec(elaboratedSpec);
   const olliSpec = await umweltToOlliSpec(elaboratedSpec);
 
+  console.log('vlSpec', vlSpec);
+
   return {
     data: niceData,
     vlSpec,
@@ -36,6 +38,9 @@ function umweltToVegaLiteSpec(spec: ElaboratedUmweltSpec): VlSpec {
   const params: any = [{
       "name": "brush",
       "select": "interval"
+    }, {
+      "name": "external_state",
+      "select": "interval"
     }];
 
   if (spec.visual.mark === 'line' || spec.visual.mark === 'bar') {
@@ -51,11 +56,11 @@ function umweltToVegaLiteSpec(spec: ElaboratedUmweltSpec): VlSpec {
     }
   }
 
-  const condition = (encoding, paramName) => {
+  const condition = (encoding, paramName, value) => {
     const condition = {"param": paramName, ...encoding};
     return {
       condition,
-      value: "grey"
+      value
     }
   };
 
@@ -66,7 +71,8 @@ function umweltToVegaLiteSpec(spec: ElaboratedUmweltSpec): VlSpec {
     mark: spec.visual.mark === 'line' ? {type: 'line', point: true} : spec.visual.mark,
     encoding: {
       ...encoding,
-      color: condition(encoding.color, "brush")
+      opacity: condition(encoding.opacity || {"value": 1}, "external_state", 0.3),
+      color: condition(encoding.color || {"value": "navy"}, "brush", "grey")
     } as any,
     params
   }

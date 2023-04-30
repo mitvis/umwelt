@@ -24,7 +24,7 @@ export type MeasureType = Exclude<Type, "geojson">;
 type UmweltDataSource = UrlData | InlineData
 type ElaboratedUmweltDataSource = { values: OlliDataset }
 
-export type VisualPropName = "x" | "y" | "color" | "shape" | "detail" | "facet" | "row" | "column";
+export type VisualPropName = "x" | "y" | "color" | "opacity" | "shape" | "detail" | "facet" | "row" | "column";
 export type AudioPropName = "pitch" | "duration" | "volume";
 export type EncodingPropName = VisualPropName | AudioPropName;
 

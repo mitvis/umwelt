@@ -19,7 +19,7 @@ const UmweltOlli = React.memo(({ olliSpec, onFocus, selectionCtrl, selectionSpec
   useEffect(() => {
     if (olliSpec) {
       let spec = olliSpec;
-      if (selectionSpec && selectionCtrl !== 'olli') {
+      if (selectionSpec && selectionCtrl !== 'olli-nav') {
         spec = {
           ...spec,
           selection: selectionTest(olliSpec.data, selectionSpec)
