@@ -47,15 +47,15 @@ export type AudioState = {
 
 function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectionCtrl}: AudioProps) {
 
-  const [domainFilter, setDomainFilter, domainFilterRef] = useState<SelectionSpec>();
-  const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio, domainFilter));
+  const [_, setDomainFilter, domainFilterRef] = useState<SelectionSpec>();
+  const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio, domainFilterRef.current));
   const [shouldUpdateUmwelt, setShouldUpdateUmwelt] = useState<boolean>(false); // state is propagated upward to umwelt only when set to true
   const [muted, setMuted] = useState(false);
   const sequenceTimeout = useRef<any>();
 
   function getInitialAudioState(audio: ElaboratedAudioSpec[], domainFilter: SelectionSpec) {
     return {
-      specStates: getSpecStates(audio, domainFilter),
+      specStates: getSpecStates(audio),
       specDomains: getAudioDomains(audio, domainFilter),
       activeState: 0,
       ctrl: 'interaction' as AudioCtrl,
@@ -66,7 +66,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     }
   }
 
-  function getSpecStates(audio: ElaboratedAudioSpec[], domainFilter: SelectionSpec): AudioSpecState[] {
+  function getSpecStates(audio: ElaboratedAudioSpec[]): AudioSpecState[] {
     return audio.map(audioSpec => {
       if (audioSpec.traversal !== 'selection') {
         return Object.fromEntries(audioSpec.traversal.map(({field}) => {
@@ -84,9 +84,8 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           audioSpec.traversal.map((fieldDef) => {
             return [fieldDef.field, (
               fieldDef.bin ?
-              getBins(fieldDef, data) :
-              getDomain(fieldDef, data, selectionSpec) // TODO umwelt selection can filter the audio domain
-              // getDomain(field, data)
+              getBins(fieldDef, data, domainFilter) :
+              getDomain(fieldDef, data, domainFilter)
             )];
           })
         );
@@ -98,7 +97,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   useEffect(() => {
     // re-initialize when spec changes
     setShouldUpdateUmwelt(false);
-    setAudioState(getInitialAudioState(audio, domainFilter));
+    setAudioState(getInitialAudioState(audio, domainFilterRef.current));
     console.log('re-initialized audiostate')
   }, [fields, audio, data])
 
@@ -142,37 +141,35 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     // update domain filter on external selection change
     if (selectionCtrl !== 'audio' && selectionSpec) {
       setDomainFilter(selectionSpec);
+
+      const nextAudioDomains = getAudioDomains(audio, domainFilterRef.current);
+      const nextSpecStates = getSpecStates(audio).map((specState, audioIdx) => {
+        const currentAudioSpecState = audioState.specStates[audioIdx];
+        const currentAudioSpecDomain = audioState.specDomains[audioIdx];
+        const fieldValues = Object.fromEntries(
+          Object.entries(currentAudioSpecState).map(([field, index]) => {
+            return [field, currentAudioSpecDomain[field][index]];
+          })
+        );
+        // if the current values exist in the next domain, update their indices
+        return Object.fromEntries(
+          Object.entries(specState).map(([field, _]) => {
+            const nextIndex = nextAudioDomains[audioIdx][field].findIndex(v => v === fieldValues[field]);
+            console.log(nextIndex, nextAudioDomains[audioIdx][field], fieldValues[field]);
+            return [field, nextIndex === -1 ? 0 : nextIndex];
+          })
+        );
+      });
+      const nextAudioState = {
+        ...audioState,
+        specStates: nextSpecStates,
+        specDomains: nextAudioDomains
+      };
+
+
+      setAudioState(nextAudioState);
     }
   }, [selectionSpec, selectionCtrl]);
-
-  useEffect(() => {
-    const nextAudioDomains = getAudioDomains(audio, domainFilter);
-    const nextSpecStates = getSpecStates(audio, domainFilter).map((specState, audioIdx) => {
-      const currentAudioSpecState = audioState.specStates[audioIdx];
-      const currentAudioSpecDomain = audioState.specDomains[audioIdx];
-      const fieldValues = Object.fromEntries(
-        Object.entries(currentAudioSpecState).map(([field, index]) => {
-          return [field, currentAudioSpecDomain[field][index]];
-        })
-      );
-      // if the current values exist in the next domain, update their indices
-      return Object.fromEntries(
-        Object.entries(specState).map(([field, _]) => {
-          const nextIndex = nextAudioDomains[audioIdx][field].findIndex(v => v === fieldValues[field]);
-          console.log(nextIndex, nextAudioDomains[audioIdx][field], fieldValues[field]);
-          return [field, nextIndex === -1 ? 0 : nextIndex];
-        })
-      );
-    });
-    const nextAudioState = {
-      ...audioState,
-      specStates: nextSpecStates,
-      specDomains: nextAudioDomains
-    };
-
-
-    setAudioState(nextAudioState);
-  }, [domainFilter]);
 
   function stopSequence() {
     if (sequenceTimeout.current) {
@@ -257,7 +254,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
               {
                 audioSpec.traversal.map((fieldDef) => {
                   const field = fieldDef.field;
-                  const domain = getDomain(fieldDef, data, domainFilter);
+                  const domain = getDomain(fieldDef, data, domainFilterRef.current);
 
                   if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
                     const id = `${field}-slider`;
@@ -281,10 +278,10 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                       setShouldUpdateUmwelt(true);
                       stopSequence();
                     };
-                    const sliderDomain = fieldDef.bin ? getBins(fieldDef, data, domainFilter) : domain;
+                    const sliderDomain = fieldDef.bin ? getBins(fieldDef, data, domainFilterRef.current) : domain;
                     return (
                       <div key={field}>
-                        <label htmlFor={id}>{field + " min:" + serializeValue(sliderDomain[0], fieldDef) + " max: " + serializeValue(sliderDomain[sliderDomain.length - 1], fieldDef)}</label>
+                        <label htmlFor={id}>{field}</label>
                         <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={sliderDomain.length - 1} value={audioState.specStates?.[audioSpecIdx]?.[field]}></input>
                       </div>
                     );

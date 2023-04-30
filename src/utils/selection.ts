@@ -76,7 +76,7 @@ export function selectionStoreToSelectionSpec(store): SelectionSpec {
     }
   }
   else {
-    return null;
+    return {predicate: { and: [] }};
   }
 }
 
