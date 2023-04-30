@@ -56,8 +56,8 @@ function umweltToVegaLiteSpec(spec: ElaboratedUmweltSpec): VlSpec {
     }
   }
 
-  const condition = (encoding, paramName, value) => {
-    const condition = {"param": paramName, ...encoding};
+  const condition = (encoding, paramName, value, empty?) => {
+    const condition = {"param": paramName, "empty": empty || true, ...encoding};
     return {
       condition,
       value
@@ -71,7 +71,7 @@ function umweltToVegaLiteSpec(spec: ElaboratedUmweltSpec): VlSpec {
     mark: spec.visual.mark === 'line' ? {type: 'line', point: true} : spec.visual.mark,
     encoding: {
       ...encoding,
-      opacity: condition(encoding.opacity || {"value": 1}, "external_state", 0.3),
+      opacity: condition(encoding.opacity || {"value": 1}, "external_state", 0.3, false),
       color: condition(encoding.color || {"value": "navy"}, "brush", "grey")
     } as any,
     params

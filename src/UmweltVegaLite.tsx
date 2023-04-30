@@ -53,6 +53,7 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
   useEffect(() => {
     if (vlSpec && view && selectionSpec && (selectionCtrl.current === 'audio' || selectionCtrl.current === 'olli-nav')) {
       const store = selectionSpecToSelectionStore(selectionSpec);
+      console.log('store',store);
       view.data('external_state_store', store).run();
     }
   }, [selectionSpec, fields, view])

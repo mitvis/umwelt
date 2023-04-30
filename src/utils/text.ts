@@ -64,8 +64,12 @@ export function textSpecToFullPredicateSpec(textSpec: TextNode[], fields: Elabor
 
 export function fieldToPredicates(field: string, fields: ElaboratedFieldDef[], data: OlliDataset): FieldPredicate[] {
   const fieldDef = getFieldDef(field, fields);
+  const fakeEncFieldDef = { // TODO this needs to be fixed!!!
+    field: fieldDef.name,
+    ...fieldDef
+  } as any;
   if (fieldDef.type === 'nominal' || fieldDef.type === 'ordinal') {
-    const domain = getDomain(fieldDef as any, data); // TODO need to update this when we rethink text specs
+    const domain = getDomain(fakeEncFieldDef, data); // TODO need to update this when we rethink text specs
     return domain.map(value => {
       return {
         field,
@@ -74,7 +78,7 @@ export function fieldToPredicates(field: string, fields: ElaboratedFieldDef[], d
     });
   }
   else {
-    const bins = getBinPredicates(fieldDef as any, data); // TODO
+    const bins = getBinPredicates(fakeEncFieldDef, data); // TODO
     return bins;
   }
 }

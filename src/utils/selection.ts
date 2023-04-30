@@ -104,11 +104,15 @@ export function selectionSpecToSelectionStore(selectionSpec: SelectionSpec) {
             field: (predicate as FieldPredicate).field,
           },
         ];
+    const tuple_values = and ? and.map(getPredValue) : [
+      getPredValue(predicate as FieldPredicate)
+    ];
+    if (!tuple_fields.length && !tuple_values.length) {
+      return null;
+    }
     return {
       unit: '',
-      fields: tuple_fields, values: and ? and.map(getPredValue) : [
-        getPredValue(predicate as FieldPredicate)
-      ]
+      fields: tuple_fields, values: tuple_values
     };
   }
 }

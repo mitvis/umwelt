@@ -37,7 +37,7 @@ export function editLinePointConditionalBehavior(vgSpec: VgSpec): VgSpec {
     const {test, ...other} = cond0;
     line.encode.update.stroke = other;
 
-    symbolUpdate.opacity = [ {test: 'vlSelectionTest("brush_store", datum)', value: 1}, {value: 0}];
+    symbolUpdate.opacity = [ {test: 'vlSelectionTest("brush_store", datum) || vlSelectionTest("external_state_store", datum)', value: 1}, {value: 0}];
   }
   return vgSpec;
 }
