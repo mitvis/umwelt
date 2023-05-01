@@ -1,0 +1,31 @@
+{
+  "data": {"url": "https://raw.githubusercontent.com/vega/vega-datasets/master/data/driving.json"},
+  "fields": [
+    {
+      "name": "miles",
+      "type": "quantitative",
+      "scale": {
+        "zero": false
+      }
+    },
+    {
+      "name": "gas",
+      "type": "quantitative",
+      "scale": {
+        "zero": false
+      }
+    },
+    {
+      "name": "year",
+      "type": "quantitative"
+    }
+  ],
+  "visual": {
+    "mark": {"type": "line", "point": true},
+    "encoding": {
+      "x": "miles",
+      "y": "gas",
+      "order": "year"
+    }
+  }
+}

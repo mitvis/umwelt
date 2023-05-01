@@ -120,6 +120,7 @@ export function selectionSpecToSelectionStore(selectionSpec: SelectionSpec) {
 export function selectionTest(data: OlliDataset, selectionSpec: SelectionSpec): OlliDataset {
   try {
     const store = selectionSpecToSelectionStore(selectionSpec);
+    if (!store) return data;
     return data.filter(datum => {
       return testPoint(datum, store);
     })

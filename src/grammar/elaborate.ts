@@ -99,7 +99,8 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
   function elaborateAudio(audio: AudioSpec | AudioSpec[] | boolean, fields: ElaboratedFieldDef[]): ElaboratedAudioSpec[] | false {
     if (audio === false) return false;
     if (audio === true || audio === undefined) {
-      return [recommendAudio(spec, data, {})];
+      // return [recommendAudio(spec, data, {})];
+      return false; // TODO implement recommendAudio
     }
 
     function elaborateSingleAudio(audio: AudioSpec, fields: ElaboratedFieldDef[]): ElaboratedAudioSpec {

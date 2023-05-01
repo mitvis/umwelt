@@ -18,10 +18,12 @@ function App() {
     "line-interaction-agg.uw.json": require('./specs/line-interaction-agg.uw.json'),
     "barley-facet.uw.json": require('./specs/barley-facet.uw.json'),
     "barley-facet-agg.uw.json": require('./specs/barley-facet-agg.uw.json'),
+    "connected-scatterplot.uw.json": require('./specs/connected-scatterplot.uw.json'),
   }
 
   const [selectedSpec, setSelectedSpec] =
-    useState("multi-series-line.uw.json");
+    // useState("multi-series-line.uw.json");
+    useState("connected-scatterplot.uw.json");
     // useState("scatterplot.uw.json");
     // useState("temperature.uw.json");
     // useState("line-sequence-d-s.uw.json");

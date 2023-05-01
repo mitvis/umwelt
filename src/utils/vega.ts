@@ -13,21 +13,26 @@ export async function getVegaScene(spec: VgSpec): Promise<SceneGroup> {
 
 export function editLinePointConditionalBehavior(vgSpec: VgSpec): VgSpec {
   vgSpec = structuredClone(vgSpec);
-  const line = (vgSpec.marks?.find(m => m.name === 'layer_0_pathgroup') as GroupMark)?.marks?.find(m => m.name === 'layer_0_marks');
-  const lineCondition = line?.encode?.update?.stroke;
-  if (line && lineCondition && Array.isArray(lineCondition) && lineCondition.length) {
-    // make the line always solid
-    const cond0 = lineCondition[0] as any;
-    // if (cond0.test) {
-    //   condition[0] = {
-    //     ...condition[0],
-    //     test: `!length(data(\"brush_store\"))`
-    //   };
-    //   mark.encode.update.stroke = condition;
-    // }
-    const {test, ...other} = cond0;
-    line.encode.update.stroke = other;
+  const line = (
+    // single line
+    (vgSpec.marks?.find(m => m.name === 'layer_0_marks')) ||
+    // multiseries line
+    (vgSpec.marks?.find(m => m.name === 'layer_0_pathgroup') as GroupMark)?.marks?.find(m => m.name === 'layer_0_marks')
+  );
+
+  function updateLineCondition(channel) {
+    const lineCondition = line?.encode?.update?.[channel];
+    if (line && lineCondition && Array.isArray(lineCondition) && lineCondition.length) {
+      // remove conditional from line e.g. make the line always solid
+      const cond0 = lineCondition[0] as any;
+      const {test, ...other} = cond0;
+      line.encode.update[channel] = other;
+    }
   }
+
+  updateLineCondition("stroke");
+  updateLineCondition("opacity");
+
   const symbol = vgSpec.marks?.find(m => m.name === 'layer_1_marks');
   const symbolUpdate = symbol?.encode?.update;
   const symbolCondition = symbolUpdate?.fill;
