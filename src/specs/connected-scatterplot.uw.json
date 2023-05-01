@@ -27,5 +27,19 @@
       "y": "gas",
       "order": "year"
     }
-  }
+  },
+  "audio": [
+    {
+      "encoding": {
+        "pitch": "gas"
+      },
+      "traversal": "year"
+    },
+    {
+      "encoding": {
+        "pitch": "miles"
+      },
+      "traversal": "year"
+    }
+  ]
 }
