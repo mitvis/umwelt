@@ -53,8 +53,13 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
   useEffect(() => {
     if (vlSpec && view && selectionSpec && (selectionCtrl.current === 'audio' || selectionCtrl.current === 'olli-nav')) {
       const store = selectionSpecToSelectionStore(selectionSpec);
-      console.log('store',store);
       view.data('external_state_store', store).run();
+    }
+    if (vlSpec && view && selectionSpec && (selectionCtrl.current === 'spec')) {
+      // const store = selectionSpecToSelectionStore(selectionSpec);
+      // view.data('brush_store', store).run();
+      // TODO: when we implement olli custom selection menu, we'll need to impl a way to go from selection to brush x/y coords
+      // which will be better than stuffing the store in because you'll get the visual brush
     }
   }, [selectionSpec, fields, view])
 

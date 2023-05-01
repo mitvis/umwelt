@@ -1,0 +1,32 @@
+{
+  "data": {"url": "https://raw.githubusercontent.com/vega/vega-datasets/master/data/stocks.csv"},
+  "fields": [
+    {
+      "name": "date",
+      "type": "temporal"
+    },
+    {
+      "name": "price",
+      "type": "quantitative"
+    },
+    {
+      "name": "symbol",
+      "type": "nominal"
+    }
+  ],
+  "visual": {
+    "mark": "line",
+    "encoding": {
+      "x": "date",
+      "y": "price",
+      "color": "symbol"
+    }
+  },
+  "audio": {
+   "encoding": {
+    "pitch": "price",
+    "duration": "price"
+   },
+   "traversal": ["date", "symbol"]
+  }
+}
