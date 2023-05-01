@@ -41,7 +41,6 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
       document.getElementById('vl-container').addEventListener('mouseleave', mouseleave)
 
       view.addDataListener('brush_store', (name, value) => {
-        console.log(name, value)
         updateValue(value);
       });
 

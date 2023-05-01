@@ -24,8 +24,7 @@
   },
   "audio": {
    "encoding": {
-    "pitch": "price",
-    "duration": "price"
+    "pitch": "price"
    },
    "traversal": ["symbol", "date"]
   }

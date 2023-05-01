@@ -1,19 +1,19 @@
-import { OlliDataset } from "olli";
+import { OlliDataset, OlliDatum } from "olli";
 import { Bin } from "vega-lite/src/bin";
 import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from "vega-lite/src/predicate";
-import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, ElaboratedAudioTraversalFieldDef, ElaboratedAudioEncodingFieldDef } from "../grammar";
-import { SonifiedNote } from "../sonification";
+import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, ElaboratedAudioTraversalFieldDef, ElaboratedAudioEncodingFieldDef, ElaboratedAudioEncoding, EncodingPropName } from "../grammar";
+import { SonifierNote } from "../sonification";
 import { AudioDomain, AudioPlaybackConfig, AudioSpecState, AudioState } from "../UmweltAudio";
 import { aggregate } from "./aggregate";
 import { getBins } from "./bin";
 import { getDomain, getFieldDef } from "./data";
-import { getScaleFunction } from "./scales";
-import { selectionTest } from "./selection";
+import { getScaleFunction, ScaleFunction } from "./scales";
+import { datumToPredicate, selectionTest } from "./selection";
 import { rangesAreEqual, serializeValue } from "./values";
+import { Sonifier } from '../sonification';
 
 export function audioStateToSelectionSpec(audioState: AudioSpecState, audioDomains: AudioDomain): SelectionSpec {
-  console.log(audioState, audioDomains);
   return {
     predicate: {
       and: Object.entries(audioState).map(([field, idx]) => {
@@ -106,102 +106,156 @@ function rangeIndexInBins(fieldDef: ElaboratedAudioTraversalFieldDef, data: Olli
   })
 }
 
-export function tickSequenceAudioState(audioState: AudioState, audio: ElaboratedAudioSpec[], fields: ElaboratedFieldDef[]): AudioState {
+const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+
+export function generateSequence(audioState: AudioState, audio: ElaboratedAudioSpec[], data: OlliDataset): SonifierNote[] {
   const audioSpecState = audioState.specStates[audioState.activeState];
   const audioSpecDomain = audioState.specDomains[audioState.activeState];
   const audioSpec = audio[audioState.activeState];
 
-  if (audioSpec.traversal === 'selection') return audioState;
+  if (audioSpec.traversal === 'selection') return [];
 
-  // check if sequence reached the end
-  const isEndOfSequence = Object.entries(audioSpecState).every(([field, idx]) => {
-    return idx >= audioSpecDomain[field].length - 1;
-  })
-  if (isEndOfSequence) return audioState;
+  const sequenceFields = [...audioSpec.traversal.map(f => f.field)];
 
-  // else increment index(es)
-  const nextAudioState: AudioState = structuredClone(audioState);
-  const sequenceFields = [...audioSpec.traversal.map(f => f.field)].reverse();
-
-  let ramp = false;
-  let end = false;
-
-  for (let field of sequenceFields) {
-    const fIdx = audioSpecState[field];
-    if (fIdx >= audioSpecDomain[field].length - 1) {
-      nextAudioState.specStates[audioState.activeState][field] = 0;
-      end = true;
-      continue; // increment next level up of nesting
-    }
-    else {
-      nextAudioState.specStates[audioState.activeState][field] += 1;
-      const fieldDef = getFieldDef(field, fields);
-      if (!end && (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal')) {
-        ramp = true; // if slider field, ramp (interpolate) the sonification to make continuous tone
+  const states: AudioSpecState[] = cartesian(...(sequenceFields.map(field => audioSpecDomain[field].map((v, idx) => idx)))).map(s => {
+    return Object.fromEntries(s.map((value, index) => {
+      if (audioSpec.traversal !== 'selection') {
+        return [audioSpec.traversal[index].field, value]
       }
-      else {
-        ramp = false;
-      }
-      break;
-    }
-  }
+    }))
+  }); // oh god this won't scale
 
-  nextAudioState.playback = {
-    ramp,
-    pauseBefore: end
-  }
-  nextAudioState.ctrl = 'sequence';
-
-  return nextAudioState;
-}
-
-
-export function audioStateToNote(audioSpec: ElaboratedAudioSpec, audioSpecState: AudioSpecState, audioDomain: AudioDomain, data: OlliDataset, playback: AudioPlaybackConfig): SonifiedNote {
-
-  const selectionSpec = audioStateToSelectionSpec(audioSpecState, audioDomain);
-  const selection = selectionTest(data, selectionSpec);
-
-  function audioEncoding(encodingPropName: AudioPropName, encodingFieldDef: ElaboratedAudioEncodingFieldDef, selection: OlliDataset) {
-    const scale = getScaleFunction(encodingPropName, encodingFieldDef, data);
-
-    if (encodingFieldDef?.field) {
-      const field = encodingFieldDef.field;
-      if (selection.length > 1 && encodingFieldDef.aggregate) {
-        const aggregatedValue = aggregate(encodingFieldDef, selection);
-
-        console.log(field, selection, aggregatedValue);
-
-        return {
-          [encodingPropName]: scale(aggregatedValue)
-        }
-      }
-      else if (selection.length === 1) {
-        // val is a value
-        return {
-          [encodingPropName]: scale(selection[0][field])
-        }
-      }
-    }
-    return {};
-  }
-
-  let note: SonifiedNote = {};
-
-  Object.entries(audioSpec.encoding).forEach(([prop, encodingFieldDef]) => {
-    const partial = audioEncoding(prop as AudioPropName, encodingFieldDef, selection);
-    note = {
-      ...note,
-      ...partial
+  const notes = states.map((state) => {
+    return {
+      ...audioStateToNote(state, audioSpec, audioSpecDomain, data),
+      state
     }
   });
 
-  if (!Object.keys(note).length) {
-    return null;
+  return notes;
+
+  // for (let field of sequenceFields) {
+  //   const fIdx = audioSpecState[field];
+  //   if (fIdx >= audioSpecDomain[field].length - 1) {
+  //     nextAudioState.specStates[audioState.activeState][field] = 0;
+  //     end = true;
+  //     continue; // increment next level up of nesting
+  //   }
+  //   else {
+  //     nextAudioState.specStates[audioState.activeState][field] += 1;
+  //     const fieldDef = getFieldDef(field, fields);
+  //     if (!end && (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal')) {
+  //       ramp = true; // if slider field, ramp (interpolate) the sonification to make continuous tone
+  //     }
+  //     else {
+  //       ramp = false;
+  //     }
+  //     break;
+  //   }
+  // }
+
+  // return [];
+}
+
+// export function tickSequenceAudioState(audioState: AudioState, audio: ElaboratedAudioSpec[]): AudioState {
+//   const audioSpecState = audioState.specStates[audioState.activeState];
+//   const audioSpecDomain = audioState.specDomains[audioState.activeState];
+//   const audioSpec = audio[audioState.activeState];
+
+//   if (audioSpec.traversal === 'selection') return audioState;
+
+//   // check if sequence reached the end
+//   const isEndOfSequence = Object.entries(audioSpecState).every(([field, idx]) => {
+//     return idx >= audioSpecDomain[field].length - 1;
+//   })
+//   if (isEndOfSequence) return audioState;
+
+//   // else increment index(es)
+//   const nextAudioState: AudioState = structuredClone(audioState);
+//   const sequenceFields = [...audioSpec.traversal.map(f => f.field)].reverse();
+
+//   for (let field of sequenceFields) {
+//     const fIdx = audioSpecState[field];
+//     if (fIdx >= audioSpecDomain[field].length - 1) {
+//       nextAudioState.specStates[audioState.activeState][field] = 0;
+//       continue; // increment next level up of nesting
+//     }
+//     else {
+//       nextAudioState.specStates[audioState.activeState][field] += 1;
+//       break;
+//     }
+//   }
+
+//   nextAudioState.ctrl = 'sequence';
+
+//   return nextAudioState;
+// }
+
+
+export function audioStateToNote(audioSpecState: AudioSpecState, audioSpec: ElaboratedAudioSpec, audioDomain: AudioDomain, data: OlliDataset): SonifierNote {
+  const selectionSpec = audioStateToSelectionSpec(audioSpecState, audioDomain);
+  const selection = selectionTest(data, selectionSpec);
+
+  function encodeAudio(audioEncoding: ElaboratedAudioEncoding, selection: OlliDataset) {
+    return Object.entries(audioEncoding).map(([prop, encodingFieldDef]) => {
+      if (encodingFieldDef?.field) {
+        const scale = getScaleFunction(prop as AudioPropName, encodingFieldDef, data);
+        if (selection.length > 1 && encodingFieldDef.aggregate) {
+          const aggregatedValue = aggregate(encodingFieldDef, selection);
+
+          return {
+            [prop]: scale(aggregatedValue)
+          }
+        }
+        else if (selection.length === 1) {
+          // val is a value
+          return {
+            [prop]: scale(selection[0][encodingFieldDef.field])
+          }
+        }
+      }
+      return {};
+    }).reduce((acc, val) => {
+      return {
+        ...acc,
+        ...val
+      }
+    });
   }
 
-  note = {
-    ...note,
-    ...playback
+  let note: SonifierNote = encodeAudio(audioSpec.encoding, selection);
+
+  if (!Object.keys(note).length) {
+    note = {noise: true};
+  }
+
+  if (!note.duration) {
+    note.duration = Sonifier.defaultSequenceDuration / Object.values(audioDomain).map(d => d.length).reduce((acc, v) => acc + v);
+  }
+
+  // add pauses for the end values
+  const ends = Object.entries(audioSpecState).map(([field, index]) => {
+    return index === audioDomain[field].length - 1 ? 1 : 0;
+  }).reverse();
+  let endCount = 0;
+  for (let x of ends) {
+    if (x) {
+      endCount++;
+    }
+    else break;
+  }
+  if (endCount > 0) {
+    note.pauseAfter = Sonifier.pauseDuration * endCount;
+  }
+  else {
+    note.pauseAfter = 0;
+    if (audioSpec.traversal !== 'selection' && !audioSpec.encoding.duration) {
+      // ramp if the innermost loop is a slider value
+      const fieldDef = audioSpec.traversal[audioSpec.traversal.length - 1];
+      if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
+        note.ramp = true;
+      }
+    }
   }
 
   return note;

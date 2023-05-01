@@ -29,7 +29,6 @@ export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
   if ((vlSpec.mark as any).type === 'line' && (vlSpec.mark as any).point) {
     vgSpec = editLinePointConditionalBehavior(vgSpec);
   }
-  console.log('vgspec', vgSpec)
   const runtime = parse(vgSpec);
   const view = new View(runtime, {
     'renderer': 'canvas',

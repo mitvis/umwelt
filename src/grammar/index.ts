@@ -20,8 +20,6 @@ export async function umwelt(spec: UmweltSpec) {
   const vlSpec = umweltToVegaLiteSpec(elaboratedSpec);
   const olliSpec = await umweltToOlliSpec(elaboratedSpec);
 
-  console.log('vlSpec', vlSpec);
-
   return {
     data: niceData,
     vlSpec,

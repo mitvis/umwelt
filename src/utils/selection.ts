@@ -1,4 +1,4 @@
-import { OlliDataset } from "olli";
+import { OlliDataset, OlliDatum } from "olli";
 import { isDate, toNumber, isArray, inrange } from "vega";
 import { LogicalAnd } from "vega-lite/src/logical";
 import { FieldPredicate, FieldEqualPredicate, FieldLTPredicate, FieldGTPredicate, FieldLTEPredicate, FieldGTEPredicate, FieldRangePredicate, FieldOneOfPredicate, FieldValidPredicate } from "vega-lite/src/predicate";
@@ -172,12 +172,13 @@ function testPoint(datum, entry) {
   });
 }
 
-export function datumToPredicate(datum, fields): LogicalAnd<FieldEqualPredicate> {
+export function datumToPredicate(datum: OlliDatum, fields): LogicalAnd<FieldEqualPredicate> {
+  const fieldNames = fields.map(f => f.field || f.name); // TODO
   return {
-    and: fields.map(field => {
+    and: fieldNames.map(field => {
       return {
-        field: field.name,
-        equal: datum[field.name]
+        field: field,
+        equal: datum[field]
       }
     })
   };

@@ -6,12 +6,11 @@ import { getDomain, getFieldDef } from './utils/data';
 import { selectionTest } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
 import { Sonifier } from './sonification';
-import { audioStateToSelectionSpec, selectionSpecToAudioState, tickSequenceAudioState, audioStateToNote } from './utils/audioState';
+import { audioStateToSelectionSpec, selectionSpecToAudioState, audioStateToNote, generateSequence } from './utils/audioState';
 import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
-import { serializeValue } from './utils/values';
 
 interface AudioProps {
   audio: ElaboratedAudioSpec[]
@@ -49,9 +48,16 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
 
   const [_, setDomainFilter, domainFilterRef] = useState<SelectionSpec>();
   const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio, domainFilterRef.current));
-  const [shouldUpdateUmwelt, setShouldUpdateUmwelt] = useState<boolean>(false); // state is propagated upward to umwelt only when set to true
   const [muted, setMuted] = useState(false);
-  const sequenceTimeout = useRef<any>();
+
+  useEffect(() => {
+    Sonifier.mute(muted)
+  }, [muted])
+
+  useEffect(() => {
+    // re-initialize when spec changes
+    setAudioState(getInitialAudioState(audio, domainFilterRef.current));
+  }, [fields, audio, data])
 
   function getInitialAudioState(audio: ElaboratedAudioSpec[], domainFilter: SelectionSpec) {
     return {
@@ -95,49 +101,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }
 
   useEffect(() => {
-    // re-initialize when spec changes
-    setShouldUpdateUmwelt(false);
-    setAudioState(getInitialAudioState(audio, domainFilterRef.current));
-    console.log('re-initialized audiostate')
-  }, [fields, audio, data])
-
-  useEffect(() => {
-    Sonifier.mute(muted)
-  }, [muted])
-
-  useEffect(debounce(250, () => {
-    const currentAudioSpecState = audioState.specStates[audioState.activeState];
-    const currentAudioSpecDomain = audioState.specDomains[audioState.activeState];
-
-    if (currentAudioSpecState && Object.keys(currentAudioSpecState).length) {
-
-      const currentAudioSpec = audio[audioState.activeState];
-      const note = audioStateToNote(currentAudioSpec, currentAudioSpecState, currentAudioSpecDomain, data, audioState.playback);
-
-      console.log(note);
-
-      // if (audioState.ctrl === 'interaction') {
-      //   Sonifier.pause();
-      // }
-      // else if (audioState.ctrl === 'sequence') {
-      //   Sonifier.play(note);
-      // }
-
-      if (shouldUpdateUmwelt) {
-        const selectionSpec = audioStateToSelectionSpec(currentAudioSpecState, currentAudioSpecDomain);
-        console.log('audio ctrl sonifier update', selectionSpec);
-        // update umwelt selection on audio state change
-        onAudioState(selectionSpec);
-        setShouldUpdateUmwelt(false);
-        // if (audioState.ctrl === 'interaction') {
-        //   Sonifier.ping(note);
-        // }
-      }
-    }
-
-  }), [audioState, shouldUpdateUmwelt]);
-
-  useEffect(() => {
     // update domain filter on external selection change
     if (selectionCtrl !== 'audio' && selectionSpec) {
       setDomainFilter(selectionSpec);
@@ -155,7 +118,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         return Object.fromEntries(
           Object.entries(specState).map(([field, _]) => {
             const nextIndex = nextAudioDomains[audioIdx][field].findIndex(v => v === fieldValues[field]);
-            console.log(nextIndex, nextAudioDomains[audioIdx][field], fieldValues[field]);
             return [field, nextIndex === -1 ? 0 : nextIndex];
           })
         );
@@ -171,47 +133,66 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     }
   }, [selectionSpec, selectionCtrl]);
 
-  function stopSequence() {
-    if (sequenceTimeout.current) {
-      clearTimeout(sequenceTimeout.current);
+  useEffect(debounce(250, () => {
+    const currentAudioSpecState = audioState.specStates[audioState.activeState];
+    const currentAudioSpecDomain = audioState.specDomains[audioState.activeState];
+
+    if (currentAudioSpecState && Object.keys(currentAudioSpecState).length) {
+      const selectionSpec = audioStateToSelectionSpec(currentAudioSpecState, currentAudioSpecDomain);
+      onAudioState(selectionSpec);
     }
-    sequenceTimeout.current = null;
-    Sonifier.pause();
-  }
+
+  }), [audioState]);
 
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
     if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
-      if (e.key === 'p' && !e.repeat) {
-        if (sequenceTimeout.current) {
-          stopSequence();
-        }
-        else {
-          const tick = () => {
-            const nextAudioState = tickSequenceAudioState(audioStateRef.current, audio, fields);
-
-            if (nextAudioState !== audioStateRef.current) {
-              sequenceTimeout.current = setTimeout(tick, nextAudioState.playback.pauseBefore ? Sonifier.pauseDuration * 1000 + Sonifier.defaultDuration * 1000 : Sonifier.defaultDuration * 1000)
-              setAudioState(nextAudioState);
+      switch (e.key) {
+        case 'p':
+          if (!e.repeat) {
+            const notes = generateSequence(audioState, audio, data);
+            if (Tone.Transport.state === 'started') {
+              Sonifier.resetTransport();
+              Sonifier.releaseSynth();
             }
             else {
-              stopSequence();
-            }
-          };
+              Sonifier.resetTransport();
+              let elapsedTime = 0;
+              notes.forEach(note => {
+                Tone.Transport.schedule(() => {
+                  // play note
+                  Sonifier.noteToState(note);
+                  Sonifier.triggerSynth(note);
+                  console.log(note);
+                  setAudioState({
+                    ...audioStateRef.current,
+                    specStates: audioStateRef.current.specStates.map((state, idx) => {
+                      if (idx === audioStateRef.current.activeState) {
+                        return note.state;
+                      }
+                      return state;
+                    })
+                  })
+                }, elapsedTime)
 
-          setAudioState({
-            ...audioStateRef.current,
-            ctrl: 'sequence',
-            playback: {
-              ...audioStateRef.current.playback,
-              ramp: false
+                if (note.pauseAfter) {
+                  Tone.Transport.schedule(() => {
+                    // release synth
+                    Sonifier.releaseSynth();
+                  }, elapsedTime + note.duration)
+                }
+
+                // increment elapsed time
+                elapsedTime += note.duration + note.pauseAfter;
+              });
+              Tone.Transport.start();
             }
-          });
-          sequenceTimeout.current = setTimeout(tick, Sonifier.defaultDuration * 1000); // TODO uh oh, what about encoded durations
-        }
-      }
-      if (e.key === 'm') { // this should be global probably
-        setMuted(!muted);
+          }
+          break;
+        case 'm': // TODO this should be global probably
+          setMuted(!muted);
+          break;
+
       }
     }
   }, [audio, fields]);
@@ -275,8 +256,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                           ramp: true
                         }
                       });
-                      setShouldUpdateUmwelt(true);
-                      stopSequence();
                     };
                     const sliderDomain = fieldDef.bin ? getBins(fieldDef, data, domainFilterRef.current) : domain;
                     return (
@@ -304,7 +283,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                           ramp: false
                         }
                       });
-                      setShouldUpdateUmwelt(true);
                     }
                     return (
                       <div key={field}>

@@ -47,7 +47,6 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
     // update umwelt selection from audio state
     setSelectionCtrl('audio');
     setSelectionSpec(selectionSpec);
-    console.log('update', selectionSpec);
   }, []);
 
   // const onFocus = useCallback(getOnFocus(vlSpec, (field, value) => {

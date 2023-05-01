@@ -1,12 +1,15 @@
 import * as Tone from 'tone';
-import { nodeIsTextInput } from '../utils/events';
+import { AudioSpecState, AudioState } from '../UmweltAudio';
+import { RefObject } from 'react';
 
-export type SonifiedNote = {
+export type SonifierNote = {
+  duration?: number; // duration in seconds
+  pauseAfter?: number; // how long in seconds to pause after playing
+  noise?: boolean; // does this note represent noise
   pitch?: number;
   volume?: number;
-  duration?: number;
-  ramp?: boolean;
-  pauseBefore?: boolean;
+  ramp?: boolean; // should we ramp from this note
+  state?: AudioSpecState; // corresponding spec state
 }
 
 class UmweltSonifier {
@@ -16,13 +19,11 @@ class UmweltSonifier {
   private synth: Tone.Synth;
 
   pauseDuration = .25; // in seconds
-  defaultDuration = 0.5; // in seconds
-  private rampDuration = this.defaultDuration / 2; // in seconds
-  private noiseDuration = 0.25; // in seconds
+  private rampDuration = 0.001; // in seconds
+  defaultSequenceDuration = 5;
 
-  // private notes: SonifierSequence[];
-
-  private isPlaying = false;
+  private synthIsPlaying = false;
+  private noiseIsPlaying = false;
 
   constructor() {
     if ((window as any)._uw_sonifier) {
@@ -33,11 +34,14 @@ class UmweltSonifier {
   }
 
   private init() {
-
     this.vol = new Tone.Volume().toDestination();
     this.vol.mute = false;
 
-    this.noise = new Tone.NoiseSynth().connect(this.vol);
+    this.noise = new Tone.NoiseSynth({
+      envelope: {
+        sustain: 0.1
+      }
+    }).connect(this.vol);
 
     this.synth = new Tone.Synth().connect(this.vol);
   }
@@ -50,89 +54,141 @@ class UmweltSonifier {
     this.vol.mute = shouldMute;
   }
 
-  play(note: SonifiedNote) {
-
+  resetTransport() {
     Tone.Transport.stop();
     Tone.Transport.position = 0;
     Tone.Transport.cancel();
+  }
 
-    if (note?.pauseBefore) {
-      this.synth.triggerRelease();
-      this.isPlaying = false;
+  midiToFreq(midi): Tone.Unit.Frequency {
+    return Tone.Frequency(Math.round(midi), "midi").toFrequency();
+  }
+
+  noteToState(note: SonifierNote) {
+    if (note) {
+      if (note.ramp) {
+        if (note.volume) {
+          this.synth.volume.rampTo(note.volume, this.rampDuration);
+        }
+        if (note.pitch) {
+          const freq = this.midiToFreq(note.pitch);
+          this.synth.frequency.rampTo(freq, this.rampDuration);
+        }
+      }
+      else {
+        if (note.volume) {
+          this.synth.volume.value = note.volume;
+        }
+        if (note.pitch) {
+          const freq = this.midiToFreq(note.pitch);
+          this.synth.frequency.value = freq;
+        }
+      }
     }
-
-    Tone.Transport.schedule((time) => {
-      if (note) {
-        if (note.ramp) {
-          if (note.volume) {
-            this.synth.volume.rampTo(note.volume, this.rampDuration);
-          }
-          if (note.pitch) {
-            const freq = Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency();
-            this.synth.frequency.rampTo(freq, this.rampDuration);
-          }
-        }
-        else {
-          if (note.volume) {
-            this.synth.volume.value = note.volume;
-          }
-          if (note.pitch) {
-            const freq = Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency();
-            this.synth.frequency.value = freq;
-          }
-        }
-        if (!this.isPlaying) {
-          this.isPlaying = true;
-          this.synth.triggerAttack(Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency()); // TODO set default pitch
-        }
-      }
-      else {
-        this.synth.triggerRelease();
-        this.isPlaying = false;
-        this.noise.triggerAttackRelease(this.noiseDuration);
-      }
-
-    }, note?.pauseBefore ? this.pauseDuration : 0);
-
-    Tone.Transport.start();
   }
 
-  pause() {
-    window.requestAnimationFrame(() => {
-      Tone.Transport.cancel();
-      if (this.isPlaying) {
-        this.synth.triggerRelease();
-        this.isPlaying = false;
+  triggerSynth(note: SonifierNote) {
+    if (note.pitch) {
+      this.noise.triggerRelease();
+      this.noiseIsPlaying = false;
+      if (!this.synthIsPlaying) {
+        const freq = this.midiToFreq(note.pitch);
+        this.synth.triggerAttack(freq);
+        this.synthIsPlaying = true;
       }
-    })
+    }
+    else if (note.noise) {
+      this.synth.triggerRelease();
+      this.synthIsPlaying = false;
+      if (!this.noiseIsPlaying) {
+        this.noise.triggerAttack();
+        this.noiseIsPlaying = true;
+      }
+    }
   }
 
-  ping(note: SonifiedNote) {
-    console.log('ping')
-    window.requestAnimationFrame(() => {
-      if (note) {
-        // if (note.ramp) {
-        //   if (note.volume) {
-        //     this.synth.volume.rampTo(note.volume, this.rampDuration);
-        //   }
-        //   if (note.pitch) {
-        //     const freq = Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency();
-        //     this.synth.frequency.rampTo(freq, this.rampDuration);
-        //   }
-        // }
-        // else {
-          if (note.volume) {
-            this.synth.volume.value = note.volume;
-          }
-        // }
-        this.synth.triggerAttackRelease(Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency(), note.duration || this.defaultDuration); // TODO set default pitch
-      }
-      else {
-        this.noise.triggerAttackRelease(this.noiseDuration);
-      }
-
-    })
+  releaseSynth() {
+    this.synth.triggerRelease();
+    this.synthIsPlaying = false;
+    this.noise.triggerRelease();
+    this.noiseIsPlaying = false;
   }
+
+  playCurrent() {
+    this.resetTransport();
+  }
+
+  playSequence(audioStateRef: RefObject<AudioState>, tickAudioState: () => void) {
+    // audioStateRef.current
+    this.resetTransport();
+  }
+
+  stopSequence() {
+
+  }
+
+  // play(note: SonifiedNote) {
+
+
+  //   if (note?.pauseBefore) {
+  //     this.synth.triggerRelease();
+  //     this.isPlaying = false;
+  //   }
+
+  //   Tone.Transport.schedule((time) => {
+  //     if (note) {
+  //       if (!this.isPlaying) {
+  //         this.isPlaying = true;
+  //         this.synth.triggerAttack(Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency()); // TODO set default pitch
+  //       }
+  //     }
+  //     else {
+  //       this.synth.triggerRelease();
+  //       this.isPlaying = false;
+  //       this.noise.triggerAttackRelease(this.noiseDuration);
+  //     }
+
+  //   }, note?.pauseBefore ? this.pauseDuration : 0);
+
+  //   Tone.Transport.start();
+  // }
+
+  // pause() {
+  //   window.requestAnimationFrame(() => {
+  //     Tone.Transport.cancel();
+  //     if (this.isPlaying) {
+  //       this.synth.triggerRelease();
+  //       this.isPlaying = false;
+  //     }
+  //   })
+  // }
+
+  // ping(note: SonifiedNote) {
+  //   console.log('ping')
+  //   window.requestAnimationFrame(() => {
+  //     if (note) {
+  //       // if (note.ramp) {
+  //       //   if (note.volume) {
+  //       //     this.synth.volume.rampTo(note.volume, this.rampDuration);
+  //       //   }
+  //       //   if (note.pitch) {
+  //       //     const freq = this.midiToFreq(note.pitch);
+  //       //     this.synth.frequency.rampTo(freq, this.rampDuration);
+  //       //   }
+  //       // }
+  //       // else {
+  //         if (note.volume) {
+  //           this.synth.volume.value = note.volume;
+  //         }
+  //       // }
+  //       this.synth.triggerAttackRelease(Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency(), note.duration || this.defaultDuration); // TODO set default pitch
+  //     }
+  //     else {
+  //       this.noise.triggerAttackRelease(this.noiseDuration);
+  //     }
+
+  //   })
+  // }
 
 }
 
