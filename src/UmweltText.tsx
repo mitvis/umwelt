@@ -4,7 +4,7 @@ import { ElaboratedFieldDef, SelectionSpec, ElaboratedGroupNode, ElaboratedPredN
 import { Tree } from './text/Tree';
 import './text/TreeStyle.css'
 import { LogicalAnd } from 'vega-lite/src/logical';
-import { FieldPredicate } from 'vega-lite/src/predicate';
+import { FieldEqualPredicate, FieldPredicate, FieldRangePredicate } from 'vega-lite/src/predicate';
 import { SelectionCtrl } from './Umwelt';
 import { selectionTest } from './utils/selection';
 import { describe } from './utils/description';
@@ -86,18 +86,34 @@ const UmweltText = React.memo(({ textSpec, selectionCtrl, selectionSpec, data, f
             if (!predNode) return null;
             const nodeId = `${idPrefix}-${idx}`;
             let description = `${idx + 1} of ${predTree.length}. `;
-            if ((predNode as ElaboratedGroupNode).field) {
-              description += `Group of ${(predNode as ElaboratedGroupNode).field}`;
-            }
+            // if ((predNode as ElaboratedGroupNode).field) {
+            //   description += `Group of ${(predNode as ElaboratedGroupNode).field}`;
+            // }
             // else if ((predNode as ElaboratedPredNode).predicate) {
             //   description += JSON.stringify((predNode as ElaboratedPredNode).predicate);
             // }
-            description += JSON.stringify(predNode.fullPredicate);
-            description += `. ${(predNode as ElaboratedPredNode).children?.length || '0'} children.`;
+            // description += JSON.stringify(predNode.fullPredicate);
+            // description += `. ${(predNode as ElaboratedPredNode).children?.length || '0'} children.`;
+
+            if (nodeId === '0-0') {
+              description = 'A multi-series line chart showing stock prices of 5 tech companies over time.'
+            }
+            if (nodeId.match(/^0-0-\d$/)) {
+              description += `Line titled ${(predNode.fullPredicate.and[0] as FieldEqualPredicate).equal} with axes 'date' and 'price'.`
+            }
+            if (nodeId.match(/^0-0-\d-0$/)) {
+              description += `X-axis titled '${(predNode as ElaboratedGroupNode).field}' with values from '2000' to '2010'.`;
+            }
+            if (nodeId.match(/^0-0-\d-1$/)) {
+              description += `Y-axis titled '${(predNode as ElaboratedGroupNode).field}' with values from $0 to $800.`;
+            }
+            if (nodeId.match(/^0-0-\d-\d-\d$/)) {
+              description += `From ${((predNode.fullPredicate.and[1] as FieldRangePredicate).range as number[]).map(v => `'${new Date(v).getFullYear()}'`).join(' to ')}. ${(predNode as ElaboratedPredNode).children?.length || '0'} values.`;
+            }
 
             return (
               <li role="treeitem" aria-expanded="false" data-nodeid={nodeId} key={nodeId}>
-                <span style={{color: 'blue'}}>{descriptionMapRef.current[nodeId] ? descriptionMapRef.current[nodeId] : null}</span> <span>{description.trim()}</span>
+                <span>{description.trim()}</span> <span style={{color: 'blue'}}>{descriptionMapRef.current[nodeId] ? descriptionMapRef.current[nodeId] : null}</span>
                 {
                   (predNode as ElaboratedGroupNode | ElaboratedPredNode)?.children ?
                     renderPredTree((predNode as ElaboratedGroupNode | ElaboratedPredNode)?.children, depth + 1, nodeId) :

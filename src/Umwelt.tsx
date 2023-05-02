@@ -59,7 +59,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
   //       equal: value
   //     }
   //   };
-  //   setSelectionCtrl('olli');
+  //   setSelectionCtrl('olli-nav');
   //   setSelectionSpec(selection);
   // }), [vlSpec, uvSpec]);
 
@@ -95,16 +95,13 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
       }
       <br/>
       <br/>
-      <pre>
+      {/* <pre>
         {JSON.stringify(selectionSpec, null, 2)}
       </pre>
-      {/* <pre id="pred-out">
-        {JSON.stringify(uvSpec.text, null, 2)}
-      </pre> */}
       <br/>
       <pre>
         {data && selectionSpec && uvSpec.fields ? JSON.stringify(selectionTest(data, selectionSpec), null, 2) : null}
-      </pre>
+      </pre> */}
     </div>
   );
 });

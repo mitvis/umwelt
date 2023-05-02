@@ -75,11 +75,7 @@ function prompt(stringData: string): string {
 // ### Data ###
 
 // ${stringData}`
-const prompt = `Here's an example description.
-
-Overall, women have a slightly higher life expectancy than men. Women live around 5 to 10 years longer than men. The low income countries are more scattered than the high income countries. There is a visible gap between high and low income countries, indicated by the Income-Age Divide line. People living in low-income countries tend to have a lower life expectancy than the people living in high-income countries, likely due to many societal factors, including access to healthcare, food, other resources, and overall quality of life. People who live in lower income countries are more likely to experience deprivation and poverty, which can cause related health problems.
-
-Please generate a description in this style for the following data:
+const prompt = `You are an expert analyst of tech company stock data. Generate an analysis for the following data, including information about current events and social context. Answer in 2 sentences:
 
 ${stringData}`
 
