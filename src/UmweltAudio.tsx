@@ -64,7 +64,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
       specStates: getSpecStates(audio),
       specDomains: getAudioDomains(audio, domainFilter),
       activeState: 0,
-      ctrl: 'interaction' as AudioCtrl,
+      ctrl: 'umwelt' as AudioCtrl,
       playback: {
         ramp: false,
         pauseBefore: false,
@@ -122,12 +122,12 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           })
         );
       });
-      const nextAudioState = {
+      const nextAudioState: AudioState = {
         ...audioState,
         specStates: nextSpecStates,
-        specDomains: nextAudioDomains
+        specDomains: nextAudioDomains,
+        ctrl: 'umwelt'
       };
-
 
       setAudioState(nextAudioState);
     }
@@ -138,8 +138,10 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     const currentAudioSpecDomain = audioState.specDomains[audioState.activeState];
 
     if (currentAudioSpecState && Object.keys(currentAudioSpecState).length) {
-      const selectionSpec = audioStateToSelectionSpec(currentAudioSpecState, currentAudioSpecDomain);
-      onAudioState(selectionSpec);
+      if (audioState.ctrl !== 'umwelt') {
+        const selectionSpec = audioStateToSelectionSpec(currentAudioSpecState, currentAudioSpecDomain);
+        onAudioState(selectionSpec);
+      }
     }
 
   }), [audioState]);
@@ -171,7 +173,8 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                         return note.state;
                       }
                       return state;
-                    })
+                    }),
+                    ctrl: 'sequence'
                   })
                 }, elapsedTime)
 
