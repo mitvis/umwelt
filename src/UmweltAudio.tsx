@@ -46,8 +46,8 @@ export type AudioState = {
 
 function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectionCtrl}: AudioProps) {
 
-  const [_, setDomainFilter, domainFilterRef] = useState<SelectionSpec>();
-  const [audioState, setAudioState, audioStateRef] = useState<AudioState>(getInitialAudioState(audio, domainFilterRef.current));
+  const [domainFilter, setDomainFilter] = useState<SelectionSpec>();
+  const [audioState, setAudioState] = useState<AudioState>(getInitialAudioState(audio));
   const [muted, setMuted] = useState(false);
 
   useEffect(() => {
@@ -56,10 +56,10 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
 
   useEffect(() => {
     // re-initialize when spec changes
-    setAudioState(getInitialAudioState(audio, domainFilterRef.current));
+    setAudioState(getInitialAudioState(audio));
   }, [fields, audio, data])
 
-  function getInitialAudioState(audio: ElaboratedAudioSpec[], domainFilter: SelectionSpec) {
+  function getInitialAudioState(audio: ElaboratedAudioSpec[], domainFilter?: SelectionSpec) {
     return {
       specStates: getSpecStates(audio),
       specDomains: getAudioDomains(audio, domainFilter),
@@ -105,7 +105,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     if (selectionCtrl !== 'audio' && selectionSpec) {
       setDomainFilter(selectionSpec);
 
-      const nextAudioDomains = getAudioDomains(audio, domainFilterRef.current);
+      const nextAudioDomains = getAudioDomains(audio, selectionSpec);
       const nextSpecStates = getSpecStates(audio).map((specState, audioIdx) => {
         const currentAudioSpecState = audioState.specStates[audioIdx];
         const currentAudioSpecDomain = audioState.specDomains[audioIdx];
@@ -166,15 +166,17 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                   Sonifier.noteToState(note);
                   Sonifier.triggerSynth(note);
                   console.log(note);
-                  setAudioState({
-                    ...audioStateRef.current,
-                    specStates: audioStateRef.current.specStates.map((state, idx) => {
-                      if (idx === audioStateRef.current.activeState) {
-                        return note.state;
-                      }
-                      return state;
-                    }),
-                    ctrl: 'sequence'
+                  setAudioState((audioState) => {
+                    return {
+                      ...audioState,
+                      specStates: audioState.specStates.map((state, idx) => {
+                        if (idx === audioState.activeState) {
+                          return note.state;
+                        }
+                        return state;
+                      }),
+                      ctrl: 'sequence'
+                    }
                   })
                 }, elapsedTime)
 
@@ -238,7 +240,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
               {
                 audioSpec.traversal.map((fieldDef) => {
                   const field = fieldDef.field;
-                  const domain = getDomain(fieldDef, data, domainFilterRef.current);
+                  const domain = getDomain(fieldDef, data, domainFilter);
 
                   if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
                     const id = `${field}-slider`;
@@ -260,7 +262,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                         }
                       });
                     };
-                    const sliderDomain = fieldDef.bin ? getBins(fieldDef, data, domainFilterRef.current) : domain;
+                    const sliderDomain = fieldDef.bin ? getBins(fieldDef, data, domainFilter) : domain;
                     return (
                       <div key={field}>
                         <label htmlFor={id}>{field}</label>
