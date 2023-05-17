@@ -96,14 +96,19 @@ class UmweltSonifier {
     }
   }
 
-  triggerSynth(note: SonifierNote) {
+  triggerSynth(note: SonifierNote, withRelease?: boolean) {
     if (note.pitch) {
       this.noise.triggerRelease();
       this.noiseIsPlaying = false;
       if (!this.synthIsPlaying) {
         const freq = this.midiToFreq(note.pitch);
-        this.synth.triggerAttack(freq);
-        this.synthIsPlaying = true;
+        if (!withRelease) {
+          this.synth.triggerAttack(freq);
+          this.synthIsPlaying = true;
+        }
+        else {
+          this.synth.triggerAttackRelease(freq, note.duration);
+        }
       }
     }
     else if (note.noise) {

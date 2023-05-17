@@ -41,7 +41,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   const [specIndices, setSpecIndices] = useState<AudioSpecIndices[]>([]);
   const [specDomains, setSpecDomains] = useState<AudioSpecDomains[]>([]);
   const [activeStateIdx, setActiveStateIdx] = useState<number>(0);
-  const [audioCtrl, setAudioCtrl] = useState<AudioCtrl>('umwelt');
+  const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('umwelt');
   const [notes, setNotes] = useState<SonifierNote[]>([]);
   const [muted, setMuted] = useState(false);
 
@@ -122,7 +122,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     const currentIndices = specIndices[activeStateIdx];
     const currentDomains = specDomains[activeStateIdx]
     if (currentIndices && Object.keys(currentIndices).length) {
-      if (audioCtrl !== 'umwelt') {
+      if (audioCtrl.current !== 'umwelt') {
         const selectionSpec = audioStateToSelectionSpec(currentIndices, currentDomains);
         onAudioState(selectionSpec);
       }
@@ -144,18 +144,19 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
     Sonifier.resetTransport();
     notes.forEach(note => {
       Tone.Transport.schedule(() => {
-        // play note
-        Sonifier.noteToState(note);
-        Sonifier.triggerSynth(note);
-        console.log('triggerSynth')
+        if (audioCtrl.current === 'sequence') {
+          // play note
+          Sonifier.noteToState(note);
+          Sonifier.triggerSynth(note);
+          console.log('triggerSynth')
 
-        setAudioCtrl('sequence');
-        setSpecIndices(specIndices.map((indices, idx) => {
-          if (idx === activeStateIdx) {
-            return note.indices;
-          }
-          return indices;
-        }));
+          setSpecIndices(specIndices.map((indices, idx) => {
+            if (idx === activeStateIdx) {
+              return note.indices;
+            }
+            return indices;
+          }));
+        }
       }, note.elapsed)
 
       if (note.pauseAfter) {
@@ -170,8 +171,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }, [notes]);
 
   useEffect(() => {
-    if (audioCtrl !== 'sequence') {
-      Tone.Transport.pause();
+    if (audioCtrl.current === 'interaction') {
       const currentIndices = specIndices[activeStateIdx];
       const note = notes.find(note => {
         return Object.keys(note.indices).every((field) => {
@@ -179,11 +179,22 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         });
       });
       if (note) {
-        Tone.Transport.seconds = note.elapsed;
-        console.log('transport position', note.elapsed)
+        // window.requestAnimationFrame(() => {
+          Tone.Transport.seconds = note.elapsed;
+          console.log('transport position', note.elapsed);
+          Sonifier.triggerSynth(note, true);
+          // setSpecIndices((specIndices) => {
+          //   return specIndices.map((indices, idx) => {
+          //     if (idx === activeStateIdx) {
+          //       return currentIndices;
+          //     }
+          //     return indices;
+          //   })
+          // })
+        // })
       }
     }
-  }, [notes, audioCtrl, specIndices, activeStateIdx]);
+  }, [notes, specIndices, activeStateIdx]);
 
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
@@ -196,6 +207,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
               Tone.Transport.pause();
             }
             else {
+              setAudioCtrl('sequence');
               Tone.Transport.start();
             }
           }
@@ -251,6 +263,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                   if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
                     const id = `${field}-slider`;
                     const onchange = (e) => {
+                      Tone.Transport.pause();
                       const selectedIdx = Number(e.target.value);
                       setAudioCtrl('interaction');
                       setActiveStateIdx(audioSpecIdx);
@@ -277,6 +290,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                   else {
                     const id = `${field}-select`;
                     const onchange = (e) => {
+                      Tone.Transport.pause();
                       setAudioCtrl('interaction');
                       setActiveStateIdx(audioSpecIdx);
                       setSpecIndices((specIndices) => {
