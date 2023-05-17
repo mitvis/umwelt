@@ -169,7 +169,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   }, [notes]);
 
   useEffect(() => {
-    if (audioCtrl === 'interaction') {
+    if (audioCtrl !== 'sequence') {
       Tone.Transport.pause();
       Sonifier.releaseSynth();
       const currentIndices = specIndices[activeStateIdx];
@@ -178,10 +178,12 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           return note.indices[field] === currentIndices[field]
         });
       });
-      Tone.Transport.seconds = note.elapsed;
-      console.log('transport position', note.elapsed)
+      if (note) {
+        Tone.Transport.seconds = note.elapsed;
+        console.log('transport position', note.elapsed)
+      }
     }
-  }, [audioCtrl, specIndices, activeStateIdx]);
+  }, [notes, audioCtrl, specIndices, activeStateIdx]);
 
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
