@@ -16,6 +16,7 @@
     "compassql": "^0.21.2",
     "dayjs": "^1.11.7",
     "exponential-backoff": "^3.1.1",
+    "fast-cartesian": "^8.0.0",
     "jsonc-simple-parser": "^3.0.0",
     "olli": "^1.0.7",
     "olli-adapters": "^1.0.7",

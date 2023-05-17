@@ -1,15 +1,16 @@
 import * as Tone from 'tone';
-import { AudioSpecState, AudioState } from '../UmweltAudio';
+import { AudioSpecIndices } from '../UmweltAudio';
 import { RefObject } from 'react';
 
 export type SonifierNote = {
-  duration?: number; // duration in seconds
+  duration: number; // duration in seconds
+  elapsed: number; // elapsed time when should play in transport, in seconds
   pauseAfter?: number; // how long in seconds to pause after playing
   noise?: boolean; // does this note represent noise
   pitch?: number;
   volume?: number;
   ramp?: boolean; // should we ramp from this note
-  state?: AudioSpecState; // corresponding spec state
+  indices: AudioSpecIndices; // corresponding spec state
 }
 
 class UmweltSonifier {
@@ -58,6 +59,7 @@ class UmweltSonifier {
     Tone.Transport.stop();
     Tone.Transport.position = 0;
     Tone.Transport.cancel();
+    console.log('reset transport')
   }
 
   midiToFreq(midi): Tone.Unit.Frequency {
@@ -115,12 +117,7 @@ class UmweltSonifier {
   }
 
   playCurrent() {
-    this.resetTransport();
-  }
 
-  playSequence(audioStateRef: RefObject<AudioState>, tickAudioState: () => void) {
-    // audioStateRef.current
-    this.resetTransport();
   }
 
   stopSequence() {
