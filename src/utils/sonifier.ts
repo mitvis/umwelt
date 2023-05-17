@@ -38,13 +38,14 @@ class UmweltSonifier {
     this.vol = new Tone.Volume().toDestination();
     this.vol.mute = false;
 
+    this.synth = new Tone.Synth().connect(this.vol);
+
     this.noise = new Tone.NoiseSynth({
       envelope: {
         sustain: 0.1
-      }
+      },
+      volume: -15
     }).connect(this.vol);
-
-    this.synth = new Tone.Synth().connect(this.vol);
 
     Tone.Transport.on('pause', () => {
       console.log('pause');
@@ -113,8 +114,13 @@ class UmweltSonifier {
       this.synth.triggerRelease();
       this.synthIsPlaying = false;
       if (!this.noiseIsPlaying) {
-        this.noise.triggerAttack();
-        this.noiseIsPlaying = true;
+        if (!withRelease) {
+          this.noise.triggerAttack();
+          this.noiseIsPlaying = true;
+        }
+        else {
+          this.noise.triggerAttackRelease(note.duration);
+        }
       }
     }
   }

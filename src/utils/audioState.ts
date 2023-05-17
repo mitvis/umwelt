@@ -3,7 +3,7 @@ import { Bin } from "vega-lite/src/bin";
 import { LogicalAnd, LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from "vega-lite/src/predicate";
 import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, ElaboratedAudioTraversalFieldDef, ElaboratedAudioEncodingFieldDef, ElaboratedAudioEncoding, EncodingPropName } from "../grammar";
-import { SonifierNote } from "../sonification";
+import { SonifierNote } from "./sonifier";
 import { AudioSpecDomains, AudioSpecIndices } from "../UmweltAudio";
 import { aggregate } from "./aggregate";
 import { getBins } from "./bin";
@@ -11,7 +11,7 @@ import { getDomain, getFieldDef } from "./data";
 import { getScaleFunction, ScaleFunction } from "./scales";
 import { datumToPredicate, selectionTest } from "./selection";
 import { rangesAreEqual, serializeValue } from "./values";
-import { Sonifier } from '../sonification';
+import { Sonifier } from './sonifier';
 import fastCartesian from 'fast-cartesian'
 
 export function audioStateToSelectionSpec(indices: AudioSpecIndices, domains: AudioSpecDomains): SelectionSpec {

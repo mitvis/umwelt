@@ -5,7 +5,7 @@ import { ElaboratedAudioSpec, ElaboratedFieldDef, SelectionSpec } from './gramma
 import { getDomain, getFieldDef } from './utils/data';
 import { selectionTest } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
-import { Sonifier, SonifierNote } from './sonification';
+import { Sonifier, SonifierNote } from './utils/sonifier';
 import { audioStateToSelectionSpec, generateSequence } from './utils/audioState';
 import { getBins } from './utils/bin';
 import * as Tone from 'tone';
@@ -253,9 +253,9 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                   if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
                     const id = `${field}-slider`;
                     const onchange = (e) => {
+                      setAudioCtrl('interaction');
                       Tone.Transport.pause();
                       const selectedIdx = Number(e.target.value);
-                      setAudioCtrl('interaction');
                       setActiveStateIdx(audioSpecIdx);
                       setSpecIndices((specIndices) => {
                         return specIndices.map((indices, idx) => {
@@ -280,8 +280,8 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                   else {
                     const id = `${field}-select`;
                     const onchange = (e) => {
-                      Tone.Transport.pause();
                       setAudioCtrl('interaction');
+                      Tone.Transport.pause();
                       setActiveStateIdx(audioSpecIdx);
                       setSpecIndices((specIndices) => {
                         return specIndices.map((indices, idx) => {
