@@ -48,9 +48,7 @@ class UmweltSonifier {
 
     Tone.Transport.on('pause', () => {
       console.log('pause');
-      window.requestAnimationFrame(() => {
-        this.releaseSynth();
-      })
+      this.releaseSynth();
     });
   }
 

@@ -179,19 +179,9 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         });
       });
       if (note) {
-        // window.requestAnimationFrame(() => {
-          Tone.Transport.seconds = note.elapsed;
-          console.log('transport position', note.elapsed);
-          Sonifier.triggerSynth(note, true);
-          // setSpecIndices((specIndices) => {
-          //   return specIndices.map((indices, idx) => {
-          //     if (idx === activeStateIdx) {
-          //       return currentIndices;
-          //     }
-          //     return indices;
-          //   })
-          // })
-        // })
+        Tone.Transport.seconds = note.elapsed;
+        console.log('transport position', note.elapsed);
+        Sonifier.triggerSynth(note, true);
       }
     }
   }, [notes, specIndices, activeStateIdx]);
@@ -203,7 +193,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         case 'p':
           if (!e.repeat) {
             if (Tone.Transport.state === 'started') {
-              // Sonifier.resetTransport();
+              setAudioCtrl('interaction');
               Tone.Transport.pause();
             }
             else {
