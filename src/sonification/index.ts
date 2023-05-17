@@ -45,6 +45,13 @@ class UmweltSonifier {
     }).connect(this.vol);
 
     this.synth = new Tone.Synth().connect(this.vol);
+
+    Tone.Transport.on('pause', () => {
+      console.log('pause');
+      window.requestAnimationFrame(() => {
+        this.releaseSynth();
+      })
+    });
   }
 
   getInstance() {

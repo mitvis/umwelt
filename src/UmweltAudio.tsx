@@ -147,6 +147,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
         // play note
         Sonifier.noteToState(note);
         Sonifier.triggerSynth(note);
+        console.log('triggerSynth')
 
         setAudioCtrl('sequence');
         setSpecIndices(specIndices.map((indices, idx) => {
@@ -171,7 +172,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
   useEffect(() => {
     if (audioCtrl !== 'sequence') {
       Tone.Transport.pause();
-      Sonifier.releaseSynth();
       const currentIndices = specIndices[activeStateIdx];
       const note = notes.find(note => {
         return Object.keys(note.indices).every((field) => {
@@ -194,7 +194,6 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
             if (Tone.Transport.state === 'started') {
               // Sonifier.resetTransport();
               Tone.Transport.pause();
-              Sonifier.releaseSynth();
             }
             else {
               Tone.Transport.start();
