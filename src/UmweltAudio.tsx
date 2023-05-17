@@ -170,7 +170,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
 
   useEffect(() => {
     if (audioCtrl === 'interaction') {
-      Tone.Transport.stop();
+      Tone.Transport.pause();
       Sonifier.releaseSynth();
       const currentIndices = specIndices[activeStateIdx];
       const note = notes.find(note => {
@@ -191,7 +191,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
           if (!e.repeat) {
             if (Tone.Transport.state === 'started') {
               // Sonifier.resetTransport();
-              Tone.Transport.stop();
+              Tone.Transport.pause();
               Sonifier.releaseSynth();
             }
             else {
