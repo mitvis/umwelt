@@ -5,7 +5,7 @@ import { LogicalComposition } from "vega-lite/src/logical";
 import { FieldPredicate } from "vega-lite/src/predicate";
 import { isDate } from "vega";
 
-const secrets = require('../secrets/openai.json');
+const secrets = process.env.NODE_ENV === 'development' ? require('../secrets/openai.json') : {};
 const configuration = new Configuration(secrets);
 
 const openai = new OpenAIApi(configuration);
