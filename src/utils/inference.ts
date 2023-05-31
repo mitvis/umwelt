@@ -1,7 +1,7 @@
-import dayjs from "dayjs";
+import dayjs from 'dayjs';
 import * as cql from 'compassql';
-import { OlliDataset } from "olli";
-import { UmweltSpec, VisualSpec, ElaboratedVisualSpec, AudioSpec, ElaboratedAudioSpec, MeasureType, ElaboratedFieldDef, TextNode } from "../grammar/Types";
+import { OlliDataset } from 'olli';
+import { UmweltSpec, VisualSpec, ElaboratedVisualSpec, AudioSpec, ElaboratedAudioSpec, MeasureType, ElaboratedFieldDef, TextNode } from '../grammar/Types';
 
 export function recommendVisuals(spec: UmweltSpec, data: OlliDataset, partial?: Partial<VisualSpec>): ElaboratedVisualSpec {
   const encodings = [];
@@ -10,34 +10,34 @@ export function recommendVisuals(spec: UmweltSpec, data: OlliDataset, partial?: 
     if (Object.keys(encoding).includes('facet')) {
       return partial as any; // for some reason cql barfs on facet
     }
-    Object.keys(encoding).forEach(channel => {
+    Object.keys(encoding).forEach((channel) => {
       encodings.push({
         channel,
-        ...(encoding as any)[channel]
-      })
-    })
+        ...(encoding as any)[channel],
+      });
+    });
   }
   spec.fields.forEach((fieldDef) => {
-    if (encodings.some(e => e.field === fieldDef.name)) {
+    if (encodings.some((e) => e.field === fieldDef.name)) {
       return;
     }
-    let channel = "?";
+    let channel = '?';
     encodings.push({
       channel,
       field: fieldDef.name,
-      type: fieldDef.type
+      type: fieldDef.type,
     });
   });
 
   const schema = cql.schema.build(data);
   const query = {
-    "spec": {
-      "data": spec.data,
-      "mark": partial?.mark || "?",
-      encodings
+    spec: {
+      data: spec.data,
+      mark: partial?.mark || '?',
+      encodings,
     },
-    "orderBy": "effectiveness"
-  }
+    orderBy: 'effectiveness',
+  };
   const output = cql.recommend(query, schema);
   const result = output.result;
   const specs = [];
@@ -53,7 +53,7 @@ export function recommendVisuals(spec: UmweltSpec, data: OlliDataset, partial?: 
   }
   return {
     mark: topVlSpec.mark,
-    encoding: topVlSpec.encoding
+    encoding: topVlSpec.encoding,
   };
 }
 
@@ -67,53 +67,65 @@ export function recommendAudio(spec: UmweltSpec, data: OlliDataset, partial?: Pa
 export function recommendTextStructure(fields: ElaboratedFieldDef[], visual?: ElaboratedVisualSpec | false): TextNode[] {
   if (visual) {
     // infer structure from visual encoding
-    if (visual.mark === 'line' && visual.encoding.color || visual.encoding.detail) {
+    if ((visual.mark === 'line' && visual.encoding.color) || visual.encoding.detail) {
       // multi series line
-      const f = visual.encoding.color.field || visual.encoding.detail.field;
+      const enc = visual.encoding.color || visual.encoding.detail;
+      const f = enc.field;
       const specWithoutF: ElaboratedVisualSpec = structuredClone(visual);
-      specWithoutF.encoding = Object.fromEntries(Object.entries(specWithoutF.encoding).filter(([_, encDef]) => { return encDef.field !== f})) as any;
+      specWithoutF.encoding = Object.fromEntries(
+        Object.entries(specWithoutF.encoding).filter(([_, encDef]) => {
+          return encDef.field !== f;
+        })
+      ) as any;
       return [
         {
-          field: f,
-          children: recommendTextStructure(fields, specWithoutF)
-        }
+          groupby: { ...enc, aggregate: undefined }, // TODO shrug
+          children: recommendTextStructure(fields, specWithoutF),
+        },
       ];
     }
     if (visual.encoding.facet || visual.encoding.row || visual.encoding.column) {
       // faceted
-      const f = visual.encoding.facet.field || visual.encoding.row.field || visual.encoding.column.field;
+      const enc = visual.encoding.facet || visual.encoding.row || visual.encoding.column;
+      const f = enc.field;
       const specWithoutF: ElaboratedVisualSpec = structuredClone(visual);
-      specWithoutF.encoding = Object.fromEntries(Object.entries(specWithoutF.encoding).filter(([_, encDef]) => { return encDef.field !== f})) as any;
+      specWithoutF.encoding = Object.fromEntries(
+        Object.entries(specWithoutF.encoding).filter(([_, encDef]) => {
+          return encDef.field !== f;
+        })
+      ) as any;
       return [
         {
-          field: f,
-          children: recommendTextStructure(fields, specWithoutF)
-        }
+          groupby: { ...enc, aggregate: undefined }, // TODO shrug
+          children: recommendTextStructure(fields, specWithoutF),
+        },
       ];
     }
     // everything on the same level
-    return Object.entries(visual.encoding).map(([_, encDef]) => {
-      return {
-        field: encDef.field
-      }
-    }).filter((node, index, array) => {
-      return index === array.findIndex(n => n.field === node.field);
-    });
-  }
-  else {
+    return Object.entries(visual.encoding)
+      .map(([_, encDef]) => {
+        return {
+          groupby: { ...encDef, aggregate: undefined }, // TODO shrug
+          children: [],
+        };
+      })
+      .filter((node, index, array) => {
+        return index === array.findIndex((n) => n.groupby.field === node.groupby.field);
+      });
+  } else {
     // infer structure from mtypes? can we do that?
     // for now, just give it flat
-    return fields.map(f => {
-      return {
-        field: f.name
-      }
-    });
+    // return fields.map((f) => {
+    //   return {
+    //     groupby: f,
+    //   };
+    // });
+    return []; // TODO
   }
 }
 
-
 export function typeInference(data: OlliDataset, field: string): MeasureType {
-  const values = data.map(datum => datum[field]);
+  const values = data.map((datum) => datum[field]);
 
   // this function is mostly stolen from vega/datalib except i fixed the date bug
   function isBoolean(obj) {
@@ -122,27 +134,35 @@ export function typeInference(data: OlliDataset, field: string): MeasureType {
 
   function isDate(obj) {
     return toString.call(obj) === '[object Date]';
-  };
+  }
 
   function isValid(obj) {
     return obj != null && obj === obj;
-  };
+  }
 
   var TESTS = {
-    boolean: function(x) { return x==='true' || x==='false' || isBoolean(x); },
-    integer: function(x) { return TESTS.number(x) && (x=+x) === ~~x; },
-    number: function(x) { return !isNaN(+x) && !isDate(x); },
-    date: function(x) { return dayjs(x).isValid(); }
+    boolean: function (x) {
+      return x === 'true' || x === 'false' || isBoolean(x);
+    },
+    integer: function (x) {
+      return TESTS.number(x) && (x = +x) === ~~x;
+    },
+    number: function (x) {
+      return !isNaN(+x) && !isDate(x);
+    },
+    date: function (x) {
+      return dayjs(x).isValid();
+    },
   };
 
   // types to test for, in precedence order
   var types = ['boolean', 'integer', 'number', 'date'];
 
-  for (let i=0; i<values.length; ++i) {
+  for (let i = 0; i < values.length; ++i) {
     // get next value to test
     const v = values[i];
     // test value against remaining types
-    for (let j=0; j<types.length; ++j) {
+    for (let j = 0; j < types.length; ++j) {
       if (isValid(v) && !TESTS[types[j]](v)) {
         types.splice(j, 1);
         j -= 1;
@@ -154,7 +174,7 @@ export function typeInference(data: OlliDataset, field: string): MeasureType {
 
   const inference = types.length ? types[0] : 'string';
 
-  switch(inference) {
+  switch (inference) {
     case 'boolean':
     case 'string':
       return 'nominal';

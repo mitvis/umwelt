@@ -1,23 +1,20 @@
-import { OlliDataset } from "olli";
-import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, ElaboratedTextNode, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding, ElaboratedEncodingFieldDef, EncodingFieldDef, ElaboratedAudioTraversalFieldDef } from "./Types"
-import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from "../utils/inference";
-import { getFieldDef } from "../utils/data";
-import { textSpecToFullPredicateSpec } from "../utils/text";
-import { isString } from "vega";
-
+import { OlliDataset } from 'olli';
+import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, ElaboratedTextNode, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding, ElaboratedEncodingFieldDef, EncodingFieldDef, ElaboratedAudioTraversalFieldDef } from './Types';
+import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from '../utils/inference';
+import { getFieldDef } from '../utils/data';
+import { textSpecToFullPredicateSpec } from '../utils/text';
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): ElaboratedFieldDef[] {
-  return fields.map(fieldDef => {
+  return fields.map((fieldDef) => {
     return {
       name: fieldDef.name,
       type: fieldDef.type || typeInference(data, fieldDef.name),
-      scale: fieldDef.scale
-    }
+      scale: fieldDef.scale,
+    };
   });
 }
 
 export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: ElaboratedFieldDef[]): ElaboratedUmweltSpec {
-
   // function elaborateRecommender(structure: ElaboratedStructureNode[], visualRender: VisualSpec | boolean, encoding: Encoding<string>) {
   //   let partial = undefined;
   //   if (typeof visualRender === "object") {
@@ -57,25 +54,24 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
 
   function elaborateFieldDef(v: string | EncodingFieldDef): ElaboratedEncodingFieldDef {
     if (typeof v === 'string') {
-      const {name, ...fieldDef} = getFieldDef(v, fields);
+      const { name, ...fieldDef } = getFieldDef(v, fields);
       return {
         ...fieldDef,
         field: name,
         scale: {
-          ...(fieldDef.scale || {})
-        }
+          ...(fieldDef.scale || {}),
+        },
       };
-    }
-    else {
-      const {name, ...fieldDef} = getFieldDef(v.field, fields);
+    } else {
+      const { name, ...fieldDef } = getFieldDef(v.field, fields);
       return {
         ...fieldDef,
         ...v,
         scale: {
           ...(fieldDef.scale || {}),
-          ...(v.scale || {})
-        }
-      }
+          ...(v.scale || {}),
+        },
+      };
     }
   }
 
@@ -84,8 +80,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     let partial: VisualSpec = structuredClone(visual);
     if (visual === true || visual === undefined) {
       partial = {};
-    }
-    else if (visual.encoding) {
+    } else if (visual.encoding) {
       partial.encoding = elaborateEncoding(visual.encoding, fields);
     }
     try {
@@ -106,68 +101,59 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     function elaborateSingleAudio(audio: AudioSpec, fields: ElaboratedFieldDef[]): ElaboratedAudioSpec {
       return {
         traversal: elaborateTraversal(audio.traversal, fields),
-        encoding: elaborateEncoding(audio.encoding, fields) as ElaboratedAudioEncoding
+        encoding: elaborateEncoding(audio.encoding, fields) as ElaboratedAudioEncoding,
       };
     }
 
-    function elaborateTraversal(traversal: AudioTraversal | "selection", fields: ElaboratedFieldDef[]): ElaboratedAudioTraversal | "selection" {
+    function elaborateTraversal(traversal: AudioTraversal | 'selection', fields: ElaboratedFieldDef[]): ElaboratedAudioTraversal | 'selection' {
       if (traversal === 'selection') return traversal;
       // TODO should probably inherit properties from the umvelt fields definition?
 
-        if (traversal) {
-          if (Array.isArray(traversal)) {
-            return traversal.map((s) => {
-              return elaborateFieldDef(s) as ElaboratedAudioTraversalFieldDef;
-            });
-          }
-          else {
-            return [ elaborateFieldDef(traversal) as ElaboratedAudioTraversalFieldDef ];
-          }
+      if (traversal) {
+        if (Array.isArray(traversal)) {
+          return traversal.map((s) => {
+            return elaborateFieldDef(s) as ElaboratedAudioTraversalFieldDef;
+          });
+        } else {
+          return [elaborateFieldDef(traversal) as ElaboratedAudioTraversalFieldDef];
         }
-        return [];
+      }
+      return [];
     }
 
     if (Array.isArray(audio)) {
-      return audio.map(a => elaborateSingleAudio(a, fields));
-    }
-    else {
+      return audio.map((a) => elaborateSingleAudio(a, fields));
+    } else {
       return [elaborateSingleAudio(audio, fields)];
     }
-
   }
 
-
-  function elaborateText(textSpec: TextNode | TextNode[] | boolean, fields: ElaboratedFieldDef[], data: OlliDataset, visual?: ElaboratedVisualSpec | false): ElaboratedTextNode[] | false {
-
-    function ensureFirstLayerHasOneRoot(textPredTree: ElaboratedTextNode[]): ElaboratedTextNode[] {
+  function elaborateText(textSpec: TextNode | TextNode[] | boolean, fields: ElaboratedFieldDef[], data: OlliDataset, visual?: ElaboratedVisualSpec | false): ElaboratedTextNode | false {
+    function ensureFirstLayerHasOneRoot(textPredTree: ElaboratedTextNode[]): ElaboratedTextNode {
       if (textPredTree.length === 1) {
-        return textPredTree
+        return textPredTree[0];
       }
-      return [
-        {
-          fullPredicate: {and: []},
-          children: textPredTree
-        }
-      ]
+      return {
+        id: '0',
+        fullPredicate: { and: [] },
+        children: textPredTree,
+      };
     }
 
     if (textSpec === false) {
       return false;
-    }
-    else if (textSpec === true || textSpec === undefined) {
+    } else if (textSpec === true || textSpec === undefined) {
       const inferredTextSpec = recommendTextStructure(fields, visual);
       console.log('inferred text spec', inferredTextSpec);
-      return ensureFirstLayerHasOneRoot(textSpecToFullPredicateSpec(inferredTextSpec, fields, data, {and: []}));
-    }
-    else {
+      return ensureFirstLayerHasOneRoot(textSpecToFullPredicateSpec(inferredTextSpec, fields, data, { and: [] }, '0'));
+    } else {
       let normalizedTextSpec: TextNode[];
       if (!Array.isArray(textSpec)) {
         normalizedTextSpec = [textSpec];
-      }
-      else {
+      } else {
         normalizedTextSpec = textSpec;
       }
-      return ensureFirstLayerHasOneRoot(textSpecToFullPredicateSpec(normalizedTextSpec, fields, data, {and: []}));
+      return ensureFirstLayerHasOneRoot(textSpecToFullPredicateSpec(normalizedTextSpec, fields, data, { and: [] }, '0'));
     }
   }
 
@@ -176,11 +162,11 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
   const text = elaborateText(spec.text, fields, data, visual);
 
   return {
-    data: {values: data},
+    data: { values: data },
     selection: spec.selection,
     fields,
     visual,
     audio: elaborateAudio(spec.audio, fields),
-    text
-  }
+    text,
+  };
 }

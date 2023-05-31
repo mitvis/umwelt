@@ -1,6 +1,6 @@
-import {Type} from 'vega-lite/src/type';
-import {UrlData, InlineData} from 'vega-lite/src/data';
-import {Mark} from 'vega-lite/src/mark';
+import { Type } from 'vega-lite/src/type';
+import { UrlData, InlineData } from 'vega-lite/src/data';
+import { Mark } from 'vega-lite/src/mark';
 import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
 import { OlliDataset, OlliValue } from 'olli';
 import { FieldPredicate } from 'vega-lite/src/predicate';
@@ -8,54 +8,54 @@ import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
 import { Spec } from 'vega';
 import { TopLevelUnitSpec } from 'vega-lite/src/spec/unit';
 
-export type VlSpec = TopLevelUnitSpec<any>
+export type VlSpec = TopLevelUnitSpec<any>;
 export type VgSpec = Spec;
 
 type ScaleDomain = {
-  domain?: OlliValue[],
-  zero?: boolean,
-  nice?: boolean | number
-} //  | "type"
+  domain?: OlliValue[];
+  zero?: boolean;
+  nice?: boolean | number;
+}; //  | "type"
 type ScaleRange = {
-  range?: number[] | string[]
-} //  | "reverse"
+  range?: number[] | string[];
+}; //  | "reverse"
 
-export type MeasureType = Exclude<Type, "geojson">;
-type UmweltDataSource = UrlData | InlineData
-type ElaboratedUmweltDataSource = { values: OlliDataset }
+export type MeasureType = Exclude<Type, 'geojson'>;
+type UmweltDataSource = UrlData | InlineData;
+type ElaboratedUmweltDataSource = { values: OlliDataset };
 
-export type VisualPropName = "x" | "y" | "color" | "opacity" | "shape" | "detail" | "facet" | "row" | "column";
-export type AudioPropName = "pitch" | "duration" | "volume";
+export type VisualPropName = 'x' | 'y' | 'color' | 'opacity' | 'shape' | 'detail' | 'facet' | 'row' | 'column';
+export type AudioPropName = 'pitch' | 'duration' | 'volume';
 export type EncodingPropName = VisualPropName | AudioPropName;
 
-export type AudioAggregateOp = "count" | "mean" // | "median" | "min" | "max"; //
+export type AudioAggregateOp = 'count' | 'mean'; // | "median" | "min" | "max"; //
 
 type FieldName = string;
 
 export interface ElaboratedFieldDef {
-  name: FieldName,
-  type: MeasureType,
-  scale?: ScaleDomain
+  name: FieldName;
+  type: MeasureType;
+  scale?: ScaleDomain;
 }
 
 export interface FieldDef {
-  name: FieldName
-  type?: MeasureType,
-  scale?: ScaleDomain
+  name: FieldName;
+  type?: MeasureType;
+  scale?: ScaleDomain;
 }
 
 export interface EncodingFieldDef extends Omit<FieldDef, 'name'> {
-  field: FieldName,
-  scale?: ScaleDomain & ScaleRange,
-  aggregate?: NonArgAggregateOp,
-  bin?: boolean
+  field: FieldName;
+  scale?: ScaleDomain & ScaleRange;
+  aggregate?: NonArgAggregateOp;
+  bin?: boolean;
 }
 
 export interface ElaboratedEncodingFieldDef extends Omit<ElaboratedFieldDef, 'name'> {
-  field: FieldName,
-  scale: ScaleDomain & ScaleRange,
-  aggregate?: NonArgAggregateOp,
-  bin?: boolean
+  field: FieldName;
+  scale: ScaleDomain & ScaleRange;
+  aggregate?: NonArgAggregateOp;
+  bin?: boolean;
 }
 
 export interface AudioEncodingFieldDef extends EncodingFieldDef {
@@ -75,99 +75,87 @@ export interface ElaboratedAudioTraversalFieldDef extends ElaboratedEncodingFiel
 }
 
 export type VisualEncoding = {
-  [prop in VisualPropName]?: FieldName | EncodingFieldDef
-}
+  [prop in VisualPropName]?: FieldName | EncodingFieldDef;
+};
 
 export type ElaboratedVisualEncoding = {
-  [prop in VisualPropName]?: EncodingFieldDef
-}
+  [prop in VisualPropName]?: ElaboratedEncodingFieldDef;
+};
 
 export type VisualSpec = {
-  mark?: Mark
-  encoding?: VisualEncoding
-}
+  mark?: Mark;
+  encoding?: VisualEncoding;
+};
 
 export type ElaboratedVisualSpec = {
-  mark: Mark
-  encoding: ElaboratedVisualEncoding
-}
+  mark: Mark;
+  encoding: ElaboratedVisualEncoding;
+};
 
 export type AudioEncoding = {
-  [prop in AudioPropName]?: FieldName | AudioEncodingFieldDef
-}
+  [prop in AudioPropName]?: FieldName | AudioEncodingFieldDef;
+};
 
 export type ElaboratedAudioEncoding = {
-  [prop in AudioPropName]?: ElaboratedAudioEncodingFieldDef
-}
+  [prop in AudioPropName]?: ElaboratedAudioEncodingFieldDef;
+};
 
 export type AudioTraversal = (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[];
 
 export type ElaboratedAudioTraversal = ElaboratedAudioTraversalFieldDef[];
 
 export type AudioSpec = {
-  encoding?: AudioEncoding,
-  traversal?: AudioTraversal | "selection"
-}
+  encoding?: AudioEncoding;
+  traversal?: AudioTraversal | 'selection';
+};
 
 export type ElaboratedAudioSpec = {
-  encoding: ElaboratedAudioEncoding,
-  traversal: ElaboratedAudioTraversal | "selection"
+  encoding: ElaboratedAudioEncoding;
+  traversal: ElaboratedAudioTraversal | 'selection';
+};
+
+export interface ElaboratedTextFieldDef extends ElaboratedEncodingFieldDef {
+  aggregate: undefined;
 }
 
-export interface TextNode {
-  field?: string,
-  predicate?: FieldPredicate,
-  children?: TextNode[]
+export interface TextGroupNode {
+  groupby: ElaboratedTextFieldDef;
+  children: TextNode[];
 }
 
-export interface ElaboratedLeafNode {
-  fullPredicate: LogicalAnd<FieldPredicate>
+export interface TextPredicateNode {
+  predicate: FieldPredicate;
+  children: TextNode[];
 }
 
-export interface ElaboratedPredNode {
-  fullPredicate: LogicalAnd<FieldPredicate>
-  predicate: FieldPredicate
-  children: ElaboratedGroupNode[] | ElaboratedLeafNode[]
-}
+export type TextNode = TextGroupNode | TextPredicateNode;
 
-export interface ElaboratedGroupNode {
-  fullPredicate: LogicalAnd<FieldPredicate>
-  field?: string
-  children: ElaboratedPredNode[]
+export interface ElaboratedTextNode {
+  id: string;
+  fullPredicate: LogicalAnd<FieldPredicate>;
+  children: ElaboratedTextNode[];
+  groupby?: ElaboratedTextFieldDef;
+  predicate?: FieldPredicate;
 }
-
-export function isPredNode(node: ElaboratedTextNode): node is ElaboratedPredNode {
-  return (node as any).predicate;
-}
-
-export function isGroupNode(node: ElaboratedTextNode): node is ElaboratedGroupNode {
-  return Boolean((node as ElaboratedGroupNode).field) || ((node as any).children && !(node as any).predicate);
-}
-
-export function isLeafNode(node: ElaboratedTextNode): node is ElaboratedLeafNode {
-  return !(node as any).children;
-}
-
-export type ElaboratedTextNode = ElaboratedPredNode | ElaboratedGroupNode | ElaboratedLeafNode;
 
 export interface SelectionSpec {
   predicate: LogicalComposition<FieldPredicate>;
 }
 
 export interface UmweltSpec {
-  data: UmweltDataSource
-  selection?: SelectionSpec
-  fields: FieldDef[]
-  visual?: VisualSpec | boolean
-  audio?: AudioSpec | AudioSpec[] | boolean
-  text?: TextNode | TextNode[] | boolean
+  data: UmweltDataSource;
+  selection?: SelectionSpec;
+  fields: FieldDef[];
+  visual?: VisualSpec | boolean;
+  audio?: AudioSpec | AudioSpec[] | boolean;
+  text?: TextNode | TextNode[] | boolean;
 }
 
 export interface ElaboratedUmweltSpec {
-  data: ElaboratedUmweltDataSource
-  selection?: SelectionSpec
-  fields: ElaboratedFieldDef[]
-  visual: ElaboratedVisualSpec | false
-  audio: ElaboratedAudioSpec[] | false
-  text: ElaboratedTextNode[] | false
+  data: ElaboratedUmweltDataSource;
+  selection?: SelectionSpec;
+  fields: ElaboratedFieldDef[];
+  visual: ElaboratedVisualSpec | false;
+  audio: ElaboratedAudioSpec[] | false;
+  text: ElaboratedTextNode | false;
 }

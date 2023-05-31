@@ -1,6 +1,5 @@
-import {TopLevelUnitSpec} from 'vega-lite/src/spec/unit';
-import { isNumeric as vlIsNumeric } from "vega-lite";
-import {isString, Spec} from 'vega';
+import { isNumeric as vlIsNumeric } from 'vega-lite';
+import { isString, Spec } from 'vega';
 import { ElaboratedEncodingFieldDef, ElaboratedFieldDef } from '../grammar/Types';
 
 // export function traverseStructure(node: ElaboratedStructureNode | ElaboratedStructureNode[], func: (n: ElaboratedStructureNode) => void) {
@@ -20,8 +19,7 @@ import { ElaboratedEncodingFieldDef, ElaboratedFieldDef } from '../grammar/Types
 export function serializeValue(value, fieldDef) {
   if (fieldDef.type === 'temporal') {
     value = datestampToTime(value);
-  }
-  else if (isString(value) && isNumeric(value)) {
+  } else if (isString(value) && isNumeric(value)) {
     value = Number(value);
   }
   return value;
@@ -29,9 +27,8 @@ export function serializeValue(value, fieldDef) {
 
 export function datestampToTime(datestamp: string | string[]) {
   if (Array.isArray(datestamp)) {
-    return datestamp.map(v => new Date(v).getTime());
-  }
-  else {
+    return datestamp.map((v) => new Date(v).getTime());
+  } else {
     return new Date(datestamp).getTime();
   }
 }
@@ -40,13 +37,8 @@ export function isNumeric(value: string): boolean {
   return vlIsNumeric(value.replaceAll(',', ''));
 }
 
-
 export function filterObjectByKeys(object, keys): any {
-  return Object.fromEntries(
-    Object.entries(object).filter(
-       ([key, _])=>keys.includes(key)
-    )
- );
+  return Object.fromEntries(Object.entries(object).filter(([key, _]) => keys.includes(key)));
 }
 
 export function rangesAreEqual(range1: any[], range2: any[], fieldDef: ElaboratedEncodingFieldDef) {
