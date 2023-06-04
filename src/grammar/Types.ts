@@ -2,7 +2,7 @@ import { Type } from 'vega-lite/src/type';
 import { UrlData, InlineData } from 'vega-lite/src/data';
 import { Mark } from 'vega-lite/src/mark';
 import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
-import { OlliDataset, OlliValue } from 'olli';
+import { ElaboratedOlliNode, OlliDataset, OlliNode, OlliValue } from 'olli';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
 import { Spec } from 'vega';
@@ -114,30 +114,6 @@ export type ElaboratedAudioSpec = {
   traversal: ElaboratedAudioTraversal | 'selection';
 };
 
-export interface ElaboratedTextFieldDef extends ElaboratedEncodingFieldDef {
-  aggregate: undefined;
-}
-
-export interface TextGroupNode {
-  groupby: ElaboratedTextFieldDef;
-  children: TextNode[];
-}
-
-export interface TextPredicateNode {
-  predicate: FieldPredicate;
-  children: TextNode[];
-}
-
-export type TextNode = TextGroupNode | TextPredicateNode;
-
-export interface ElaboratedTextNode {
-  id: string;
-  fullPredicate: LogicalAnd<FieldPredicate>;
-  children: ElaboratedTextNode[];
-  groupby?: ElaboratedTextFieldDef;
-  predicate?: FieldPredicate;
-}
-
 export interface SelectionSpec {
   predicate: LogicalComposition<FieldPredicate>;
 }
@@ -148,7 +124,7 @@ export interface UmweltSpec {
   fields: FieldDef[];
   visual?: VisualSpec | boolean;
   audio?: AudioSpec | AudioSpec[] | boolean;
-  text?: TextNode | TextNode[] | boolean;
+  text?: OlliNode | OlliNode[] | boolean;
 }
 
 export interface ElaboratedUmweltSpec {
@@ -157,5 +133,5 @@ export interface ElaboratedUmweltSpec {
   fields: ElaboratedFieldDef[];
   visual: ElaboratedVisualSpec | false;
   audio: ElaboratedAudioSpec[] | false;
-  text: ElaboratedTextNode | false;
+  text: OlliNode | OlliNode[] | boolean;
 }

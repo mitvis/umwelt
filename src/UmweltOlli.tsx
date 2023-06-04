@@ -1,42 +1,57 @@
-import { OlliDataset, OlliVisSpec } from 'olli';
-import React from 'react';
+import { OlliGlobalState, OlliSpec, olli } from 'olli';
+import React, { useRef } from 'react';
 import { useEffect } from 'react';
-import { ElaboratedFieldDef, SelectionSpec } from './grammar';
-import { renderOlli } from './utils/render';
-import { selectionTest } from './utils/selection';
+import { SelectionSpec } from './grammar';
 import { SelectionCtrl } from './Umwelt';
+import { LogicalAnd } from 'vega-lite/src/logical';
+import { FieldPredicate } from 'vega-lite/src/predicate';
 
 interface UmweltOlliProps {
-  olliSpec: OlliVisSpec,
-  onFocus,
+  olliSpec: OlliSpec,
+  onTextNavPred: (predicate: LogicalAnd<FieldPredicate>) => void;
+  onTextFilterPred: (predicate: LogicalAnd<FieldPredicate>) => void;
   selectionCtrl: SelectionCtrl
-  selectionSpec: SelectionSpec,
-  fields: ElaboratedFieldDef[]
+  selectionSpec: SelectionSpec
 }
 
-const UmweltOlli = React.memo(({ olliSpec, onFocus, selectionCtrl, selectionSpec, fields }: UmweltOlliProps) => {
+const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, selectionCtrl, selectionSpec }: UmweltOlliProps) => {
+
+  const currentOlliSpec = useRef<OlliSpec>();
 
   useEffect(() => {
-    if (olliSpec) {
-      let spec = olliSpec;
-      if (selectionSpec && selectionCtrl !== 'olli-nav') {
-        spec = {
-          ...spec,
-          selection: selectionTest(olliSpec.data, selectionSpec)
-        }
+    if (olliSpec && olliSpec !== currentOlliSpec.current) {
+      currentOlliSpec.current = olliSpec;
+      if (((window as any)._olli as OlliGlobalState)?.instancesOnPage) {
+        ((window as any)._olli as OlliGlobalState).instancesOnPage = [];
       }
-      renderOlli(spec, '#olli-container', {
-        onFocus
+      const elem = olli(olliSpec, {
+        onFocus: (_, node) => {
+          onTextNavPred(node.fullPredicate);
+        },
+        onSelection: (predicate) => {
+          onTextFilterPred(predicate as any);
+        }
       });
+      document.querySelector('#olli-container').replaceChildren(elem);
     }
-  });
+  }, [olliSpec]);
+
+  useEffect(() => {
+    if (selectionCtrl === 'vl') {
+      if ('field' in selectionSpec.predicate || 'and' in selectionSpec.predicate) {
+        ((window as any)._olli as OlliGlobalState).instancesOnPage[0].setSelection(selectionSpec.predicate);
+      }
+    }
+  }, [selectionSpec, selectionCtrl])
+
+  if (!olliSpec) return null;
 
   return (
     <div id="olli-container">
     </div>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.olliSpec === nextProps.olliSpec;
+  return prevProps.olliSpec === nextProps.olliSpec && prevProps.selectionSpec === nextProps.selectionSpec;
 });
 
 export default UmweltOlli;

@@ -1,9 +1,8 @@
-import { OlliDataset, OlliVisSpec } from 'olli';
 import React, { MutableRefObject, useState, useRef, useCallback } from 'react';
 import { useEffect } from 'react';
 import { ElaboratedFieldDef, SelectionSpec, VlSpec } from './grammar';
-import { renderOlli, renderVegaLite } from './utils/render';
-import { selectionSpecToSelectionStore, selectionStoreToSelectionSpec, selectionTest } from './utils/selection';
+import { renderVegaLite } from './utils/render';
+import { selectionSpecToSelectionStore } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
 import { View, debounce } from 'vega';
 
@@ -60,7 +59,7 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
       // TODO: when we implement olli custom selection menu, we'll need to impl a way to go from selection to brush x/y coords
       // which will be better than stuffing the store in because you'll get the visual brush
     }
-  }, [selectionSpec, fields, view])
+  }, [selectionSpec, fields, view, vlSpec, selectionCtrl])
 
   return (
     <div id="vl-container" />

@@ -1,8 +1,7 @@
-import { OlliVisSpec, OlliConfigOptions, olli } from "olli";
-import { parse, View } from "vega";
-import { compile } from "vega-lite";
-import { VlSpec } from "../grammar/Types";
-import { editLinePointConditionalBehavior } from "./vega";
+import { parse, View } from 'vega';
+import { compile } from 'vega-lite';
+import { VlSpec } from '../grammar/Types';
+import { editLinePointConditionalBehavior } from './vega';
 
 export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
   let vgSpec = compile(vlSpec).spec;
@@ -17,33 +16,28 @@ export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
   //   "source": dataset,
   //   "transform": [{"type": "filter", "expr": "!length(data(\"external_state_store\")) || vlSelectionTest(\"external_state_store\", datum)"}]
   // })
-  vgSpec.signals = vgSpec.signals.map(signal => {
+  vgSpec.signals = vgSpec.signals.map((signal) => {
     if (signal.name === 'external_state_modify') {
       return {
-        "name": "external_state_modify",
-        "update": "false"
-      }
+        name: 'external_state_modify',
+        update: 'false',
+      };
     }
     return signal;
-  })
+  });
   if ((vlSpec.mark as any).type === 'line' && (vlSpec.mark as any).point) {
     vgSpec = editLinePointConditionalBehavior(vgSpec);
   }
   const runtime = parse(vgSpec);
   const view = new View(runtime, {
-    'renderer': 'canvas',
-    'container': domSelector,
-    hover: true
+    renderer: 'canvas',
+    container: domSelector,
+    hover: true,
   });
 
   view.runAsync();
 
   return view;
-}
-
-export function renderOlli(olliSpec: OlliVisSpec, domSelector: string, config?: OlliConfigOptions) {
-  const elem = olli(olliSpec, config);
-  document.querySelector(domSelector).replaceChildren(elem);
 }
 
 export function getOnFocus(vlSpec, selectionCallback: (field, value) => void) {
@@ -59,21 +53,17 @@ export function getOnFocus(vlSpec, selectionCallback: (field, value) => void) {
       let field;
       if (parentNodeType === 'xAxis') {
         field = (vlSpec.encoding.x as any)?.field;
-      }
-      else if (parentNodeType === 'yAxis') {
+      } else if (parentNodeType === 'yAxis') {
         field = (vlSpec.encoding.y as any)?.field;
-      }
-      else if (parentNodeType === 'legend') {
+      } else if (parentNodeType === 'legend') {
         // TODO this is bad (hardcoded channels for legend) and olli should
         // do something about this (pass the field with the AccessibilityTreeNode)
-        field = (vlSpec.encoding.color as any)?.field ||
-        (vlSpec.encoding.color as any)?.condition?.field ||
-        (vlSpec.encoding.shape as any)?.field;
+        field = (vlSpec.encoding.color as any)?.field || (vlSpec.encoding.color as any)?.condition?.field || (vlSpec.encoding.shape as any)?.field;
       }
       if (field) {
         selectionCallback(field, filterValue);
       }
     }
-  }
+  };
   return onFocus;
 }

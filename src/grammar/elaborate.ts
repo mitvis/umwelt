@@ -1,8 +1,7 @@
 import { OlliDataset } from 'olli';
-import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, TextNode, ElaboratedTextNode, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding, ElaboratedEncodingFieldDef, EncodingFieldDef, ElaboratedAudioTraversalFieldDef } from './Types';
-import { typeInference, recommendVisuals, recommendAudio, recommendTextStructure } from '../utils/inference';
+import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding, ElaboratedEncodingFieldDef, EncodingFieldDef, ElaboratedAudioTraversalFieldDef } from './Types';
+import { typeInference, recommendVisuals } from '../utils/inference';
 import { getFieldDef } from '../utils/data';
-import { textSpecToFullPredicateSpec } from '../utils/text';
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): ElaboratedFieldDef[] {
   return fields.map((fieldDef) => {
@@ -128,38 +127,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     }
   }
 
-  function elaborateText(textSpec: TextNode | TextNode[] | boolean, fields: ElaboratedFieldDef[], data: OlliDataset, visual?: ElaboratedVisualSpec | false): ElaboratedTextNode | false {
-    function ensureFirstLayerHasOneRoot(textPredTree: ElaboratedTextNode[]): ElaboratedTextNode {
-      if (textPredTree.length === 1) {
-        return textPredTree[0];
-      }
-      return {
-        id: '0',
-        fullPredicate: { and: [] },
-        children: textPredTree,
-      };
-    }
-
-    if (textSpec === false) {
-      return false;
-    } else if (textSpec === true || textSpec === undefined) {
-      const inferredTextSpec = recommendTextStructure(fields, visual);
-      console.log('inferred text spec', inferredTextSpec);
-      return ensureFirstLayerHasOneRoot(textSpecToFullPredicateSpec(inferredTextSpec, fields, data, { and: [] }, '0'));
-    } else {
-      let normalizedTextSpec: TextNode[];
-      if (!Array.isArray(textSpec)) {
-        normalizedTextSpec = [textSpec];
-      } else {
-        normalizedTextSpec = textSpec;
-      }
-      return ensureFirstLayerHasOneRoot(textSpecToFullPredicateSpec(normalizedTextSpec, fields, data, { and: [] }, '0'));
-    }
-  }
-
   const visual = elaborateVisual(spec.visual, fields);
-
-  const text = elaborateText(spec.text, fields, data, visual);
 
   return {
     data: { values: data },
@@ -167,6 +135,6 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     fields,
     visual,
     audio: elaborateAudio(spec.audio, fields),
-    text,
+    text: spec.text || true,
   };
 }

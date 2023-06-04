@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import * as cql from 'compassql';
 import { OlliDataset } from 'olli';
-import { UmweltSpec, VisualSpec, ElaboratedVisualSpec, AudioSpec, ElaboratedAudioSpec, MeasureType, ElaboratedFieldDef, TextNode } from '../grammar/Types';
+import { UmweltSpec, VisualSpec, ElaboratedVisualSpec, AudioSpec, ElaboratedAudioSpec, MeasureType } from '../grammar/Types';
 
 export function recommendVisuals(spec: UmweltSpec, data: OlliDataset, partial?: Partial<VisualSpec>): ElaboratedVisualSpec {
   const encodings = [];
@@ -62,66 +62,6 @@ export function recommendAudio(spec: UmweltSpec, data: OlliDataset, partial?: Pa
   // should check for a quantitative field to assign to an encoding
   // should use information from the visual spec, if present, to inform inferences
   return partial as any;
-}
-
-export function recommendTextStructure(fields: ElaboratedFieldDef[], visual?: ElaboratedVisualSpec | false): TextNode[] {
-  if (visual) {
-    // infer structure from visual encoding
-    if ((visual.mark === 'line' && visual.encoding.color) || visual.encoding.detail) {
-      // multi series line
-      const enc = visual.encoding.color || visual.encoding.detail;
-      const f = enc.field;
-      const specWithoutF: ElaboratedVisualSpec = structuredClone(visual);
-      specWithoutF.encoding = Object.fromEntries(
-        Object.entries(specWithoutF.encoding).filter(([_, encDef]) => {
-          return encDef.field !== f;
-        })
-      ) as any;
-      return [
-        {
-          groupby: { ...enc, aggregate: undefined }, // TODO shrug
-          children: recommendTextStructure(fields, specWithoutF),
-        },
-      ];
-    }
-    if (visual.encoding.facet || visual.encoding.row || visual.encoding.column) {
-      // faceted
-      const enc = visual.encoding.facet || visual.encoding.row || visual.encoding.column;
-      const f = enc.field;
-      const specWithoutF: ElaboratedVisualSpec = structuredClone(visual);
-      specWithoutF.encoding = Object.fromEntries(
-        Object.entries(specWithoutF.encoding).filter(([_, encDef]) => {
-          return encDef.field !== f;
-        })
-      ) as any;
-      return [
-        {
-          groupby: { ...enc, aggregate: undefined }, // TODO shrug
-          children: recommendTextStructure(fields, specWithoutF),
-        },
-      ];
-    }
-    // everything on the same level
-    return Object.entries(visual.encoding)
-      .map(([_, encDef]) => {
-        return {
-          groupby: { ...encDef, aggregate: undefined }, // TODO shrug
-          children: [],
-        };
-      })
-      .filter((node, index, array) => {
-        return index === array.findIndex((n) => n.groupby.field === node.groupby.field);
-      });
-  } else {
-    // infer structure from mtypes? can we do that?
-    // for now, just give it flat
-    // return fields.map((f) => {
-    //   return {
-    //     groupby: f,
-    //   };
-    // });
-    return []; // TODO
-  }
 }
 
 export function typeInference(data: OlliDataset, field: string): MeasureType {
