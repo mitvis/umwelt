@@ -64,8 +64,13 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uvSpec }: RenderProps) => {
   // }), [vlSpec, uvSpec]);
 
   const onTextNavPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
-    setSelectionCtrl('olli-nav');
-    setSelectionSpec({predicate});
+    if (selectionCtrl.current === 'olli-int') {
+      setSelectionCtrl('olli-nav');
+    }
+    else {
+      setSelectionCtrl('olli-nav');
+      setSelectionSpec({predicate});
+    }
   }, [setSelectionCtrl, setSelectionSpec]);
 
   const onTextFilterPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
