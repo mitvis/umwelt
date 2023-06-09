@@ -2,7 +2,7 @@ import React, { MutableRefObject, useState, useRef, useCallback } from 'react';
 import { useEffect } from 'react';
 import { ElaboratedFieldDef, SelectionSpec, VlSpec } from './grammar';
 import { renderVegaLite } from './utils/render';
-import { selectionSpecToSelectionStore } from './utils/selection';
+import { predicateToSelectionStore } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
 import { View, debounce } from 'vega';
 
@@ -50,7 +50,7 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
 
   useEffect(() => {
     if (vlSpec && view && selectionSpec && (selectionCtrl.current === 'audio' || selectionCtrl.current === 'olli-nav')) {
-      const store = selectionSpecToSelectionStore(selectionSpec);
+      const store = predicateToSelectionStore(selectionSpec.predicate);
       view.data('external_state_store', store).run();
     }
     if (vlSpec && view && selectionSpec && (selectionCtrl.current === 'spec')) {
