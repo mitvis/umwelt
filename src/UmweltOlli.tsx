@@ -1,5 +1,5 @@
 import { OlliGlobalState, OlliSpec, olli } from 'olli';
-import React, { useRef } from 'react';
+import React, { MutableRefObject, useRef } from 'react';
 import { useEffect } from 'react';
 import { SelectionSpec } from './grammar';
 import { SelectionCtrl } from './Umwelt';
@@ -10,7 +10,7 @@ interface UmweltOlliProps {
   olliSpec: OlliSpec,
   onTextNavPred: (predicate: LogicalAnd<FieldPredicate>) => void;
   onTextFilterPred: (predicate: LogicalAnd<FieldPredicate>) => void;
-  selectionCtrl: SelectionCtrl
+  selectionCtrl: MutableRefObject<SelectionCtrl>,
   selectionSpec: SelectionSpec
 }
 
@@ -29,7 +29,9 @@ const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, sele
           onTextNavPred(node.fullPredicate);
         },
         onSelection: (predicate) => {
-          onTextFilterPred(predicate as any);
+          if (selectionCtrl.current !== 'vl') {
+            onTextFilterPred(predicate as any);
+          }
         }
       });
       document.querySelector('#olli-container').replaceChildren(elem);
@@ -37,7 +39,7 @@ const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, sele
   }, [olliSpec]);
 
   useEffect(() => {
-    if (selectionCtrl === 'vl') {
+    if (selectionCtrl.current === 'vl') {
       if ('field' in selectionSpec.predicate || 'and' in selectionSpec.predicate) {
         ((window as any)._olli as OlliGlobalState).instancesOnPage[0].setSelection(selectionSpec.predicate);
       }

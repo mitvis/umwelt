@@ -1,12 +1,19 @@
 import { ElaboratedUmweltSpec, UmweltSpec, VlSpec } from './Types';
 import { VegaLiteAdapter } from 'olli-adapters';
-import { OlliSpec } from 'olli';
+import { OlliSpec, OlliDataset } from 'olli';
 import { elaborate, elaborateFields } from './elaborate';
 import { getData, getFieldDef, typeCoerceData } from '../utils/data';
 
 export * from './Types';
 
-export async function umwelt(spec: UmweltSpec) {
+export interface UmweltOutput {
+  data: OlliDataset;
+  vlSpec: VlSpec;
+  olliSpec: OlliSpec;
+  uwSpec: ElaboratedUmweltSpec;
+}
+
+export async function umwelt(spec: UmweltSpec): Promise<UmweltOutput> {
   const data = await getData(spec);
 
   const elaboratedFields = elaborateFields(spec.fields, data);
@@ -23,7 +30,7 @@ export async function umwelt(spec: UmweltSpec) {
     data: niceData,
     vlSpec,
     olliSpec,
-    uvSpec: elaboratedSpec,
+    uwSpec: elaboratedSpec,
   };
 }
 
