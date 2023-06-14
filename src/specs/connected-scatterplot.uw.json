@@ -41,5 +41,16 @@
       },
       "traversal": "year"
     }
+  ],
+  "text": [
+    {
+      "groupby": "year"
+    },
+    {
+      "groupby": "miles"
+    },
+    {
+      "groupby": "gas"
+    }
   ]
 }

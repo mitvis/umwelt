@@ -10,25 +10,24 @@ import UmveltEditor from './UmweltEditor';
 function App() {
 
   const specs = {
-    "temperature.uw.json": require('./specs/temperature.uw.json'),
-    "scatterplot.uw.json": require('./specs/scatterplot.uw.json'),
-    "multi-series-line.uw.json": require('./specs/multi-series-line.uw.json'),
-    "line-sequence-d-s.uw.json": require('./specs/line-sequence-d-s.uw.json'),
-    "line-sequence-s-d.uw.json": require('./specs/line-sequence-s-d.uw.json'),
-    "line-interaction-agg.uw.json": require('./specs/line-interaction-agg.uw.json'),
+    "temperature-annotations.uw.json": require('./specs/temperature-annotations.uw.json'),
+    "scatterplot-binned.uw.json": require('./specs/scatterplot-binned.uw.json'),
+    "multi-line-date-symbol.uw.json": require('./specs/multi-line-date-symbol.uw.json'),
+    "multi-line-symbol-date.uw.json": require('./specs/multi-line-symbol-date.uw.json'),
+    "multi-line-mean-price.uw.json": require('./specs/multi-line-mean-price.uw.json'),
     "barley-facet.uw.json": require('./specs/barley-facet.uw.json'),
     "barley-facet-agg.uw.json": require('./specs/barley-facet-agg.uw.json'),
     "connected-scatterplot.uw.json": require('./specs/connected-scatterplot.uw.json'),
   }
 
   const [selectedSpec, setSelectedSpec] =
-    // useState("multi-series-line.uw.json");
+    useState("multi-series-line.uw.json");
     // useState("connected-scatterplot.uw.json");
-    // useState("scatterplot.uw.json");
-    // useState("temperature.uw.json");
+    // useState("scatterplot-binned.uw.json");
+    // useState("temperature-annotations.uw.json");
     // useState("line-sequence-d-s.uw.json");
-    useState("line-sequence-s-d.uw.json");
-    // useState("line-interaction-agg.uw.json");
+    // useState("line-sequence-s-d.uw.json");
+    // useState("multi-line-mean-price.uw.json");
     // useState("barley-facet.uw.json");
     // useState("barley-facet-agg.uw.json");
 

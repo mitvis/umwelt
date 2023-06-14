@@ -2,9 +2,9 @@ import { Type } from 'vega-lite/src/type';
 import { UrlData, InlineData } from 'vega-lite/src/data';
 import { Mark } from 'vega-lite/src/mark';
 import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
-import { ElaboratedOlliNode, OlliDataset, OlliNode, OlliValue } from 'olli';
+import { OlliDataset, OlliNode, OlliValue } from 'olli';
 import { FieldPredicate } from 'vega-lite/src/predicate';
-import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
+import { LogicalComposition } from 'vega-lite/src/logical';
 import { Spec } from 'vega';
 import { TopLevelUnitSpec } from 'vega-lite/src/spec/unit';
 

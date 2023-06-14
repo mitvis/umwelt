@@ -32,18 +32,18 @@
   },
   "text": [
     {
-      "field": "city",
+      "groupby": "city",
       "children": [
         {
-          "field": "month"
+          "groupby": "month"
         },
         {
-          "field": "mean_temp"
+          "groupby": "mean_temp"
         }
       ]
     },
     {
-      "children": [
+      "annotations": [
         {
           "predicate": {
             "field": "mean_temp",
@@ -54,6 +54,26 @@
           "predicate": {
             "field": "mean_temp",
             "gt": 32
+          }
+        },
+        {
+          "predicate": {
+            "and": [
+              {
+                "field": "mean_temp",
+                "equal": 79.03225806451613
+              },
+              {
+                "field": "city",
+                "equal": "Phoenix"
+              }
+            ]
+          }
+        },
+        {
+          "predicate": {
+            "field": "month",
+            "range": [1, 4]
           }
         }
       ]

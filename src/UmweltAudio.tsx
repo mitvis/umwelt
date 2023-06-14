@@ -308,7 +308,7 @@ function UmweltAudio({audio, fields, data, onAudioState, selectionSpec, selectio
                   }
                 })
             }
-            <div>{Object.entries(audioSpec.encoding).map(([field, encFieldDef]) => { return (<div>{`${field}: ${encFieldDef.field}`}</div>) })}</div>
+            <div>{Object.entries(audioSpec.encoding).map(([field, encFieldDef]) => { return (<div>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}</div>
           </div>)
         })
       }
