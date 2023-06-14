@@ -29,9 +29,7 @@ const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, sele
           onTextNavPred(node.fullPredicate);
         },
         onSelection: (predicate) => {
-          if (selectionCtrl.current !== 'vl') {
-            onTextFilterPred(predicate as any);
-          }
+          onTextFilterPred(predicate as any);
         }
       });
       document.querySelector('#olli-container').replaceChildren(elem);
