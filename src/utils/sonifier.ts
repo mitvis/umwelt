@@ -11,15 +11,14 @@ export type SonifierNote = {
   volume?: number;
   ramp?: boolean; // should we ramp from this note
   indices: AudioSpecIndices; // corresponding spec state
-}
+};
 
 class UmweltSonifier {
-
   private vol: Tone.Volume;
   private noise: Tone.NoiseSynth;
   private synth: Tone.Synth;
 
-  pauseDuration = .25; // in seconds
+  pauseDuration = 0.25; // in seconds
   private rampDuration = 0.001; // in seconds
   defaultSequenceDuration = 5;
 
@@ -28,7 +27,7 @@ class UmweltSonifier {
 
   constructor() {
     if ((window as any)._uw_sonifier) {
-      throw new Error("Tried to create more than one instance of Sonifier");
+      throw new Error('Tried to create more than one instance of Sonifier');
     }
     (window as any)._uw_sonifier = this;
     this.init();
@@ -42,13 +41,12 @@ class UmweltSonifier {
 
     this.noise = new Tone.NoiseSynth({
       envelope: {
-        sustain: 0.1
+        sustain: 0.1,
       },
-      volume: -15
+      volume: -15,
     }).connect(this.vol);
 
     Tone.Transport.on('pause', () => {
-      console.log('pause');
       this.releaseSynth();
     });
   }
@@ -65,11 +63,10 @@ class UmweltSonifier {
     Tone.Transport.stop();
     Tone.Transport.position = 0;
     Tone.Transport.cancel();
-    console.log('reset transport')
   }
 
   midiToFreq(midi): Tone.Unit.Frequency {
-    return Tone.Frequency(Math.round(midi), "midi").toFrequency();
+    return Tone.Frequency(Math.round(midi), 'midi').toFrequency();
   }
 
   noteToState(note: SonifierNote) {
@@ -82,8 +79,7 @@ class UmweltSonifier {
           const freq = this.midiToFreq(note.pitch);
           this.synth.frequency.rampTo(freq, this.rampDuration);
         }
-      }
-      else {
+      } else {
         if (note.volume) {
           this.synth.volume.value = note.volume;
         }
@@ -104,21 +100,18 @@ class UmweltSonifier {
         if (!withRelease) {
           this.synth.triggerAttack(freq);
           this.synthIsPlaying = true;
-        }
-        else {
+        } else {
           this.synth.triggerAttackRelease(freq, note.duration);
         }
       }
-    }
-    else if (note.noise) {
+    } else if (note.noise) {
       this.synth.triggerRelease();
       this.synthIsPlaying = false;
       if (!this.noiseIsPlaying) {
         if (!withRelease) {
           this.noise.triggerAttack();
           this.noiseIsPlaying = true;
-        }
-        else {
+        } else {
           this.noise.triggerAttackRelease(note.duration);
         }
       }
@@ -132,16 +125,11 @@ class UmweltSonifier {
     this.noiseIsPlaying = false;
   }
 
-  playCurrent() {
+  playCurrent() {}
 
-  }
-
-  stopSequence() {
-
-  }
+  stopSequence() {}
 
   // play(note: SonifiedNote) {
-
 
   //   if (note?.pauseBefore) {
   //     this.synth.triggerRelease();
@@ -202,7 +190,6 @@ class UmweltSonifier {
 
   //   })
   // }
-
 }
 
 if (!(window as any)._uw_sonifier) {

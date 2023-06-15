@@ -65,7 +65,6 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
   // }), [vlSpec, uvSpec]);
 
   const onTextNavPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
-    console.log('navPred');
     if (selectionCtrlResolve.current) {
       setSelectionCtrl(selectionCtrlResolve.current);
       setSelectionCtrlResolve(null);
@@ -77,7 +76,6 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
   }, [setSelectionCtrl, setSelectionSpec]);
 
   const onTextFilterPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
-    console.log('filterPred');
     setSelectionCtrl('olli-int');
     setSelectionSpec({predicate});
     setSelectionCtrlResolve('olli-int');
@@ -106,9 +104,20 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
         uwSpec.audio ? <UmweltAudio audio={uwSpec.audio} fields={uwSpec.fields} data={data} onAudioState={onAudioState} selectionSpec={selectionSpec} selectionCtrl={selectionCtrl.current}></UmweltAudio> : null
       }
       <br/>
-      <br/>
+      <div>
+        <div style={{fontWeight: 'bold'}}>Audio key bindings</div>
+        <ul>
+          <li>p — play sonification</li>
+        </ul>
+        <div style={{fontWeight: 'bold'}}>Olli key bindings</div>
+        <ul>
+          <li>t — open table view</li>
+          <li>f — open filter view</li>
+        </ul>
+      </div>
+      <div style={{fontWeight: 'bold'}}>Debug info</div>
       <pre>
-        {selectionCtrl.current}
+        selectionCtrl: {selectionCtrl.current}
       </pre>
       <pre>
         {JSON.stringify(selectionSpec, null, 2)}

@@ -40,7 +40,6 @@ const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, sele
   useEffect(() => {
     if (selectionCtrl === 'vl') {
       if ('field' in selectionSpec.predicate || 'and' in selectionSpec.predicate) {
-        console.log('setting selection from vl');
         setSelectionCtrlResolve('vl');
         ((window as any)._olli as OlliGlobalState).instancesOnPage[0].setSelection(selectionSpec.predicate);
       }

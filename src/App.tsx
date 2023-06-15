@@ -88,15 +88,18 @@ function App() {
           <img src='/umwelt/umwelt.svg' />
         </div>
       </div>
-      <div className='column'>
+      {/* <div className='column'>
         <div style={{fontWeight: 'bold'}}>Elaborated spec (defaults filled in)</div>
         <div>Read only</div><br/>
         <textarea
           value={printableUwspec()}
           readOnly={true}
         />
-      </div>
+      </div> */}
       <div className='column' style={{flex: 2}}>
+        <div>
+          <div style={{fontWeight: 'bold'}}>Umwelt</div>
+        </div>
         <Debounce ms={250}>
           {
             props ? (
