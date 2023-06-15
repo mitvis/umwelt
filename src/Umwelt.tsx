@@ -25,6 +25,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
   const [selectionSpec, _setSelectionSpec] = useState<SelectionSpec>(uwSpec.selection);
   const setSelectionSpec = useCallback(debounce(50, _setSelectionSpec), []);
   const [_selectionCtrl, setSelectionCtrl, selectionCtrl] = useState<SelectionCtrl>('spec');
+  const [_selectionCtrlResolve, setSelectionCtrlResolve, selectionCtrlResolve] = useState<SelectionCtrl>();
   const container = useRef();
 
   /* ********************** initialize state *********************** */
@@ -64,8 +65,10 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
   // }), [vlSpec, uvSpec]);
 
   const onTextNavPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
-    if (selectionCtrl.current === 'olli-int') {
-      setSelectionCtrl('olli-nav');
+    console.log('navPred');
+    if (selectionCtrlResolve.current) {
+      setSelectionCtrl(selectionCtrlResolve.current);
+      setSelectionCtrlResolve(null);
     }
     else {
       setSelectionCtrl('olli-nav');
@@ -74,8 +77,10 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
   }, [setSelectionCtrl, setSelectionSpec]);
 
   const onTextFilterPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
+    console.log('filterPred');
     setSelectionCtrl('olli-int');
     setSelectionSpec({predicate});
+    setSelectionCtrlResolve('olli-int');
   }, [setSelectionCtrl, setSelectionSpec]);
 
 
@@ -93,7 +98,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
       <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} selectionSpec={selectionSpec} fields={uwSpec.fields} ></UmweltVegaLite>
       <br/>
 
-      <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl} selectionSpec={selectionSpec} onTextNavPred={onTextNavPred} onTextFilterPred={onTextFilterPred}></UmweltOlli>
+      <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} setSelectionCtrlResolve={setSelectionCtrlResolve} selectionSpec={selectionSpec} onTextNavPred={onTextNavPred} onTextFilterPred={onTextFilterPred}></UmweltOlli>
 
       <br/>
 
