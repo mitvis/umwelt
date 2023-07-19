@@ -1,1273 +1,535 @@
 {
-  "$ref": "#/definitions/UmweltSpec",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
-    "CsvDataFormat": {
-      "additionalProperties": false,
-      "properties": {
-        "parse": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Parse"
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "AudioAggregateOp": {
+            "enum": [
+                "count",
+                "mean"
+            ],
+            "type": "string"
+        },
+        "AudioEncoding": {
+            "properties": {
+                "duration": {
+                    "$ref": "#/definitions/AudioEncodingFieldDef"
+                },
+                "pitch": {
+                    "$ref": "#/definitions/AudioEncodingFieldDef"
+                },
+                "volume": {
+                    "$ref": "#/definitions/AudioEncodingFieldDef"
+                }
             },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "If set to `null`, disable type inference based on the spec and only use type inference based on the data. Alternatively, a parsing directive object can be provided for explicit data types. Each property of the object corresponds to a field name, and the value to the desired data type (one of `\"number\"`, `\"boolean\"`, `\"date\"`, or null (do not parse the field)). For example, `\"parse\": {\"modified_on\": \"date\"}` parses the `modified_on` field in each input record a Date value.\n\nFor `\"date\"`, we parse data based using JavaScript's [`Date.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). For Specific date formats can be provided (e.g., `{foo: \"date:'%m%d%Y'\"}`), using the [d3-time-format syntax](https://github.com/d3/d3-time-format#locale_format). UTC date format parsing is supported similarly (e.g., `{foo: \"utc:'%m%d%Y'\"}`). See more about [UTC time](https://vega.github.io/vega-lite/docs/timeunit.html#utc)"
+            "type": "object"
         },
-        "type": {
-          "description": "Type of input data: `\"json\"`, `\"csv\"`, `\"tsv\"`, `\"dsv\"`.\n\n__Default value:__  The default format type is determined by the extension of the file URL. If no extension is detected, `\"json\"` will be used by default.",
-          "enum": [
-            "csv",
-            "tsv"
-          ],
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "DataFormat": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/CsvDataFormat"
-        },
-        {
-          "$ref": "#/definitions/DsvDataFormat"
-        },
-        {
-          "$ref": "#/definitions/JsonDataFormat"
-        },
-        {
-          "$ref": "#/definitions/TopoDataFormat"
-        }
-      ]
-    },
-    "DateTime": {
-      "additionalProperties": false,
-      "description": "Object for defining datetime in Vega-Lite Filter. If both month and quarter are provided, month has higher precedence. `day` cannot be combined with other date. We accept string for month and day names.",
-      "properties": {
-        "date": {
-          "description": "Integer value representing the date (day of the month) from 1-31.",
-          "maximum": 31,
-          "minimum": 1,
-          "type": "number"
-        },
-        "day": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Day"
+        "AudioEncodingFieldDef": {
+            "properties": {
+                "aggregate": {
+                    "$ref": "#/definitions/NonArgAggregateOp"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "scale": {
+                    "properties": {
+                        "domain": {
+                            "items": {},
+                            "type": "array"
+                        },
+                        "nice": {
+                            "type": [
+                                "number",
+                                "boolean"
+                            ]
+                        },
+                        "zero": {
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
+                "timeUnit": {
+                    "type": "string"
+                }
             },
-            {
-              "type": "string"
-            }
-          ],
-          "description": "Value representing the day of a week. This can be one of: (1) integer value -- `1` represents Monday; (2) case-insensitive day name (e.g., `\"Monday\"`); (3) case-insensitive, 3-character short day name (e.g., `\"Mon\"`).\n\n**Warning:** A DateTime definition object with `day`** should not be combined with `year`, `quarter`, `month`, or `date`."
+            "type": "object"
         },
-        "hours": {
-          "description": "Integer value representing the hour of a day from 0-23.",
-          "maximum": 24,
-          "minimum": 0,
-          "type": "number"
-        },
-        "milliseconds": {
-          "description": "Integer value representing the millisecond segment of time.",
-          "maximum": 1000,
-          "minimum": 0,
-          "type": "number"
-        },
-        "minutes": {
-          "description": "Integer value representing the minute segment of time from 0-59.",
-          "maximum": 60,
-          "minimum": 0,
-          "type": "number"
-        },
-        "month": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Month"
+        "AudioEncodingSelectionTarget": {
+            "properties": {
+                "aggregate": {
+                    "$ref": "#/definitions/AudioAggregateOp"
+                },
+                "property": {
+                    "$ref": "#/definitions/AudioPropName"
+                }
             },
-            {
-              "type": "string"
-            }
-          ],
-          "description": "One of: (1) integer value representing the month from `1`-`12`. `1` represents January; (2) case-insensitive month name (e.g., `\"January\"`); (3) case-insensitive, 3-character short month name (e.g., `\"Jan\"`)."
+            "type": "object"
         },
-        "quarter": {
-          "description": "Integer value representing the quarter of the year (from 1-4).",
-          "maximum": 4,
-          "minimum": 1,
-          "type": "number"
+        "AudioPropName": {
+            "enum": [
+                "duration",
+                "pitch",
+                "volume"
+            ],
+            "type": "string"
         },
-        "seconds": {
-          "description": "Integer value representing the second segment (0-59) of a time value",
-          "maximum": 60,
-          "minimum": 0,
-          "type": "number"
-        },
-        "utc": {
-          "description": "A boolean flag indicating if date time is in utc time. If false, the date time is in local time",
-          "type": "boolean"
-        },
-        "year": {
-          "description": "Integer value representing the year.",
-          "type": "number"
-        }
-      },
-      "type": "object"
-    },
-    "Day": {
-      "maximum": 7,
-      "minimum": 1,
-      "type": "number"
-    },
-    "DsvDataFormat": {
-      "additionalProperties": false,
-      "properties": {
-        "delimiter": {
-          "description": "The delimiter between records. The delimiter must be a single character (i.e., a single 16-bit code unit); so, ASCII delimiters are fine, but emoji delimiters are not.",
-          "maxLength": 1,
-          "minLength": 1,
-          "type": "string"
-        },
-        "parse": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Parse"
+        "AudioSpec": {
+            "properties": {
+                "units": {
+                    "items": {
+                        "properties": {
+                            "encoding": {
+                                "$ref": "#/definitions/AudioEncoding"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "traversal": {
+                                "items": {
+                                    "$ref": "#/definitions/AudioTraversalFieldDef"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                }
             },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "If set to `null`, disable type inference based on the spec and only use type inference based on the data. Alternatively, a parsing directive object can be provided for explicit data types. Each property of the object corresponds to a field name, and the value to the desired data type (one of `\"number\"`, `\"boolean\"`, `\"date\"`, or null (do not parse the field)). For example, `\"parse\": {\"modified_on\": \"date\"}` parses the `modified_on` field in each input record a Date value.\n\nFor `\"date\"`, we parse data based using JavaScript's [`Date.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). For Specific date formats can be provided (e.g., `{foo: \"date:'%m%d%Y'\"}`), using the [d3-time-format syntax](https://github.com/d3/d3-time-format#locale_format). UTC date format parsing is supported similarly (e.g., `{foo: \"utc:'%m%d%Y'\"}`). See more about [UTC time](https://vega.github.io/vega-lite/docs/timeunit.html#utc)"
+            "type": "object"
         },
-        "type": {
-          "const": "dsv",
-          "description": "Type of input data: `\"json\"`, `\"csv\"`, `\"tsv\"`, `\"dsv\"`.\n\n__Default value:__  The default format type is determined by the extension of the file URL. If no extension is detected, `\"json\"` will be used by default.",
-          "type": "string"
-        }
-      },
-      "required": [
-        "delimiter"
-      ],
-      "type": "object"
-    },
-    "EncodingFieldDef": {
-      "additionalProperties": false,
-      "properties": {
-        "aggregate": {
-          "$ref": "#/definitions/NonArgAggregateOp"
-        },
-        "bin": {
-          "type": "boolean"
-        },
-        "field": {
-          "type": "string"
-        },
-        "scale": {
-          "additionalProperties": false,
-          "properties": {
-            "domain": {
-              "items": {
-                "$ref": "#/definitions/OlliValue"
-              },
-              "type": "array"
+        "AudioTraversalFieldDef": {
+            "properties": {
+                "bin": {
+                    "type": "boolean"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "mode": {
+                    "enum": [
+                        "interactive",
+                        "sequential"
+                    ],
+                    "type": "string"
+                },
+                "scale": {
+                    "properties": {
+                        "domain": {
+                            "items": {},
+                            "type": "array"
+                        },
+                        "nice": {
+                            "type": [
+                                "number",
+                                "boolean"
+                            ]
+                        },
+                        "zero": {
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
+                "timeUnit": {
+                    "type": "string"
+                }
             },
-            "nice": {
-              "type": [
-                "boolean",
-                "number"
-              ]
+            "type": "object"
+        },
+        "ConcatViewComposition": {
+            "properties": {
+                "concat": {
+                    "items": {
+                        "$ref": "#/definitions/ViewComposition"
+                    },
+                    "type": "array"
+                },
+                "direction": {
+                    "enum": [
+                        "horizontal",
+                        "vertical"
+                    ],
+                    "type": "string"
+                }
             },
-            "range": {
-              "anyOf": [
+            "type": "object"
+        },
+        "DomainSelectionTarget": {
+            "properties": {
+                "rescale": {
+                    "type": "boolean"
+                },
+                "target": {
+                    "enum": [
+                        "text-domain",
+                        "visual-domain"
+                    ],
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "EncodingPropName": {
+            "enum": [
+                "color",
+                "column",
+                "detail",
+                "duration",
+                "facet",
+                "opacity",
+                "pitch",
+                "row",
+                "shape",
+                "volume",
+                "x",
+                "y"
+            ],
+            "type": "string"
+        },
+        "EncodingRef": {
+            "properties": {
+                "property": {
+                    "$ref": "#/definitions/EncodingPropName"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "FieldDef": {
+            "properties": {
+                "aggregate": {
+                    "$ref": "#/definitions/NonArgAggregateOp"
+                },
+                "bin": {
+                    "type": "boolean"
+                },
+                "encodings": {
+                    "items": {
+                        "$ref": "#/definitions/EncodingRef"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "scale": {
+                    "properties": {
+                        "domain": {
+                            "items": {},
+                            "type": "array"
+                        },
+                        "nice": {
+                            "type": [
+                                "number",
+                                "boolean"
+                            ]
+                        },
+                        "zero": {
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
+                "timeUnit": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/MeasureType"
+                }
+            },
+            "type": "object"
+        },
+        "FieldRef": {
+            "properties": {
+                "field": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "LayerViewComposition": {
+            "properties": {
+                "layer": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "Mark": {
+            "description": "All types of primitive marks.",
+            "enum": [
+                "arc",
+                "area",
+                "bar",
+                "circle",
+                "geoshape",
+                "image",
+                "line",
+                "point",
+                "rect",
+                "rule",
+                "square",
+                "text",
+                "tick",
+                "trail"
+            ],
+            "type": "string"
+        },
+        "MeasureType": {
+            "enum": [
+                "nominal",
+                "ordinal",
+                "quantitative",
+                "temporal"
+            ],
+            "type": "string"
+        },
+        "NonArgAggregateOp": {
+            "enum": [
+                "average",
+                "ci0",
+                "ci1",
+                "count",
+                "distinct",
+                "max",
+                "mean",
+                "median",
+                "min",
+                "missing",
+                "product",
+                "q1",
+                "q3",
+                "stderr",
+                "stdev",
+                "stdevp",
+                "sum",
+                "valid",
+                "values",
+                "variance",
+                "variancep"
+            ],
+            "type": "string"
+        },
+        "SelectionSpec": {
+            "properties": {
+                "targets": {
+                    "items": {
+                        "$ref": "#/definitions/SelectionTarget"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "SelectionTarget": {
+            "anyOf": [
                 {
-                  "items": {
-                    "type": "number"
-                  },
-                  "type": "array"
+                    "$ref": "#/definitions/AudioEncodingSelectionTarget"
                 },
                 {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+                    "$ref": "#/definitions/VisualEncodingSelectionTarget"
+                },
+                {
+                    "$ref": "#/definitions/DomainSelectionTarget"
                 }
-              ]
-            },
-            "zero": {
-              "type": "boolean"
-            }
-          },
-          "type": "object"
-        }
-      },
-      "required": [
-        "field"
-      ],
-      "type": "object"
-    },
-    "ExprRef": {
-      "additionalProperties": false,
-      "properties": {
-        "expr": {
-          "description": "Vega expression (which can refer to Vega-Lite parameters).",
-          "type": "string"
-        }
-      },
-      "required": [
-        "expr"
-      ],
-      "type": "object"
-    },
-    "FieldDef": {
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string"
+            ]
         },
-        "scale": {
-          "additionalProperties": false,
-          "properties": {
-            "domain": {
-              "items": {
-                "$ref": "#/definitions/OlliValue"
-              },
-              "type": "array"
+        "ValueRef": {
+            "properties": {
+                "value": {}
             },
-            "nice": {
-              "type": [
-                "boolean",
-                "number"
-              ]
-            },
-            "zero": {
-              "type": "boolean"
-            }
-          },
-          "type": "object"
-        },
-        "type": {
-          "$ref": "#/definitions/MeasureType"
-        }
-      },
-      "required": [
-        "name"
-      ],
-      "type": "object"
-    },
-    "FieldEqualPredicate": {
-      "additionalProperties": false,
-      "properties": {
-        "equal": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "boolean"
-            },
-            {
-              "$ref": "#/definitions/DateTime"
-            },
-            {
-              "$ref": "#/definitions/ExprRef"
-            }
-          ],
-          "description": "The value that the field should be equal to."
-        },
-        "field": {
-          "$ref": "#/definitions/FieldName",
-          "description": "Field to be tested."
-        },
-        "timeUnit": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TimeUnit"
-            },
-            {
-              "$ref": "#/definitions/TimeUnitParams"
-            }
-          ],
-          "description": "Time unit for the field to be tested."
-        }
-      },
-      "required": [
-        "equal",
-        "field"
-      ],
-      "type": "object"
-    },
-    "FieldGTEPredicate": {
-      "additionalProperties": false,
-      "properties": {
-        "field": {
-          "$ref": "#/definitions/FieldName",
-          "description": "Field to be tested."
-        },
-        "gte": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "$ref": "#/definitions/DateTime"
-            },
-            {
-              "$ref": "#/definitions/ExprRef"
-            }
-          ],
-          "description": "The value that the field should be greater than or equals to."
-        },
-        "timeUnit": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TimeUnit"
-            },
-            {
-              "$ref": "#/definitions/TimeUnitParams"
-            }
-          ],
-          "description": "Time unit for the field to be tested."
-        }
-      },
-      "required": [
-        "field",
-        "gte"
-      ],
-      "type": "object"
-    },
-    "FieldGTPredicate": {
-      "additionalProperties": false,
-      "properties": {
-        "field": {
-          "$ref": "#/definitions/FieldName",
-          "description": "Field to be tested."
-        },
-        "gt": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "$ref": "#/definitions/DateTime"
-            },
-            {
-              "$ref": "#/definitions/ExprRef"
-            }
-          ],
-          "description": "The value that the field should be greater than."
-        },
-        "timeUnit": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TimeUnit"
-            },
-            {
-              "$ref": "#/definitions/TimeUnitParams"
-            }
-          ],
-          "description": "Time unit for the field to be tested."
-        }
-      },
-      "required": [
-        "field",
-        "gt"
-      ],
-      "type": "object"
-    },
-    "FieldLTEPredicate": {
-      "additionalProperties": false,
-      "properties": {
-        "field": {
-          "$ref": "#/definitions/FieldName",
-          "description": "Field to be tested."
-        },
-        "lte": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "$ref": "#/definitions/DateTime"
-            },
-            {
-              "$ref": "#/definitions/ExprRef"
-            }
-          ],
-          "description": "The value that the field should be less than or equals to."
-        },
-        "timeUnit": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TimeUnit"
-            },
-            {
-              "$ref": "#/definitions/TimeUnitParams"
-            }
-          ],
-          "description": "Time unit for the field to be tested."
-        }
-      },
-      "required": [
-        "field",
-        "lte"
-      ],
-      "type": "object"
-    },
-    "FieldLTPredicate": {
-      "additionalProperties": false,
-      "properties": {
-        "field": {
-          "$ref": "#/definitions/FieldName",
-          "description": "Field to be tested."
-        },
-        "lt": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "$ref": "#/definitions/DateTime"
-            },
-            {
-              "$ref": "#/definitions/ExprRef"
-            }
-          ],
-          "description": "The value that the field should be less than."
-        },
-        "timeUnit": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TimeUnit"
-            },
-            {
-              "$ref": "#/definitions/TimeUnitParams"
-            }
-          ],
-          "description": "Time unit for the field to be tested."
-        }
-      },
-      "required": [
-        "field",
-        "lt"
-      ],
-      "type": "object"
-    },
-    "FieldName": {
-      "type": "string"
-    },
-    "FieldOneOfPredicate": {
-      "additionalProperties": false,
-      "properties": {
-        "field": {
-          "$ref": "#/definitions/FieldName",
-          "description": "Field to be tested."
-        },
-        "oneOf": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "items": {
-                "type": "number"
-              },
-              "type": "array"
-            },
-            {
-              "items": {
-                "type": "boolean"
-              },
-              "type": "array"
-            },
-            {
-              "items": {
-                "$ref": "#/definitions/DateTime"
-              },
-              "type": "array"
-            }
-          ],
-          "description": "A set of values that the `field`'s value should be a member of, for a data item included in the filtered data."
-        },
-        "timeUnit": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TimeUnit"
-            },
-            {
-              "$ref": "#/definitions/TimeUnitParams"
-            }
-          ],
-          "description": "Time unit for the field to be tested."
-        }
-      },
-      "required": [
-        "field",
-        "oneOf"
-      ],
-      "type": "object"
-    },
-    "FieldPredicate": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/FieldEqualPredicate"
-        },
-        {
-          "$ref": "#/definitions/FieldLTPredicate"
-        },
-        {
-          "$ref": "#/definitions/FieldGTPredicate"
-        },
-        {
-          "$ref": "#/definitions/FieldLTEPredicate"
-        },
-        {
-          "$ref": "#/definitions/FieldGTEPredicate"
-        },
-        {
-          "$ref": "#/definitions/FieldRangePredicate"
-        },
-        {
-          "$ref": "#/definitions/FieldOneOfPredicate"
-        },
-        {
-          "$ref": "#/definitions/FieldValidPredicate"
-        }
-      ]
-    },
-    "FieldRangePredicate": {
-      "additionalProperties": false,
-      "properties": {
-        "field": {
-          "$ref": "#/definitions/FieldName",
-          "description": "Field to be tested."
-        },
-        "range": {
-          "anyOf": [
-            {
-              "items": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "$ref": "#/definitions/DateTime"
-                  },
-                  {
-                    "type": "null"
-                  },
-                  {
-                    "$ref": "#/definitions/ExprRef"
-                  }
-                ]
-              },
-              "type": "array"
-            },
-            {
-              "$ref": "#/definitions/ExprRef"
-            }
-          ],
-          "description": "An array of inclusive minimum and maximum values for a field value of a data item to be included in the filtered data.",
-          "maxItems": 2,
-          "minItems": 2
-        },
-        "timeUnit": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TimeUnit"
-            },
-            {
-              "$ref": "#/definitions/TimeUnitParams"
-            }
-          ],
-          "description": "Time unit for the field to be tested."
-        }
-      },
-      "required": [
-        "field",
-        "range"
-      ],
-      "type": "object"
-    },
-    "FieldValidPredicate": {
-      "additionalProperties": false,
-      "properties": {
-        "field": {
-          "$ref": "#/definitions/FieldName",
-          "description": "Field to be tested."
-        },
-        "timeUnit": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TimeUnit"
-            },
-            {
-              "$ref": "#/definitions/TimeUnitParams"
-            }
-          ],
-          "description": "Time unit for the field to be tested."
-        },
-        "valid": {
-          "description": "If set to true the field's value has to be valid, meaning both not `null` and not [`NaN`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN).",
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "field",
-        "valid"
-      ],
-      "type": "object"
-    },
-    "InlineData": {
-      "additionalProperties": false,
-      "properties": {
-        "format": {
-          "$ref": "#/definitions/DataFormat",
-          "description": "An object that specifies the format for parsing the data."
-        },
-        "name": {
-          "description": "Provide a placeholder name and bind data at runtime.",
-          "type": "string"
-        },
-        "values": {
-          "$ref": "#/definitions/InlineDataset",
-          "description": "The full data set, included inline. This can be an array of objects or primitive values, an object, or a string. Arrays of primitive values are ingested as objects with a `data` property. Strings are parsed according to the specified format type."
-        }
-      },
-      "required": [
-        "values"
-      ],
-      "type": "object"
-    },
-    "InlineDataset": {
-      "anyOf": [
-        {
-          "items": {
-            "type": "number"
-          },
-          "type": "array"
-        },
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        {
-          "items": {
-            "type": "boolean"
-          },
-          "type": "array"
-        },
-        {
-          "items": {
             "type": "object"
-          },
-          "type": "array"
         },
-        {
-          "type": "string"
+        "ViewComposition": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/LayerViewComposition"
+                },
+                {
+                    "$ref": "#/definitions/ConcatViewComposition"
+                },
+                {
+                    "type": "string"
+                }
+            ]
         },
-        {
-          "type": "object"
-        }
-      ]
-    },
-    "JsonDataFormat": {
-      "additionalProperties": false,
-      "properties": {
-        "parse": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Parse"
+        "VisualEncoding": {
+            "properties": {
+                "color": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                },
+                "column": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                },
+                "detail": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                },
+                "facet": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                },
+                "opacity": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                },
+                "row": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                },
+                "shape": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                },
+                "x": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                },
+                "y": {
+                    "$ref": "#/definitions/VisualEncodingFieldDef"
+                }
             },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "If set to `null`, disable type inference based on the spec and only use type inference based on the data. Alternatively, a parsing directive object can be provided for explicit data types. Each property of the object corresponds to a field name, and the value to the desired data type (one of `\"number\"`, `\"boolean\"`, `\"date\"`, or null (do not parse the field)). For example, `\"parse\": {\"modified_on\": \"date\"}` parses the `modified_on` field in each input record a Date value.\n\nFor `\"date\"`, we parse data based using JavaScript's [`Date.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). For Specific date formats can be provided (e.g., `{foo: \"date:'%m%d%Y'\"}`), using the [d3-time-format syntax](https://github.com/d3/d3-time-format#locale_format). UTC date format parsing is supported similarly (e.g., `{foo: \"utc:'%m%d%Y'\"}`). See more about [UTC time](https://vega.github.io/vega-lite/docs/timeunit.html#utc)"
+            "type": "object"
         },
-        "property": {
-          "description": "The JSON property containing the desired data. This parameter can be used when the loaded JSON file may have surrounding structure or meta-data. For example `\"property\": \"values.features\"` is equivalent to retrieving `json.values.features` from the loaded JSON object.",
-          "type": "string"
-        },
-        "type": {
-          "const": "json",
-          "description": "Type of input data: `\"json\"`, `\"csv\"`, `\"tsv\"`, `\"dsv\"`.\n\n__Default value:__  The default format type is determined by the extension of the file URL. If no extension is detected, `\"json\"` will be used by default.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "LocalMultiTimeUnit": {
-      "enum": [
-        "yearquarter",
-        "yearquartermonth",
-        "yearmonth",
-        "yearmonthdate",
-        "yearmonthdatehours",
-        "yearmonthdatehoursminutes",
-        "yearmonthdatehoursminutesseconds",
-        "yearweek",
-        "yearweekday",
-        "yearweekdayhours",
-        "yearweekdayhoursminutes",
-        "yearweekdayhoursminutesseconds",
-        "yeardayofyear",
-        "quartermonth",
-        "monthdate",
-        "monthdatehours",
-        "monthdatehoursminutes",
-        "monthdatehoursminutesseconds",
-        "weekday",
-        "weeksdayhours",
-        "weekdayhoursminutes",
-        "weekdayhoursminutesseconds",
-        "dayhours",
-        "dayhoursminutes",
-        "dayhoursminutesseconds",
-        "hoursminutes",
-        "hoursminutesseconds",
-        "minutesseconds",
-        "secondsmilliseconds"
-      ],
-      "type": "string"
-    },
-    "LocalSingleTimeUnit": {
-      "enum": [
-        "year",
-        "quarter",
-        "month",
-        "week",
-        "day",
-        "dayofyear",
-        "date",
-        "hours",
-        "minutes",
-        "seconds",
-        "milliseconds"
-      ],
-      "type": "string"
-    },
-    "LogicalAnd<FieldPredicate>": {
-      "additionalProperties": false,
-      "properties": {
-        "and": {
-          "items": {
-            "$ref": "#/definitions/LogicalComposition%3CFieldPredicate%3E"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "and"
-      ],
-      "type": "object"
-    },
-    "LogicalComposition<FieldPredicate>": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/LogicalNot%3CFieldPredicate%3E"
-        },
-        {
-          "$ref": "#/definitions/LogicalAnd%3CFieldPredicate%3E"
-        },
-        {
-          "$ref": "#/definitions/LogicalOr%3CFieldPredicate%3E"
-        },
-        {
-          "$ref": "#/definitions/FieldPredicate"
-        }
-      ]
-    },
-    "LogicalNot<FieldPredicate>": {
-      "additionalProperties": false,
-      "properties": {
-        "not": {
-          "$ref": "#/definitions/LogicalComposition%3CFieldPredicate%3E"
-        }
-      },
-      "required": [
-        "not"
-      ],
-      "type": "object"
-    },
-    "LogicalOr<FieldPredicate>": {
-      "additionalProperties": false,
-      "properties": {
-        "or": {
-          "items": {
-            "$ref": "#/definitions/LogicalComposition%3CFieldPredicate%3E"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "or"
-      ],
-      "type": "object"
-    },
-    "Mark": {
-      "description": "All types of primitive marks.",
-      "enum": [
-        "arc",
-        "area",
-        "bar",
-        "image",
-        "line",
-        "point",
-        "rect",
-        "rule",
-        "text",
-        "tick",
-        "trail",
-        "circle",
-        "square",
-        "geoshape"
-      ],
-      "type": "string"
-    },
-    "MeasureType": {
-      "description": "Data type based on level of measurement",
-      "enum": [
-        "quantitative",
-        "ordinal",
-        "temporal",
-        "nominal"
-      ],
-      "type": "string"
-    },
-    "Month": {
-      "maximum": 12,
-      "minimum": 1,
-      "type": "number"
-    },
-    "MultiTimeUnit": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/LocalMultiTimeUnit"
-        },
-        {
-          "$ref": "#/definitions/UtcMultiTimeUnit"
-        }
-      ]
-    },
-    "NonArgAggregateOp": {
-      "enum": [
-        "average",
-        "count",
-        "distinct",
-        "max",
-        "mean",
-        "median",
-        "min",
-        "missing",
-        "product",
-        "q1",
-        "q3",
-        "ci0",
-        "ci1",
-        "stderr",
-        "stdev",
-        "stdevp",
-        "sum",
-        "valid",
-        "values",
-        "variance",
-        "variancep"
-      ],
-      "type": "string"
-    },
-    "OlliValue": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "number"
-        },
-        {
-          "format": "date-time",
-          "type": "string"
-        }
-      ]
-    },
-    "Parse": {
-      "additionalProperties": {
-        "$ref": "#/definitions/ParseValue"
-      },
-      "type": "object"
-    },
-    "ParseValue": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "string"
-        },
-        {
-          "const": "string",
-          "type": "string"
-        },
-        {
-          "const": "boolean",
-          "type": "string"
-        },
-        {
-          "const": "date",
-          "type": "string"
-        },
-        {
-          "const": "number",
-          "type": "string"
-        }
-      ]
-    },
-    "SelectionSpec": {
-      "additionalProperties": false,
-      "properties": {
-        "predicate": {
-          "$ref": "#/definitions/LogicalComposition%3CFieldPredicate%3E"
-        }
-      },
-      "required": [
-        "predicate"
-      ],
-      "type": "object"
-    },
-    "SingleTimeUnit": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/LocalSingleTimeUnit"
-        },
-        {
-          "$ref": "#/definitions/UtcSingleTimeUnit"
-        }
-      ]
-    },
-    "TextNode": {
-      "additionalProperties": false,
-      "properties": {
-        "children": {
-          "items": {
-            "$ref": "#/definitions/TextNode"
-          },
-          "type": "array"
-        },
-        "field": {
-          "type": "string"
-        },
-        "predicate": {
-          "$ref": "#/definitions/FieldPredicate"
-        }
-      },
-      "type": "object"
-    },
-    "TimeUnit": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/SingleTimeUnit"
-        },
-        {
-          "$ref": "#/definitions/MultiTimeUnit"
-        }
-      ]
-    },
-    "TimeUnitParams": {
-      "additionalProperties": false,
-      "properties": {
-        "maxbins": {
-          "description": "If no `unit` is specified, maxbins is used to infer time units.",
-          "type": "number"
-        },
-        "step": {
-          "description": "The number of steps between bins, in terms of the least significant unit provided.",
-          "type": "number"
-        },
-        "unit": {
-          "$ref": "#/definitions/TimeUnit",
-          "description": "Defines how date-time values should be binned."
-        },
-        "utc": {
-          "description": "True to use UTC timezone. Equivalent to using a `utc` prefixed `TimeUnit`.",
-          "type": "boolean"
-        }
-      },
-      "type": "object"
-    },
-    "TopoDataFormat": {
-      "additionalProperties": false,
-      "properties": {
-        "feature": {
-          "description": "The name of the TopoJSON object set to convert to a GeoJSON feature collection. For example, in a map of the world, there may be an object set named `\"countries\"`. Using the feature property, we can extract this set and generate a GeoJSON feature object for each country.",
-          "type": "string"
-        },
-        "mesh": {
-          "description": "The name of the TopoJSON object set to convert to mesh. Similar to the `feature` option, `mesh` extracts a named TopoJSON object set.  Unlike the `feature` option, the corresponding geo data is returned as a single, unified mesh instance, not as individual GeoJSON features. Extracting a mesh is useful for more efficiently drawing borders or other geographic elements that you do not need to associate with specific regions such as individual countries, states or counties.",
-          "type": "string"
-        },
-        "parse": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Parse"
+        "VisualEncodingFieldDef": {
+            "properties": {
+                "aggregate": {
+                    "$ref": "#/definitions/NonArgAggregateOp"
+                },
+                "bin": {
+                    "type": "boolean"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "scale": {
+                    "properties": {
+                        "domain": {
+                            "items": {},
+                            "type": "array"
+                        },
+                        "nice": {
+                            "type": [
+                                "number",
+                                "boolean"
+                            ]
+                        },
+                        "zero": {
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
+                "timeUnit": {
+                    "type": "string"
+                }
             },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "If set to `null`, disable type inference based on the spec and only use type inference based on the data. Alternatively, a parsing directive object can be provided for explicit data types. Each property of the object corresponds to a field name, and the value to the desired data type (one of `\"number\"`, `\"boolean\"`, `\"date\"`, or null (do not parse the field)). For example, `\"parse\": {\"modified_on\": \"date\"}` parses the `modified_on` field in each input record a Date value.\n\nFor `\"date\"`, we parse data based using JavaScript's [`Date.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse). For Specific date formats can be provided (e.g., `{foo: \"date:'%m%d%Y'\"}`), using the [d3-time-format syntax](https://github.com/d3/d3-time-format#locale_format). UTC date format parsing is supported similarly (e.g., `{foo: \"utc:'%m%d%Y'\"}`). See more about [UTC time](https://vega.github.io/vega-lite/docs/timeunit.html#utc)"
+            "type": "object"
         },
-        "type": {
-          "const": "topojson",
-          "description": "Type of input data: `\"json\"`, `\"csv\"`, `\"tsv\"`, `\"dsv\"`.\n\n__Default value:__  The default format type is determined by the extension of the file URL. If no extension is detected, `\"json\"` will be used by default.",
-          "type": "string"
+        "VisualEncodingSelectionTarget": {
+            "properties": {
+                "property": {
+                    "$ref": "#/definitions/VisualPropName"
+                },
+                "selected": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/FieldRef"
+                        },
+                        {
+                            "$ref": "#/definitions/ValueRef"
+                        }
+                    ]
+                },
+                "unselected": {
+                    "$ref": "#/definitions/ValueRef"
+                }
+            },
+            "type": "object"
+        },
+        "VisualPropName": {
+            "enum": [
+                "color",
+                "column",
+                "detail",
+                "facet",
+                "opacity",
+                "row",
+                "shape",
+                "x",
+                "y"
+            ],
+            "type": "string"
+        },
+        "VisualSpec": {
+            "properties": {
+                "composition": {
+                    "$ref": "#/definitions/ViewComposition"
+                },
+                "units": {
+                    "items": {
+                        "properties": {
+                            "encoding": {
+                                "$ref": "#/definitions/VisualEncoding"
+                            },
+                            "mark": {
+                                "$ref": "#/definitions/Mark"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
         }
-      },
-      "type": "object"
     },
-    "UmweltSpec": {
-      "additionalProperties": false,
-      "properties": {
+    "properties": {
+        "audio": {
+            "anyOf": [
+                {
+                    "items": {
+                        "$ref": "#/definitions/AudioSpec"
+                    },
+                    "type": "array"
+                },
+                {
+                    "const": false,
+                    "type": "boolean"
+                }
+            ]
+        },
         "data": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/UrlData"
+            "properties": {
+                "values": {}
             },
-            {
-              "$ref": "#/definitions/InlineData"
-            }
-          ]
+            "type": "object"
         },
         "fields": {
-          "items": {
-            "$ref": "#/definitions/FieldDef"
-          },
-          "type": "array"
+            "items": {
+                "$ref": "#/definitions/FieldDef"
+            },
+            "type": "array"
         },
         "selection": {
-          "$ref": "#/definitions/SelectionSpec"
+            "$ref": "#/definitions/SelectionSpec"
         },
-        "text": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/TextNode"
-            },
-            {
-              "items": {
-                "$ref": "#/definitions/TextNode"
-              },
-              "type": "array"
-            },
-            {
-              "type": "boolean"
-            }
-          ]
-        },
+        "text": {},
         "visual": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/VisualSpec"
-            },
-            {
-              "type": "boolean"
-            }
-          ]
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/VisualSpec"
+                },
+                {
+                    "const": false,
+                    "type": "boolean"
+                }
+            ]
         }
-      },
-      "required": [
-        "data",
-        "fields"
-      ],
-      "type": "object"
     },
-    "UrlData": {
-      "additionalProperties": false,
-      "properties": {
-        "format": {
-          "$ref": "#/definitions/DataFormat",
-          "description": "An object that specifies the format for parsing the data."
-        },
-        "name": {
-          "description": "Provide a placeholder name and bind data at runtime.",
-          "type": "string"
-        },
-        "url": {
-          "description": "An URL from which to load the data set. Use the `format.type` property to ensure the loaded data is correctly parsed.",
-          "type": "string"
-        }
-      },
-      "required": [
-        "url"
-      ],
-      "type": "object"
-    },
-    "UtcMultiTimeUnit": {
-      "enum": [
-        "utcyearquarter",
-        "utcyearquartermonth",
-        "utcyearmonth",
-        "utcyearmonthdate",
-        "utcyearmonthdatehours",
-        "utcyearmonthdatehoursminutes",
-        "utcyearmonthdatehoursminutesseconds",
-        "utcyearweek",
-        "utcyearweekday",
-        "utcyearweekdayhours",
-        "utcyearweekdayhoursminutes",
-        "utcyearweekdayhoursminutesseconds",
-        "utcyeardayofyear",
-        "utcquartermonth",
-        "utcmonthdate",
-        "utcmonthdatehours",
-        "utcmonthdatehoursminutes",
-        "utcmonthdatehoursminutesseconds",
-        "utcweekday",
-        "utcweeksdayhours",
-        "utcweekdayhoursminutes",
-        "utcweekdayhoursminutesseconds",
-        "utcdayhours",
-        "utcdayhoursminutes",
-        "utcdayhoursminutesseconds",
-        "utchoursminutes",
-        "utchoursminutesseconds",
-        "utcminutesseconds",
-        "utcsecondsmilliseconds"
-      ],
-      "type": "string"
-    },
-    "UtcSingleTimeUnit": {
-      "enum": [
-        "utcyear",
-        "utcquarter",
-        "utcmonth",
-        "utcweek",
-        "utcday",
-        "utcdayofyear",
-        "utcdate",
-        "utchours",
-        "utcminutes",
-        "utcseconds",
-        "utcmilliseconds"
-      ],
-      "type": "string"
-    },
-    "VisualEncoding": {
-      "additionalProperties": false,
-      "properties": {
-        "color": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/EncodingFieldDef"
-            }
-          ]
-        },
-        "column": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/EncodingFieldDef"
-            }
-          ]
-        },
-        "detail": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/EncodingFieldDef"
-            }
-          ]
-        },
-        "facet": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/EncodingFieldDef"
-            }
-          ]
-        },
-        "row": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/EncodingFieldDef"
-            }
-          ]
-        },
-        "shape": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/EncodingFieldDef"
-            }
-          ]
-        },
-        "x": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/EncodingFieldDef"
-            }
-          ]
-        },
-        "y": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/definitions/EncodingFieldDef"
-            }
-          ]
-        }
-      },
-      "type": "object"
-    },
-    "VisualSpec": {
-      "additionalProperties": false,
-      "properties": {
-        "encoding": {
-          "$ref": "#/definitions/VisualEncoding"
-        },
-        "mark": {
-          "$ref": "#/definitions/Mark"
-        }
-      },
-      "type": "object"
-    }
-  }
+    "type": "object"
 }
+
