@@ -1,0 +1,69 @@
+{
+  "data": {"url": "/data/stocks.csv"},
+  "transform": [{"filter": "datum.symbol==='GOOG'"}],
+  "fields": [
+    {
+      "name": "date",
+      "type": "temporal",
+      "timeUnit": "year"
+    },
+    {
+      "name": "price",
+      "type": "quantitative"
+    }
+  ],
+  "visual": [
+    {
+      "mark": "point",
+      "encoding": {
+        "x": {
+          "field": "date"
+        },
+        "y": {
+          "field": "price"
+        }
+      }
+    },
+    {
+      "mark": "line",
+      "encoding": {
+        "x": {
+          "field": "date"
+        },
+        "y": {
+          "field": "price",
+          "aggregate": "mean"
+        }
+      }
+    }
+  ],
+  "audio": [
+    {
+      "encoding": {
+        "pitch": {
+          "field": "price"
+        }
+      },
+      "traversal": [{
+        "field": "date",
+        "mode": "interactive"
+      },
+      {
+        "field": "price",
+        "mode": "sequential"
+      }]
+    },
+    {
+      "encoding": {
+        "pitch": {
+          "field": "price",
+          "aggregate": "mean"
+        }
+      },
+      "traversal": [{
+        "field": "date",
+        "mode": "interactive"
+      }]
+    }
+  ]
+}
