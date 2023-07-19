@@ -15,6 +15,7 @@
   "visual": {
     "units": [
       {
+        "name": "unit_1",
         "mark": "point",
         "encoding": {
           "x": {
@@ -26,6 +27,7 @@
         }
       },
       {
+        "name": "unit_2",
         "mark": "line",
         "encoding": {
           "x": {
