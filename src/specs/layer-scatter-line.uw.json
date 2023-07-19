@@ -12,58 +12,65 @@
       "type": "quantitative"
     }
   ],
-  "visual": [
-    {
-      "mark": "point",
-      "encoding": {
-        "x": {
-          "field": "date"
-        },
-        "y": {
-          "field": "price"
+  "visual": {
+    "units": [
+      {
+        "mark": "point",
+        "encoding": {
+          "x": {
+            "field": "date"
+          },
+          "y": {
+            "field": "price"
+          }
         }
-      }
-    },
-    {
-      "mark": "line",
-      "encoding": {
-        "x": {
-          "field": "date"
-        },
-        "y": {
-          "field": "price",
-          "aggregate": "mean"
-        }
-      }
-    }
-  ],
-  "audio": [
-    {
-      "encoding": {
-        "pitch": {
-          "field": "price"
-        }
-      },
-      "traversal": [{
-        "field": "date",
-        "mode": "interactive"
       },
       {
-        "field": "price",
-        "mode": "sequential"
-      }]
-    },
-    {
-      "encoding": {
-        "pitch": {
-          "field": "price",
-          "aggregate": "mean"
+        "mark": "line",
+        "encoding": {
+          "x": {
+            "field": "date"
+          },
+          "y": {
+            "field": "price",
+            "aggregate": "mean"
+          }
         }
-      },
-      "traversal": [{
-        "field": "date",
-        "mode": "interactive"
-      }]
+      }
+    ],
+    "composition": {
+      "layer": ["unit_1", "unit_2"]
     }
-  ]
+  },
+  "audio": {
+    "units": [
+      {
+        "encoding": {
+          "pitch": {
+            "field": "price"
+          }
+        },
+        "traversal": [{
+          "field": "date",
+          "mode": "interactive"
+        },
+        {
+          "field": "price",
+          "mode": "sequential"
+        }]
+      },
+      {
+        "encoding": {
+          "pitch": {
+            "field": "price",
+            "aggregate": "mean"
+          }
+        },
+        "traversal": [{
+          "field": "date",
+          "mode": "interactive"
+        }]
+      }
+    ]
+  }
 }
