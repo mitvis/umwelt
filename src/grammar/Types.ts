@@ -32,106 +32,114 @@ export type AudioAggregateOp = 'count' | 'mean'; // | "median" | "min" | "max"; 
 
 type FieldName = string;
 
-export interface ElaboratedFieldDef {
+export interface FieldRef {
+  field: FieldName;
+}
+
+export interface ValueRef {
+  value: OlliValue;
+}
+
+export interface EncodingRef {
+  property: EncodingPropName;
+  unit: string;
+}
+
+export interface FieldDefOptions {
+  scale?: ScaleDomain;
+  timeUnit?: string;
+  aggregate?: NonArgAggregateOp;
+  bin?: boolean;
+}
+
+export type FieldDef = {
   name: FieldName;
   type: MeasureType;
-  scale?: ScaleDomain;
-}
+  encodings: EncodingRef[];
+} & FieldDefOptions;
 
-export interface FieldDef {
-  name: FieldName;
-  type?: MeasureType;
-  scale?: ScaleDomain;
-}
-
-export interface EncodingFieldDef extends Omit<FieldDef, 'name'> {
+export type VisualEncodingFieldDef = {
   field: FieldName;
-  scale?: ScaleDomain & ScaleRange;
-  aggregate?: NonArgAggregateOp;
-  bin?: boolean;
-}
+} & FieldDefOptions;
 
-export interface ElaboratedEncodingFieldDef extends Omit<ElaboratedFieldDef, 'name'> {
-  field: FieldName;
-  scale: ScaleDomain & ScaleRange;
-  aggregate?: NonArgAggregateOp;
-  bin?: boolean;
-}
-
-export interface AudioEncodingFieldDef extends EncodingFieldDef {
+export type AudioEncodingFieldDef = {
   bin: undefined;
-}
+} & FieldDefOptions;
 
-export interface AudioTraversalFieldDef extends EncodingFieldDef {
+export type AudioTraversalFieldDef = {
+  mode: 'interactive' | 'sequential';
   aggregate: undefined;
-}
-
-export interface ElaboratedAudioEncodingFieldDef extends ElaboratedEncodingFieldDef {
-  bin: undefined;
-}
-
-export interface ElaboratedAudioTraversalFieldDef extends ElaboratedEncodingFieldDef {
-  aggregate: undefined;
-}
+} & FieldDefOptions;
 
 export type VisualEncoding = {
-  [prop in VisualPropName]?: FieldName | EncodingFieldDef;
+  [prop in VisualPropName]?: VisualEncodingFieldDef;
 };
 
-export type ElaboratedVisualEncoding = {
-  [prop in VisualPropName]?: ElaboratedEncodingFieldDef;
-};
-
-export type VisualSpec = {
-  mark?: Mark;
-  encoding?: VisualEncoding;
-};
-
-export type ElaboratedVisualSpec = {
+export type VisualUnitSpec = {
+  name: string;
   mark: Mark;
-  encoding: ElaboratedVisualEncoding;
+  encoding: VisualEncoding;
 };
 
 export type AudioEncoding = {
-  [prop in AudioPropName]?: FieldName | AudioEncodingFieldDef;
+  [prop in AudioPropName]?: AudioEncodingFieldDef;
 };
 
-export type ElaboratedAudioEncoding = {
-  [prop in AudioPropName]?: ElaboratedAudioEncodingFieldDef;
+export type AudioTraversal = AudioTraversalFieldDef[];
+
+export type AudioUnitSpec = {
+  name: string;
+  encoding: AudioEncoding;
+  traversal: AudioTraversal;
 };
 
-export type AudioTraversal = (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[];
-
-export type ElaboratedAudioTraversal = ElaboratedAudioTraversalFieldDef[];
-
-export type AudioSpec = {
-  encoding?: AudioEncoding;
-  traversal?: AudioTraversal | 'selection';
-};
-
-export type ElaboratedAudioSpec = {
-  encoding: ElaboratedAudioEncoding;
-  traversal: ElaboratedAudioTraversal | 'selection';
-};
-
-export interface SelectionSpec {
-  predicate: LogicalComposition<FieldPredicate>;
+export interface AudioEncodingSelectionTarget {
+  property: AudioPropName;
+  aggregate?: AudioAggregateOp;
 }
 
-export interface UmweltSpec {
-  data: UmweltDataSource;
-  selection?: SelectionSpec;
-  fields: FieldDef[];
-  visual?: VisualSpec | boolean;
-  audio?: AudioSpec | AudioSpec[] | boolean;
-  text?: OlliNode | OlliNode[] | boolean;
+export interface VisualEncodingSelectionTarget {
+  property: VisualPropName;
+  selected: FieldRef | ValueRef;
+  unselected: ValueRef;
+}
+
+export interface DomainSelectionTarget {
+  target: 'text-domain' | 'visual-domain';
+  rescale?: boolean;
+}
+
+export type SelectionTarget = AudioEncodingSelectionTarget | VisualEncodingSelectionTarget | DomainSelectionTarget;
+
+export interface SelectionSpec {
+  targets: SelectionTarget[];
+}
+
+export interface LayerViewComposition {
+  layer: string[];
+}
+
+export interface ConcatViewComposition {
+  concat: ViewComposition[];
+  direction: 'horizontal' | 'vertical';
+}
+
+export type ViewComposition = LayerViewComposition | ConcatViewComposition | string;
+
+export interface VisualSpec {
+  units: VisualUnitSpec[];
+  composition: ViewComposition;
+}
+
+export interface AudioSpec {
+  units: AudioUnitSpec[];
 }
 
 export interface ElaboratedUmweltSpec {
   data: ElaboratedUmweltDataSource;
   selection?: SelectionSpec;
-  fields: ElaboratedFieldDef[];
-  visual: ElaboratedVisualSpec | false;
-  audio: ElaboratedAudioSpec[] | false;
+  fields: FieldDef[];
+  visual: VisualSpec | false;
+  audio: AudioSpec[] | false;
   text: OlliNode | OlliNode[] | boolean;
 }

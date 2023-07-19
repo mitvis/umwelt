@@ -1,5 +1,5 @@
 import { OlliDataset } from 'olli';
-import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding, ElaboratedEncodingFieldDef, EncodingFieldDef, ElaboratedAudioTraversalFieldDef } from './Types';
+import { AudioSpec, AudioTraversal, ElaboratedAudioEncoding, ElaboratedAudioSpec, ElaboratedAudioTraversal, ElaboratedFieldDef, ElaboratedUmweltSpec, ElaboratedVisualSpec, FieldDef, UmweltSpec, VisualSpec, VisualEncoding, AudioEncoding, ElaboratedEncodingFieldDef, EncodingDef, ElaboratedAudioTraversalFieldDef } from './Types';
 import { typeInference, recommendVisuals } from '../utils/inference';
 import { getFieldDef } from '../utils/data';
 
@@ -51,7 +51,7 @@ export function elaborate(spec: UmweltSpec, data: OlliDataset, fields: Elaborate
     return copy;
   }
 
-  function elaborateFieldDef(v: string | EncodingFieldDef): ElaboratedEncodingFieldDef {
+  function elaborateFieldDef(v: string | EncodingDef): ElaboratedEncodingFieldDef {
     if (typeof v === 'string') {
       const { name, ...fieldDef } = getFieldDef(v, fields);
       return {

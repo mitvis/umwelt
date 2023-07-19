@@ -2,7 +2,7 @@ import { OlliDataset, OlliDatum } from 'olli';
 import { Bin } from 'vega-lite/src/bin';
 import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
 import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from 'vega-lite/src/predicate';
-import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, ElaboratedAudioTraversalFieldDef, ElaboratedAudioEncodingFieldDef, ElaboratedAudioEncoding, EncodingPropName } from '../grammar';
+import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingDef, AudioPropName, AudioTraversalDef, ElaboratedAudioTraversalFieldDef, ElaboratedAudioEncodingFieldDef, ElaboratedAudioEncoding, EncodingPropName } from '../grammar';
 import { SonifierNote } from './sonifier';
 import { AudioSpecDomains, AudioSpecIndices } from '../UmweltAudio';
 import { aggregate } from './aggregate';

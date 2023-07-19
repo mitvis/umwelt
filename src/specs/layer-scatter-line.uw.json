@@ -15,7 +15,7 @@
   "visual": {
     "units": [
       {
-        "name": "unit_1",
+        "name": "unit_0",
         "mark": "point",
         "encoding": {
           "x": {
@@ -27,7 +27,7 @@
         }
       },
       {
-        "name": "unit_2",
+        "name": "unit_1",
         "mark": "line",
         "encoding": {
           "x": {
@@ -41,7 +41,7 @@
       }
     ],
     "composition": {
-      "layer": ["unit_1", "unit_2"]
+      "layer": ["unit_0", "unit_1"]
     }
   },
   "audio": {
