@@ -45,31 +45,44 @@ export interface EncodingRef {
   unit: string;
 }
 
-export interface FieldDefOptions {
+export interface FieldDef {
+  name: FieldName;
+  type: MeasureType;
+  encodings: EncodingRef[];
+  //
   scale?: ScaleDomain;
   timeUnit?: string;
   aggregate?: NonArgAggregateOp;
   bin?: boolean;
 }
 
-export type FieldDef = {
-  name: FieldName;
-  type: MeasureType;
-  encodings: EncodingRef[];
-} & FieldDefOptions;
-
-export type VisualEncodingFieldDef = {
+export interface VisualEncodingFieldDef {
   field: FieldName;
-} & FieldDefOptions;
+  //
+  scale?: ScaleDomain;
+  timeUnit?: string;
+  aggregate?: NonArgAggregateOp;
+  bin?: boolean;
+}
 
-export type AudioEncodingFieldDef = {
-  bin: undefined;
-} & FieldDefOptions;
+export interface AudioEncodingFieldDef {
+  field: FieldName;
+  //
+  scale?: ScaleDomain;
+  timeUnit?: string;
+  aggregate?: NonArgAggregateOp;
+  // bin: undefined;
+}
 
-export type AudioTraversalFieldDef = {
+export interface AudioTraversalFieldDef {
+  field: FieldName;
   mode: 'interactive' | 'sequential';
-  aggregate: undefined;
-} & FieldDefOptions;
+  //
+  scale?: ScaleDomain;
+  timeUnit?: string;
+  bin?: boolean;
+  // aggregate: undefined;
+}
 
 export type VisualEncoding = {
   [prop in VisualPropName]?: VisualEncodingFieldDef;
@@ -135,7 +148,7 @@ export interface AudioSpec {
   units: AudioUnitSpec[];
 }
 
-export interface ElaboratedUmweltSpec {
+export interface UmweltSpec {
   data: ElaboratedUmweltDataSource;
   selection?: SelectionSpec;
   fields: FieldDef[];
