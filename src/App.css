@@ -98,6 +98,7 @@
 .def-property-col {
   display: inline-block;
   vertical-align: top;
+  width: 77%;
 }
 .def-property span {
   display: inline-block;

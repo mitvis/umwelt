@@ -5,13 +5,13 @@ import { OlliDataset } from 'olli';
 import { getData } from './utils/data';
 import { elaborateFields } from './grammar/elaborate';
 import { debounce } from 'vega';
+import { isEqual } from 'vega-lite';
 
 interface EditorProps {
   initialSpec: any
-  onSpec?: (spec: UmweltSpec) => void
 }
 
-const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
+const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
 
   const [dataUrl, setDataUrl] = useState<string>(initialSpec?.data?.url);
   const [data, setData] = useState<OlliDataset>();
@@ -30,19 +30,20 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const [fieldEncodingSelectValues, setFieldEncodingSelectValues] = useState<{[fieldName: string]: EncodingPropName}>({});
   const [fieldUnitSelectValues, setFieldUnitSelectValues] = useState<{[fieldName: string]: string}>({});
 
-  const onData = debounce(500, () => {
+  const onData = () => {
     const value = (document.querySelector('.input-data') as HTMLInputElement).value;
-    if (value) {
-      setDataUrl(value);
-    }
-  })
+    setDataUrl(value);
+  };
 
   useEffect(() => {
-    getData({url: dataUrl}).then(data => {
-      if (data && data.length) {
-        setData(data);
-      }
-    });
+    const filePathRegex = /^(\/[\w-.]+|(?:(?:https?|http):\/\/)[^\s/$.?#].[^\s]*\.(?:json|csv))$/;
+    if (dataUrl && filePathRegex.test(dataUrl)) {
+      getData({url: dataUrl}).then(data => {
+        if (data && data.length) {
+          setData(data);
+        }
+      });
+    }
   }, [dataUrl]);
 
   useEffect(() => {
@@ -173,18 +174,33 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     else if (audioPropNames.includes(propName as AudioPropName)) {
       const unit = audioUnitSpecs.length === 1 ? audioUnitSpecs[0] : audioUnitSpecs.find(spec => spec.name === unitName);
       const newEncoding = structuredClone(unit.encoding);
+      const newTraversal = structuredClone(unit.traversal).filter(traversal => traversal.field !== field.name);
+
       if (newEncoding[propName] && newEncoding[propName].field !== field.name) {
         removeEncodingReference(propName, newEncoding[propName].field);
       }
       newEncoding[propName] = {
         field: field.name,
       };
+
+      fields.forEach(fieldDef => {
+        if (!Object.values(newEncoding).find(def => def.field === fieldDef.name) && !newTraversal.find(traversal => traversal.field === fieldDef.name)) {
+          newTraversal.push({
+            field: fieldDef.name,
+            mode: 'interactive',
+          });
+        }
+      });
+
       const newAudioUnitSpecs = audioUnitSpecs.map(spec => {
         if (spec.name === unit.name) {
           spec.encoding = newEncoding;
+          spec.traversal = newTraversal;
         }
         return spec;
       });
+
+
       setAudioUnitSpecs(newAudioUnitSpecs);
     }
   }
@@ -216,6 +232,15 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       setAudioUnitSpecs(audioUnitSpecs.map(spec => {
         if (spec.name === unitSpec.name) {
           spec.encoding = newEncoding as AudioEncoding;
+          if (Object.keys(newEncoding).length === 0) {
+            spec.traversal = [];
+          }
+          else {
+            spec.traversal.push({
+              field: encodingFieldDef.field,
+              mode: 'interactive',
+            })
+          }
         }
         return spec;
       }));
@@ -595,7 +620,7 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                   {
                     audioUnitSpec.traversal.map((traversal) => {
                       return (
-                        <div>
+                        <div className='enc-def'>
                           <div className='unit-encoding-def'>
                             <span>{traversal.field}</span>
                             <button>Go to field</button>
@@ -604,7 +629,7 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           <div className='def-property'>
                             <div className='def-property-label'>Mode:</div>
                             <div className='def-property-col'>
-                              <select>
+                              <select value={traversal.mode}>
                                 {
                                   traversalModes.map(traversalMode => {
                                     return (
