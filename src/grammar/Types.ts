@@ -21,8 +21,8 @@ type ScaleRange = {
 }; //  | "reverse"
 
 export type MeasureType = Exclude<Type, 'geojson'>;
-type UmweltDataSource = UrlData | InlineData;
-type ElaboratedUmweltDataSource = { values: OlliDataset };
+export type UmweltDataSource = UrlData | InlineData;
+export type ElaboratedUmweltDataSource = { values: OlliDataset };
 
 export type VisualPropName = 'x' | 'y' | 'color' | 'opacity' | 'shape' | 'detail' | 'facet' | 'row' | 'column';
 export type AudioPropName = 'pitch' | 'duration' | 'volume';
@@ -42,13 +42,13 @@ export interface ValueRef {
 
 export interface EncodingRef {
   property: EncodingPropName;
-  unit: string;
+  unit?: string;
 }
 
 export interface FieldDef {
   name: FieldName;
-  type: MeasureType;
-  encodings: EncodingRef[];
+  type?: MeasureType;
+  encodings?: EncodingRef[];
   //
   scale?: ScaleDomain;
   timeUnit?: string;

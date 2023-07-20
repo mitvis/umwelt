@@ -222,10 +222,7 @@
                             "type": "array"
                         },
                         "nice": {
-                            "type": [
-                                "number",
-                                "boolean"
-                            ]
+                            "type": "boolean"
                         },
                         "zero": {
                             "type": "boolean"

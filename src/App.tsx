@@ -51,13 +51,13 @@ function App() {
     onTextValue(textValue);
   }, [textValue]);
 
-  useEffect(() => {
-    if (specValue) {
-      umwelt(specValue).then((props) => {
-        setProps(props);
-      });
-    }
-  }, [specValue]);
+  // useEffect(() => {
+  //   if (specValue) {
+  //     umwelt(specValue).then((props) => {
+  //       setProps(props);
+  //     });
+  //   }
+  // }, [specValue]);
 
   function printableUwspec() {
     if (props) {
@@ -88,15 +88,10 @@ function App() {
           <img src='/umwelt/umwelt.svg' />
         </div>
       </div>
-      {/* <div className='column'>
-        <div style={{fontWeight: 'bold'}}>Elaborated spec (defaults filled in)</div>
-        <div>Read only</div><br/>
-        <textarea
-          value={printableUwspec()}
-          readOnly={true}
-        />
-      </div> */}
-      <div className='column' style={{flex: 2}}>
+      <div className='column'>
+      <UmveltEditor initialSpec={specs[selectedSpec]}></UmveltEditor>
+      </div>
+      {/* <div className='column' style={{flex: 2}}>
         <div>
           <div style={{fontWeight: 'bold'}}>Umwelt</div>
         </div>
@@ -107,7 +102,7 @@ function App() {
             ) : null
           }
         </Debounce>
-      </div>
+      </div> */}
     </div>
   );
 }

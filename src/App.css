@@ -73,3 +73,43 @@
   overflow-y: scroll;
   border: 1px solid black;
 }
+
+.field-def {
+  margin-bottom: 2em;
+}
+
+.def-name {
+  margin-bottom: 0.6em;
+}
+
+.def-property {
+  margin-bottom: 0.3em;
+}
+
+.def-property-label {
+  display: inline-block;
+  width: 22%;
+}
+
+.def-property-col {
+  display: inline-block;
+  vertical-align: top;
+}
+.def-property span {
+  display: inline-block;
+  width: 55px;
+}
+
+.field-def-encoding-ref {
+  margin-bottom: 0.3em;
+}
+
+.def-property-add {
+  font-size: 0.8em;
+}
+
+.encoding-name {
+  margin-top: 0;
+  margin-bottom: 0.3em;
+  font-size: 0.8em;
+}
