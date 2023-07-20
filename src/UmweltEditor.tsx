@@ -84,8 +84,8 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   useEffect(() => {
     const nextEncodingSelect = structuredClone(fieldEncodingSelectValues);
-    const nextUnitSelect = structuredClone(fieldUnitSelectValues);
     fields.forEach(field => {
+      const validPropNames = propertyNames.filter(x => !((field.encodings?.map(e => e.property) || []).includes(x)));
       if (!nextEncodingSelect[field.name]) {
         if (field.type === 'quantitative' || field.type === 'temporal') {
           nextEncodingSelect[field.name] = 'x';
@@ -94,18 +94,27 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           nextEncodingSelect[field.name] = 'color';
         }
       }
-      if (!nextUnitSelect[field.name]) {
-        if (visualPropNames.includes(nextEncodingSelect[field.name] as any)) {
+      else if (!validPropNames.includes(nextEncodingSelect[field.name])) {
+        nextEncodingSelect[field.name] = validPropNames[0];
+      }
+    });
+    setFieldEncodingSelectValues(nextEncodingSelect);
+  }, [fields]);
+
+  useEffect(() => {
+    const nextUnitSelect = structuredClone(fieldUnitSelectValues);
+    fields.forEach(field => {
+      if (!nextUnitSelect[field.name] || (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any) !== visualUnitSpecs.map(unit => unit.name).includes(nextUnitSelect[field.name]))) {
+        if (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
           nextUnitSelect[field.name] = visualUnitSpecs[0].name;
         }
-        else if (audioPropNames.includes(nextEncodingSelect[field.name] as any)) {
+        else if (audioPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
           nextUnitSelect[field.name] = audioUnitSpecs[0].name;
         }
       }
     });
-    setFieldEncodingSelectValues(nextEncodingSelect);
     setFieldUnitSelectValues(nextUnitSelect);
-  }, [fields]);
+  }, [fieldEncodingSelectValues]);
 
   const onSelectEncoding = (fieldName) => {
     const domId = `${fieldName}-encoding-select`;
@@ -139,7 +148,7 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     setFields(newFields);
 
     if (visualPropNames.includes(propName as VisualPropName)) {
-      const unit = visualUnitSpecs.find(spec => spec.name === unitName);
+      const unit = visualUnitSpecs.length === 1 ? visualUnitSpecs[0] : visualUnitSpecs.find(spec => spec.name === unitName);
       const newEncoding = structuredClone(unit.encoding);
       if (newEncoding[propName] && newEncoding[propName].field !== field.name) {
         const newFields = fields.map(f => {
@@ -162,7 +171,7 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       setVisualUnitSpecs(newVisualUnitSpecs);
     }
     else if (audioPropNames.includes(propName as AudioPropName)) {
-      const unit = audioUnitSpecs.find(spec => spec.name === unitName);
+      const unit = audioUnitSpecs.length === 1 ? audioUnitSpecs[0] : audioUnitSpecs.find(spec => spec.name === unitName);
       const newEncoding = structuredClone(unit.encoding);
       if (newEncoding[propName] && newEncoding[propName].field !== field.name) {
         removeEncodingReference(propName, newEncoding[propName].field);
@@ -392,262 +401,264 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           );
         })
       }
-    <h3>Visual</h3>
-    {
-      visualUnitSpecs.map((visualUnitSpec) => {
-        return (
-          <div className='unit-spec'>
-            {
-              visualUnitSpecs.length > 1 ? (
-                <h5 className='def-name'>{visualUnitSpec.name}</h5>
-              ) : null
-            }
-            <div className='def-property'>
-              <div className='def-property-label'>Mark:</div>
-              <div className='def-property-col'>
-                <select value={visualUnitSpec.mark}>
+      <h3>Visual</h3>
+      {
+        visualUnitSpecs.map((visualUnitSpec) => {
+          return (
+            <div className='unit-spec'>
+              {
+                visualUnitSpecs.length > 1 ? (
+                  <h5 className='def-name'>{visualUnitSpec.name}</h5>
+                ) : null
+              }
+              <div className='def-property'>
+                <div className='def-property-label'>Mark:</div>
+                <div className='def-property-col'>
+                  <select value={visualUnitSpec.mark}>
+                    {
+                      markTypes.map(mark => {
+                        return (
+                          <option value={mark}>{mark}</option>
+                        )
+                      })
+                    }
+                  </select>
+                </div>
+              </div>
+              <div className='def-property'>
+                <div className='def-property-label'>Encodings:</div>
+                <div className='def-property-col'>
                   {
-                    markTypes.map(mark => {
+                    Object.entries(visualUnitSpec.encoding).map(([propName, propValue]) => {
                       return (
-                        <option value={mark}>{mark}</option>
+                        <div className='enc-def'>
+                          <h6 className='encoding-name'>{propName}</h6>
+                          <div className='unit-encoding-def'>
+                            <span>{propValue.field}</span>
+                            <button>Go to field</button>
+                            <button onClick={() => removeEncoding(visualUnitSpec, propName)}>Remove encoding</button>
+                          </div>
+                          <details>
+                            <summary>Additional options</summary>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Aggregate:</div>
+                              <div className='def-property-col'>
+                                <select value={propValue.aggregate}>
+                                  <option value=''>None</option>
+                                  {
+                                    aggregateOps.map(aggregateOp => {
+                                      return (
+                                        <option value={aggregateOp}>{aggregateOp}</option>
+                                      )
+                                    })
+                                  }
+                                </select>
+                              </div>
+                            </div>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Bin:</div>
+                              <div className='def-property-col'>
+                                <input type='checkbox' checked={propValue.bin} />
+                              </div>
+                            </div>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Time unit:</div>
+                              <div className='def-property-col'>
+                                <select value={propValue.timeUnit}>
+                                  <option value=''>None</option>
+                                  {
+                                    timeUnits.map(timeUnit => {
+                                      return (
+                                        <option value={timeUnit}>{timeUnit}</option>
+                                      )
+                                    })
+                                  }
+                                </select>
+                              </div>
+                            </div>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Scale:</div>
+                              <div className='def-property-col'>
+                                (todo: domain, zero, nice)
+                              </div>
+                            </div>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Sort:</div>
+                              <div className='def-property-col'>
+                                (todo: ascending, descending, by encoding, by field, etc)
+                              </div>
+                            </div>
+                          </details>
+                        </div>
                       )
                     })
                   }
-                </select>
-              </div>
-            </div>
-            <div className='def-property'>
-              <div className='def-property-label'>Encodings:</div>
-              <div className='def-property-col'>
-                {
-                  Object.entries(visualUnitSpec.encoding).map(([propName, propValue]) => {
-                    return (
-                      <div className='enc-def'>
-                        <h6 className='encoding-name'>{propName}</h6>
-                        <div className='unit-encoding-def'>
-                          <span>{propValue.field}</span>
-                          <button>Go to field</button>
-                          <button onClick={() => removeEncoding(visualUnitSpec, propName)}>Remove encoding</button>
-                        </div>
-                        <details>
-                          <summary>Additional options</summary>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Aggregate:</div>
-                            <div className='def-property-col'>
-                              <select value={propValue.aggregate}>
-                                <option value=''>None</option>
-                                {
-                                  aggregateOps.map(aggregateOp => {
-                                    return (
-                                      <option value={aggregateOp}>{aggregateOp}</option>
-                                    )
-                                  })
-                                }
-                              </select>
-                            </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Bin:</div>
-                            <div className='def-property-col'>
-                              <input type='checkbox' checked={propValue.bin} />
-                            </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Time unit:</div>
-                            <div className='def-property-col'>
-                              <select value={propValue.timeUnit}>
-                                <option value=''>None</option>
-                                {
-                                  timeUnits.map(timeUnit => {
-                                    return (
-                                      <option value={timeUnit}>{timeUnit}</option>
-                                    )
-                                  })
-                                }
-                              </select>
-                            </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Scale:</div>
-                            <div className='def-property-col'>
-                              (todo: domain, zero, nice)
-                            </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Sort:</div>
-                            <div className='def-property-col'>
-                              (todo: ascending, descending, by encoding, by field, etc)
-                            </div>
-                          </div>
-                        </details>
-                      </div>
-                    )
-                  })
-                }
-              </div>
-            </div>
-            {
-              visualUnitSpecs.length > 1 ? (
-                <div>
-                  <button onClick={() => removeUnit(visualUnitSpec)}>Remove unit</button>
                 </div>
-              ) : null
-            }
-          </div>
-        );
-      })
-    }
-    <div>
-      <button onClick={() => addUnit(visualUnitSpecs)}>Add visual unit</button>
-    </div>
+              </div>
+              {
+                visualUnitSpecs.length > 1 ? (
+                  <div>
+                    <button onClick={() => removeUnit(visualUnitSpec)}>Remove unit</button>
+                  </div>
+                ) : null
+              }
+            </div>
+          );
+        })
+      }
+      <div>
+        <button onClick={() => addUnit(visualUnitSpecs)}>Add visual unit</button>
+      </div>
 
-    <h3>Audio</h3>
-    {
-      audioUnitSpecs.map((audioUnitSpec) => {
-        return (
-          <div className='unit-spec'>
-            {
-              audioUnitSpecs.length > 1 ? (
-                <h5 className='def-name'>{audioUnitSpec.name}</h5>
-              ) : null
-            }
-            <div className='def-property'>
-              <div className='def-property-label'>Encodings:</div>
-              <div className='def-property-col'>
-                {
-                  Object.entries(audioUnitSpec.encoding).map(([propName, propValue]) => {
-                    return (
-                      <div>
-                        <h6 className='encoding-name'>{propName}</h6>
-                        <div className='unit-encoding-def'>
-                          <span>{propValue.field}</span>
-                          <button>Go to field</button>
-                          <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button>
+      <h3>Audio</h3>
+      {
+        audioUnitSpecs.map((audioUnitSpec) => {
+          return (
+            <div className='unit-spec'>
+              {
+                audioUnitSpecs.length > 1 ? (
+                  <h5 className='def-name'>{audioUnitSpec.name}</h5>
+                ) : null
+              }
+              <div className='def-property'>
+                <div className='def-property-label'>Encodings:</div>
+                <div className='def-property-col'>
+                  {
+                    Object.entries(audioUnitSpec.encoding).map(([propName, propValue]) => {
+                      return (
+                        <div>
+                          <h6 className='encoding-name'>{propName}</h6>
+                          <div className='unit-encoding-def'>
+                            <span>{propValue.field}</span>
+                            <button>Go to field</button>
+                            <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button>
+                          </div>
+                          <details>
+                            <summary>Additional options</summary>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Aggregate:</div>
+                              <div className='def-property-col'>
+                                <select value={propValue.aggregate}>
+                                  <option value=''>None</option>
+                                  {
+                                    aggregateOps.map(aggregateOp => {
+                                      return (
+                                        <option value={aggregateOp}>{aggregateOp}</option>
+                                      )
+                                    })
+                                  }
+                                </select>
+                              </div>
+                            </div>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Time unit:</div>
+                              <div className='def-property-col'>
+                                <select value={propValue.timeUnit}>
+                                  <option value=''>None</option>
+                                  {
+                                    timeUnits.map(timeUnit => {
+                                      return (
+                                        <option value={timeUnit}>{timeUnit}</option>
+                                      )
+                                    })
+                                  }
+                                </select>
+                              </div>
+                            </div>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Scale:</div>
+                              <div className='def-property-col'>
+                                (todo: domain, zero, nice)
+                              </div>
+                            </div>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Sort:</div>
+                              <div className='def-property-col'>
+                                (todo: ascending, descending, by encoding, by field, etc)
+                              </div>
+                            </div>
+                          </details>
                         </div>
-                        <details>
-                          <summary>Additional options</summary>
+                      )
+                    })
+                  }
+                </div>
+              </div>
+              <div className='def-property'>
+                <div className='def-property-label'>Traversals:</div>
+                <div className='def-property-col'>
+                  {
+                    audioUnitSpec.traversal.map((traversal) => {
+                      return (
+                        <div>
+                          <div className='unit-encoding-def'>
+                            <span>{traversal.field}</span>
+                            <button>Go to field</button>
+                            {/* <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button> */}
+                          </div>
                           <div className='def-property'>
-                            <div className='def-property-label'>Aggregate:</div>
+                            <div className='def-property-label'>Mode:</div>
                             <div className='def-property-col'>
-                              <select value={propValue.aggregate}>
-                                <option value=''>None</option>
+                              <select>
                                 {
-                                  aggregateOps.map(aggregateOp => {
+                                  traversalModes.map(traversalMode => {
                                     return (
-                                      <option value={aggregateOp}>{aggregateOp}</option>
+                                      <option value={traversalMode}>{traversalMode}</option>
                                     )
                                   })
                                 }
                               </select>
                             </div>
                           </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Time unit:</div>
-                            <div className='def-property-col'>
-                              <select value={propValue.timeUnit}>
-                                <option value=''>None</option>
-                                {
-                                  timeUnits.map(timeUnit => {
-                                    return (
-                                      <option value={timeUnit}>{timeUnit}</option>
-                                    )
-                                  })
-                                }
-                              </select>
+                          <details>
+                            <summary>Additional options</summary>
+                            <div className='def-property'>
+                              <div className='def-property-label'>Bin:</div>
+                              <div className='def-property-col'>
+                                <input type='checkbox' checked={traversal.bin} />
+                              </div>
                             </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Scale:</div>
-                            <div className='def-property-col'>
-                              (todo: domain, zero, nice)
+                            <div className='def-property'>
+                              <div className='def-property-label'>Time unit:</div>
+                              <div className='def-property-col'>
+                                <select value={traversal.timeUnit}>
+                                  <option value=''>None</option>
+                                  {
+                                    timeUnits.map(timeUnit => {
+                                      return (
+                                        <option value={timeUnit}>{timeUnit}</option>
+                                      )
+                                    })
+                                  }
+                                </select>
+                              </div>
                             </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Sort:</div>
-                            <div className='def-property-col'>
-                              (todo: ascending, descending, by encoding, by field, etc)
+                            <div className='def-property'>
+                              <div className='def-property-label'>Scale:</div>
+                              <div className='def-property-col'>
+                                (todo: domain, zero, nice)
+                              </div>
                             </div>
-                          </div>
-                        </details>
-                      </div>
-                    )
-                  })
-                }
+                            <div className='def-property'>
+                              <div className='def-property-label'>Sort:</div>
+                              <div className='def-property-col'>
+                                (todo: ascending, descending, by encoding, by field, etc)
+                              </div>
+                            </div>
+                          </details>
+                        </div>
+                      )
+                    })
+                  }
+                </div>
               </div>
             </div>
-            <div className='def-property'>
-              <div className='def-property-label'>Traversals:</div>
-              <div className='def-property-col'>
-                {
-                  audioUnitSpec.traversal.map((traversal) => {
-                    return (
-                      <div>
-                        <div className='unit-encoding-def'>
-                          <span>{traversal.field}</span>
-                          <button>Go to field</button>
-                          {/* <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button> */}
-                        </div>
-                        <div className='def-property'>
-                          <div className='def-property-label'>Mode:</div>
-                          <div className='def-property-col'>
-                            <select>
-                              {
-                                traversalModes.map(traversalMode => {
-                                  return (
-                                    <option value={traversalMode}>{traversalMode}</option>
-                                  )
-                                })
-                              }
-                            </select>
-                          </div>
-                        </div>
-                        <details>
-                          <summary>Additional options</summary>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Bin:</div>
-                            <div className='def-property-col'>
-                              <input type='checkbox' checked={traversal.bin} />
-                            </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Time unit:</div>
-                            <div className='def-property-col'>
-                              <select value={traversal.timeUnit}>
-                                <option value=''>None</option>
-                                {
-                                  timeUnits.map(timeUnit => {
-                                    return (
-                                      <option value={timeUnit}>{timeUnit}</option>
-                                    )
-                                  })
-                                }
-                              </select>
-                            </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Scale:</div>
-                            <div className='def-property-col'>
-                              (todo: domain, zero, nice)
-                            </div>
-                          </div>
-                          <div className='def-property'>
-                            <div className='def-property-label'>Sort:</div>
-                            <div className='def-property-col'>
-                              (todo: ascending, descending, by encoding, by field, etc)
-                            </div>
-                          </div>
-                        </details>
-                      </div>
-                    )
-                  })
-                }
-              </div>
-            </div>
-          </div>
-        );
-      })
-    }
-
+          );
+        })
+      }
+      <div>
+        <button onClick={() => addUnit(audioUnitSpecs)}>Add audio unit</button>
+      </div>
     </div>
   );
 
