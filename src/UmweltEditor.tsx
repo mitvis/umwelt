@@ -303,45 +303,50 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       )
                     })
                   }
-                  <div>
-                    <div className='def-property-add'>Add encoding:</div>
-                    <select id={`${field.name}-encoding-select`} value={fieldEncodingSelectValues[field.name]} onChange={() => onSelectEncoding(field.name)}>
-                      {
-                        propertyNames.filter(x => !((field.encodings?.map(e => e.property) || []).includes(x))).map(propName => {
-                          return (
-                            <option value={propName}>{propName}</option>
-                          )
-                        })
-                      }
-                    </select>
-                    {
-                      visualUnitSpecs.length > 1 && visualPropNames.includes(fieldEncodingSelectValues[field.name] as VisualPropName) ? (
-                        <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
+                  {
+                    field.encodings.length < propertyNames.length ?
+                    (
+                      <div>
+                        <div className='def-property-add'>Add encoding:</div>
+                        <select id={`${field.name}-encoding-select`} value={fieldEncodingSelectValues[field.name]} onChange={() => onSelectEncoding(field.name)}>
                           {
-                            visualUnitSpecs.map(visualUnitSpec => {
+                            propertyNames.filter(x => !((field.encodings?.map(e => e.property) || []).includes(x))).map(propName => {
                               return (
-                                <option value={visualUnitSpec.name}>{visualUnitSpec.name}</option>
+                                <option value={propName}>{propName}</option>
                               )
                             })
                           }
                         </select>
-                      ) : null
-                    }
-                    {
-                      audioUnitSpecs.length > 1 && audioPropNames.includes(fieldEncodingSelectValues[field.name] as AudioPropName) ? (
-                        <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
-                          {
-                            audioUnitSpecs.map(audioUnitSpec => {
-                              return (
-                                <option value={audioUnitSpec.name}>{audioUnitSpec.name}</option>
-                              )
-                            })
-                          }
-                        </select>
-                      ) : null
-                    }
-                    <button onClick={() => addEncoding(field)}>Add</button>
-                  </div>
+                        {
+                          visualUnitSpecs.length > 1 && visualPropNames.includes(fieldEncodingSelectValues[field.name] as VisualPropName) ? (
+                            <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
+                              {
+                                visualUnitSpecs.map(visualUnitSpec => {
+                                  return (
+                                    <option value={visualUnitSpec.name}>{visualUnitSpec.name}</option>
+                                  )
+                                })
+                              }
+                            </select>
+                          ) : null
+                        }
+                        {
+                          audioUnitSpecs.length > 1 && audioPropNames.includes(fieldEncodingSelectValues[field.name] as AudioPropName) ? (
+                            <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
+                              {
+                                audioUnitSpecs.map(audioUnitSpec => {
+                                  return (
+                                    <option value={audioUnitSpec.name}>{audioUnitSpec.name}</option>
+                                  )
+                                })
+                              }
+                            </select>
+                          ) : null
+                        }
+                        <button onClick={() => addEncoding(field)}>Add</button>
+                      </div>
+                    ) : null
+                  }
                 </div>
               </div>
               <div>
@@ -652,6 +657,13 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                   }
                 </div>
               </div>
+              {
+                audioUnitSpecs.length > 1 ? (
+                  <div>
+                    <button onClick={() => removeUnit(audioUnitSpec)}>Remove unit</button>
+                  </div>
+                ) : null
+              }
             </div>
           );
         })
