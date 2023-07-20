@@ -27,6 +27,8 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const [visualUnitSpecs, setVisualUnitSpecs] = useState<VisualUnitSpec[]>([]);
   // const [viewComposition, setViewComposition] = useState<ViewComposition>();
   const [audioUnitSpecs, setAudioUnitSpecs] = useState<AudioUnitSpec[]>([]);
+  const [fieldEncodingSelectValues, setFieldEncodingSelectValues] = useState<{[fieldName: string]: EncodingPropName}>({});
+  const [fieldUnitSelectValues, setFieldUnitSelectValues] = useState<{[fieldName: string]: string}>({});
 
   const onData = debounce(500, () => {
     const value = (document.querySelector('.input-data') as HTMLInputElement).value;
@@ -80,32 +82,75 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }
   }, [data]);
 
-  const addEncoding = (field: FieldDef) => {
-    const domId = `${field.name}-encoding-select`;
+  useEffect(() => {
+    const nextEncodingSelect = structuredClone(fieldEncodingSelectValues);
+    const nextUnitSelect = structuredClone(fieldUnitSelectValues);
+    fields.forEach(field => {
+      if (!nextEncodingSelect[field.name]) {
+        if (field.type === 'quantitative' || field.type === 'temporal') {
+          nextEncodingSelect[field.name] = 'x';
+        }
+        else if (field.type === 'nominal' || field.type === 'ordinal') {
+          nextEncodingSelect[field.name] = 'color';
+        }
+      }
+      if (!nextUnitSelect[field.name]) {
+        if (visualPropNames.includes(nextEncodingSelect[field.name] as any)) {
+          nextUnitSelect[field.name] = visualUnitSpecs[0].name;
+        }
+        else if (audioPropNames.includes(nextEncodingSelect[field.name] as any)) {
+          nextUnitSelect[field.name] = audioUnitSpecs[0].name;
+        }
+      }
+    });
+    setFieldEncodingSelectValues(nextEncodingSelect);
+    setFieldUnitSelectValues(nextUnitSelect);
+  }, [fields]);
+
+  const onSelectEncoding = (fieldName) => {
+    const domId = `${fieldName}-encoding-select`;
     const value = (document.getElementById(domId) as HTMLInputElement).value;
+    setFieldEncodingSelectValues({
+      ...fieldEncodingSelectValues,
+      [fieldName]: value as EncodingPropName
+    });
+  }
+
+  const onSelectUnit = (fieldName) => {
+    const domId = `${fieldName}-unit-select`;
+    const value = (document.getElementById(domId) as HTMLInputElement).value;
+    setFieldUnitSelectValues({
+      ...fieldUnitSelectValues,
+      [fieldName]: value
+    });
+  }
+
+  const addEncoding = (field: FieldDef) => {
+    const propName = fieldEncodingSelectValues[field.name];
+    const unitName = fieldUnitSelectValues[field.name];
     const newFields = fields.map(f => {
       if (f.name === field.name) {
         f.encodings.push({
-          property: (value as EncodingPropName)
+          property: (propName as EncodingPropName)
         });
       }
       return f;
     });
     setFields(newFields);
 
-    if (visualPropNames.includes(value as VisualPropName)) {
-      const unit = visualUnitSpecs[0];
+    if (visualPropNames.includes(propName as VisualPropName)) {
+      const unit = visualUnitSpecs.find(spec => spec.name === unitName);
       const newEncoding = structuredClone(unit.encoding);
-      if (newEncoding[value] && newEncoding[value].field !== field.name) {
+      if (newEncoding[propName] && newEncoding[propName].field !== field.name) {
         const newFields = fields.map(f => {
-          if (f.name === newEncoding[value].field) {
-            f.encodings = f.encodings.filter(e => e.property !== value);
+          if (f.name === newEncoding[propName].field) {
+            f.encodings = f.encodings.filter(e => e.property !== propName);
           }
           return f;
         });
         setFields(newFields);
       }
-      newEncoding[value] = {
+      newEncoding[propName] = {
         field: field.name,
       };
       const newVisualUnitSpecs = visualUnitSpecs.map(spec => {
@@ -116,13 +161,13 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       });
       setVisualUnitSpecs(newVisualUnitSpecs);
     }
-    else if (audioPropNames.includes(value as AudioPropName)) {
-      const unit = audioUnitSpecs[0];
+    else if (audioPropNames.includes(propName as AudioPropName)) {
+      const unit = audioUnitSpecs.find(spec => spec.name === unitName);
       const newEncoding = structuredClone(unit.encoding);
-      if (newEncoding[value] && newEncoding[value].field !== field.name) {
-        removeEncodingReference(value, newEncoding[value].field);
+      if (newEncoding[propName] && newEncoding[propName].field !== field.name) {
+        removeEncodingReference(propName, newEncoding[propName].field);
       }
-      newEncoding[value] = {
+      newEncoding[propName] = {
         field: field.name,
       };
       const newAudioUnitSpecs = audioUnitSpecs.map(spec => {
@@ -251,7 +296,7 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                   }
                   <div>
                     <div className='def-property-add'>Add encoding:</div>
-                    <select id={`${field.name}-encoding-select`}>
+                    <select id={`${field.name}-encoding-select`} value={fieldEncodingSelectValues[field.name]} onChange={() => onSelectEncoding(field.name)}>
                       {
                         propertyNames.filter(x => !((field.encodings?.map(e => e.property) || []).includes(x))).map(propName => {
                           return (
@@ -260,24 +305,32 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         })
                       }
                     </select>
-                    {/* <select>
-                      {
-                        visualUnitSpecs.map(visualUnitSpec => {
-                          return (
-                            <option value={visualUnitSpec.name}>{visualUnitSpec.name}</option>
-                          )
-                        })
-                      }
-                    </select>
-                    <select>
-                      {
-                        audioUnitSpecs.map(audioUnitSpec => {
-                          return (
-                            <option value={audioUnitSpec.name}>{audioUnitSpec.name}</option>
-                          )
-                        })
-                      }
-                    </select> */}
+                    {
+                      visualUnitSpecs.length > 1 && visualPropNames.includes(fieldEncodingSelectValues[field.name] as VisualPropName) ? (
+                        <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
+                          {
+                            visualUnitSpecs.map(visualUnitSpec => {
+                              return (
+                                <option value={visualUnitSpec.name}>{visualUnitSpec.name}</option>
+                              )
+                            })
+                          }
+                        </select>
+                      ) : null
+                    }
+                    {
+                      audioUnitSpecs.length > 1 && audioPropNames.includes(fieldEncodingSelectValues[field.name] as AudioPropName) ? (
+                        <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
+                          {
+                            audioUnitSpecs.map(audioUnitSpec => {
+                              return (
+                                <option value={audioUnitSpec.name}>{audioUnitSpec.name}</option>
+                              )
+                            })
+                          }
+                        </select>
+                      ) : null
+                    }
                     <button onClick={() => addEncoding(field)}>Add</button>
                   </div>
                 </div>
