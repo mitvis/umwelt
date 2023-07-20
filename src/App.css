@@ -74,7 +74,11 @@
   border: 1px solid black;
 }
 
-.field-def {
+.uw-structured-editor button {
+  margin: 0 3px;
+}
+
+.field-def, .enc-def {
   margin-bottom: 2em;
 }
 
@@ -111,5 +115,9 @@
 .encoding-name {
   margin-top: 0;
   margin-bottom: 0.3em;
-  font-size: 0.8em;
+  font-size: 1em;
+}
+
+.unit-spec {
+  margin-bottom: 1em;
 }

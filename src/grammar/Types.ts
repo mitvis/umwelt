@@ -7,6 +7,7 @@ import { FieldPredicate } from 'vega-lite/src/predicate';
 import { LogicalComposition } from 'vega-lite/src/logical';
 import { Spec } from 'vega';
 import { TopLevelUnitSpec } from 'vega-lite/src/spec/unit';
+import { Sort } from 'vega-lite/src/sort';
 
 export type VlSpec = TopLevelUnitSpec<any>;
 export type VgSpec = Spec;
@@ -54,6 +55,7 @@ export interface FieldDef {
   timeUnit?: string;
   aggregate?: NonArgAggregateOp;
   bin?: boolean;
+  sort?: Sort<any>;
 }
 
 export interface VisualEncodingFieldDef {
@@ -63,6 +65,7 @@ export interface VisualEncodingFieldDef {
   timeUnit?: string;
   aggregate?: NonArgAggregateOp;
   bin?: boolean;
+  sort?: Sort<any>;
 }
 
 export interface AudioEncodingFieldDef {
@@ -71,6 +74,7 @@ export interface AudioEncodingFieldDef {
   scale?: ScaleDomain;
   timeUnit?: string;
   aggregate?: NonArgAggregateOp;
+  sort?: Sort<any>;
   // bin: undefined;
 }
 

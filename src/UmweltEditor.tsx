@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AudioPropName, AudioUnitSpec, ElaboratedUmweltDataSource, EncodingPropName, FieldDef, UmweltSpec, ViewComposition, VisualPropName, VisualUnitSpec } from './grammar';
+import { AudioEncoding, AudioPropName, AudioUnitSpec, ElaboratedUmweltDataSource, EncodingPropName, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualEncodingFieldDef, VisualPropName, VisualUnitSpec } from './grammar';
 import './text/TreeStyle.css'
 import { OlliDataset } from 'olli';
 import { getData } from './utils/data';
@@ -62,10 +62,19 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
       if (visualUnitSpecs.length === 0) {
         setVisualUnitSpecs([{
-          name: 'unit_0',
+          name: 'vis_unit_0',
           mark: 'point',
           encoding: {
           }
+        }]);
+      }
+
+      if (audioUnitSpecs.length === 0) {
+        setAudioUnitSpecs([{
+          name: 'audio_unit_0',
+          encoding: {
+          },
+          traversal: []
         }]);
       }
     }
@@ -84,27 +93,114 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     });
     setFields(newFields);
 
-    const unit = visualUnitSpecs[0];
-    const newEncoding = structuredClone(unit.encoding);
-    if (newEncoding[value] && newEncoding[value].field !== field.name) {
-      const newFields = fields.map(f => {
-        if (f.name === newEncoding[value].field) {
-          f.encodings = f.encodings.filter(e => e.property !== value);
-        }
-        return f;
-      });
-      setFields(newFields);
-    }
-    newEncoding[value] = {
-      field: field.name,
-    };
-    const newVisualUnitSpecs = visualUnitSpecs.map(spec => {
-      if (spec.name === unit.name) {
-        spec.encoding = newEncoding;
+    if (visualPropNames.includes(value as VisualPropName)) {
+      const unit = visualUnitSpecs[0];
+      const newEncoding = structuredClone(unit.encoding);
+      if (newEncoding[value] && newEncoding[value].field !== field.name) {
+        const newFields = fields.map(f => {
+          if (f.name === newEncoding[value].field) {
+            f.encodings = f.encodings.filter(e => e.property !== value);
+          }
+          return f;
+        });
+        setFields(newFields);
       }
-      return spec;
+      newEncoding[value] = {
+        field: field.name,
+      };
+      const newVisualUnitSpecs = visualUnitSpecs.map(spec => {
+        if (spec.name === unit.name) {
+          spec.encoding = newEncoding;
+        }
+        return spec;
+      });
+      setVisualUnitSpecs(newVisualUnitSpecs);
+    }
+    else if (audioPropNames.includes(value as AudioPropName)) {
+      const unit = audioUnitSpecs[0];
+      const newEncoding = structuredClone(unit.encoding);
+      if (newEncoding[value] && newEncoding[value].field !== field.name) {
+        removeEncodingReference(value, newEncoding[value].field);
+      }
+      newEncoding[value] = {
+        field: field.name,
+      };
+      const newAudioUnitSpecs = audioUnitSpecs.map(spec => {
+        if (spec.name === unit.name) {
+          spec.encoding = newEncoding;
+        }
+        return spec;
+      });
+      setAudioUnitSpecs(newAudioUnitSpecs);
+    }
+  }
+
+  const removeEncodingReference = (propName, fieldName) => {
+    const newFields = fields.map(f => {
+      if (f.name === fieldName) {
+        f.encodings = f.encodings.filter(e => e.property !== propName);
+      }
+      return f;
     });
-    setVisualUnitSpecs(newVisualUnitSpecs);
+    setFields(newFields);
+  }
+
+  const removeEncoding = (unitSpec: VisualUnitSpec | AudioUnitSpec, propName) => {
+    const encodingFieldDef = unitSpec.encoding[propName];
+    removeEncodingReference(propName, encodingFieldDef.field);
+    const newEncoding = structuredClone(unitSpec.encoding);
+    delete newEncoding[propName];
+    if ('mark' in unitSpec) {
+      setVisualUnitSpecs(visualUnitSpecs.map(spec => {
+        if (spec.name === unitSpec.name) {
+          spec.encoding = newEncoding as VisualEncoding;
+        }
+        return spec;
+      }));
+    }
+    else if ('traversal' in unitSpec) {
+      setAudioUnitSpecs(audioUnitSpecs.map(spec => {
+        if (spec.name === unitSpec.name) {
+          spec.encoding = newEncoding as AudioEncoding;
+        }
+        return spec;
+      }));
+    }
+  }
+
+  const addUnit = (specs: VisualUnitSpec[] | AudioUnitSpec[]) => {
+    if ('mark' in specs[0]) {
+      const nextId = visualUnitSpecs.map(spec => parseInt(spec.name.split('_')[2])).reduce((a, b) => Math.max(a, b), 0) + 1;
+      const nextSpecs = [...visualUnitSpecs, {
+        name: `vis_unit_${nextId}`,
+        mark: 'point',
+        encoding: {
+        }
+      } as VisualUnitSpec];
+      setVisualUnitSpecs(nextSpecs);
+    }
+    else if ('traversal' in specs[0]) {
+      const nextId = audioUnitSpecs.map(spec => parseInt(spec.name.split('_')[2])).reduce((a, b) => Math.max(a, b), 0) + 1;
+      const nextSpecs = [...audioUnitSpecs, {
+        name: `audio_unit_${nextId}`,
+        encoding: {
+        },
+        traversal: []
+      } as AudioUnitSpec];
+      setAudioUnitSpecs(nextSpecs);
+    }
+  }
+
+  const removeUnit = (unitSpec: VisualUnitSpec | AudioUnitSpec) => {
+    Object.keys(unitSpec.encoding).forEach(propName => {
+      removeEncodingReference(propName, unitSpec.encoding[propName].field);
+    });
+    if ('mark' in unitSpec) {
+      setVisualUnitSpecs(visualUnitSpecs.filter(spec => spec.name !== unitSpec.name));
+    }
+    else if ('traversal' in unitSpec) {
+      setAudioUnitSpecs(audioUnitSpecs.filter(spec => spec.name !== unitSpec.name));
+    }
   }
 
   const mtypes = ['quantitative', 'nominal', 'ordinal', 'temporal'];
@@ -112,9 +208,12 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const audioPropNames: AudioPropName[] = ['pitch', 'duration', 'volume'];
   const propertyNames: EncodingPropName[] = (visualPropNames as EncodingPropName[]).concat(audioPropNames);
   const markTypes = ['point', 'line', 'bar'];
+  const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
+  const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds', 'milliseconds'];
+  const traversalModes = ['sequential', 'interactive'];
 
   return (
-    <div>
+    <div className='uw-structured-editor'>
       <h3>Data</h3>
       <input type="url" className="input-data" value={dataUrl} onChange={onData} required></input>
       <h3>Fields</h3>
@@ -183,6 +282,59 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                   </div>
                 </div>
               </div>
+              <div>
+                <details>
+                  <summary>Additional options</summary>
+                  <div className='def-property'>
+                    <div className='def-property-label'>Aggregate:</div>
+                    <div className='def-property-col'>
+                      <select value={field.aggregate}>
+                        <option value=''>None</option>
+                        {
+                          aggregateOps.map(aggregateOp => {
+                            return (
+                              <option value={aggregateOp}>{aggregateOp}</option>
+                            )
+                          })
+                        }
+                      </select>
+                    </div>
+                  </div>
+                  <div className='def-property'>
+                    <div className='def-property-label'>Bin:</div>
+                    <div className='def-property-col'>
+                      <input type='checkbox' checked={field.bin} />
+                    </div>
+                  </div>
+                  <div className='def-property'>
+                    <div className='def-property-label'>Time unit:</div>
+                    <div className='def-property-col'>
+                      <select value={field.timeUnit}>
+                        <option value=''>None</option>
+                        {
+                          timeUnits.map(timeUnit => {
+                            return (
+                              <option value={timeUnit}>{timeUnit}</option>
+                            )
+                          })
+                        }
+                      </select>
+                    </div>
+                  </div>
+                  <div className='def-property'>
+                    <div className='def-property-label'>Scale:</div>
+                    <div className='def-property-col'>
+                      (todo: domain, zero, nice)
+                    </div>
+                  </div>
+                  <div className='def-property'>
+                    <div className='def-property-label'>Sort:</div>
+                    <div className='def-property-col'>
+                      (todo: ascending, descending, by encoding, by field, etc)
+                    </div>
+                  </div>
+                </details>
+              </div>
             </div>
           );
         })
@@ -191,8 +343,12 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     {
       visualUnitSpecs.map((visualUnitSpec) => {
         return (
-          <div className='visual-unit-spec'>
-            <h5 className='def-name'>{visualUnitSpec.name}</h5>
+          <div className='unit-spec'>
+            {
+              visualUnitSpecs.length > 1 ? (
+                <h5 className='def-name'>{visualUnitSpec.name}</h5>
+              ) : null
+            }
             <div className='def-property'>
               <div className='def-property-label'>Mark:</div>
               <div className='def-property-col'>
@@ -213,11 +369,221 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                 {
                   Object.entries(visualUnitSpec.encoding).map(([propName, propValue]) => {
                     return (
+                      <div className='enc-def'>
+                        <h6 className='encoding-name'>{propName}</h6>
+                        <div className='unit-encoding-def'>
+                          <span>{propValue.field}</span>
+                          <button>Go to field</button>
+                          <button onClick={() => removeEncoding(visualUnitSpec, propName)}>Remove encoding</button>
+                        </div>
+                        <details>
+                          <summary>Additional options</summary>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Aggregate:</div>
+                            <div className='def-property-col'>
+                              <select value={propValue.aggregate}>
+                                <option value=''>None</option>
+                                {
+                                  aggregateOps.map(aggregateOp => {
+                                    return (
+                                      <option value={aggregateOp}>{aggregateOp}</option>
+                                    )
+                                  })
+                                }
+                              </select>
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Bin:</div>
+                            <div className='def-property-col'>
+                              <input type='checkbox' checked={propValue.bin} />
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Time unit:</div>
+                            <div className='def-property-col'>
+                              <select value={propValue.timeUnit}>
+                                <option value=''>None</option>
+                                {
+                                  timeUnits.map(timeUnit => {
+                                    return (
+                                      <option value={timeUnit}>{timeUnit}</option>
+                                    )
+                                  })
+                                }
+                              </select>
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Scale:</div>
+                            <div className='def-property-col'>
+                              (todo: domain, zero, nice)
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Sort:</div>
+                            <div className='def-property-col'>
+                              (todo: ascending, descending, by encoding, by field, etc)
+                            </div>
+                          </div>
+                        </details>
+                      </div>
+                    )
+                  })
+                }
+              </div>
+            </div>
+            {
+              visualUnitSpecs.length > 1 ? (
+                <div>
+                  <button onClick={() => removeUnit(visualUnitSpec)}>Remove unit</button>
+                </div>
+              ) : null
+            }
+          </div>
+        );
+      })
+    }
+    <div>
+      <button onClick={() => addUnit(visualUnitSpecs)}>Add visual unit</button>
+    </div>
+
+    <h3>Audio</h3>
+    {
+      audioUnitSpecs.map((audioUnitSpec) => {
+        return (
+          <div className='unit-spec'>
+            {
+              audioUnitSpecs.length > 1 ? (
+                <h5 className='def-name'>{audioUnitSpec.name}</h5>
+              ) : null
+            }
+            <div className='def-property'>
+              <div className='def-property-label'>Encodings:</div>
+              <div className='def-property-col'>
+                {
+                  Object.entries(audioUnitSpec.encoding).map(([propName, propValue]) => {
+                    return (
                       <div>
                         <h6 className='encoding-name'>{propName}</h6>
                         <div className='unit-encoding-def'>
-                          <span>{JSON.stringify(propValue)}</span>
+                          <span>{propValue.field}</span>
+                          <button>Go to field</button>
+                          <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button>
                         </div>
+                        <details>
+                          <summary>Additional options</summary>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Aggregate:</div>
+                            <div className='def-property-col'>
+                              <select value={propValue.aggregate}>
+                                <option value=''>None</option>
+                                {
+                                  aggregateOps.map(aggregateOp => {
+                                    return (
+                                      <option value={aggregateOp}>{aggregateOp}</option>
+                                    )
+                                  })
+                                }
+                              </select>
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Time unit:</div>
+                            <div className='def-property-col'>
+                              <select value={propValue.timeUnit}>
+                                <option value=''>None</option>
+                                {
+                                  timeUnits.map(timeUnit => {
+                                    return (
+                                      <option value={timeUnit}>{timeUnit}</option>
+                                    )
+                                  })
+                                }
+                              </select>
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Scale:</div>
+                            <div className='def-property-col'>
+                              (todo: domain, zero, nice)
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Sort:</div>
+                            <div className='def-property-col'>
+                              (todo: ascending, descending, by encoding, by field, etc)
+                            </div>
+                          </div>
+                        </details>
+                      </div>
+                    )
+                  })
+                }
+              </div>
+            </div>
+            <div className='def-property'>
+              <div className='def-property-label'>Traversals:</div>
+              <div className='def-property-col'>
+                {
+                  audioUnitSpec.traversal.map((traversal) => {
+                    return (
+                      <div>
+                        <div className='unit-encoding-def'>
+                          <span>{traversal.field}</span>
+                          <button>Go to field</button>
+                          {/* <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button> */}
+                        </div>
+                        <div className='def-property'>
+                          <div className='def-property-label'>Mode:</div>
+                          <div className='def-property-col'>
+                            <select>
+                              {
+                                traversalModes.map(traversalMode => {
+                                  return (
+                                    <option value={traversalMode}>{traversalMode}</option>
+                                  )
+                                })
+                              }
+                            </select>
+                          </div>
+                        </div>
+                        <details>
+                          <summary>Additional options</summary>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Bin:</div>
+                            <div className='def-property-col'>
+                              <input type='checkbox' checked={traversal.bin} />
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Time unit:</div>
+                            <div className='def-property-col'>
+                              <select value={traversal.timeUnit}>
+                                <option value=''>None</option>
+                                {
+                                  timeUnits.map(timeUnit => {
+                                    return (
+                                      <option value={timeUnit}>{timeUnit}</option>
+                                    )
+                                  })
+                                }
+                              </select>
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Scale:</div>
+                            <div className='def-property-col'>
+                              (todo: domain, zero, nice)
+                            </div>
+                          </div>
+                          <div className='def-property'>
+                            <div className='def-property-label'>Sort:</div>
+                            <div className='def-property-col'>
+                              (todo: ascending, descending, by encoding, by field, etc)
+                            </div>
+                          </div>
+                        </details>
                       </div>
                     )
                   })
@@ -228,8 +594,6 @@ const UmveltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         );
       })
     }
-
-    <h3>Audio</h3>
 
     </div>
   );

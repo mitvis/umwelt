@@ -80,10 +80,10 @@ function App() {
           }
         </select>
         </div><br/>
-        <textarea
+        {/* <textarea
             value={textValue}
             onChange={(e) => {setTextValue(e.target.value)}}
-        />
+        /> */}
         <div className="logo" aria-hidden="true">
           <img src='/umwelt/umwelt.svg' />
         </div>
