@@ -69,6 +69,21 @@ function App() {
 
   return (
     <div className="App">
+      <div className='column'>
+      <UmveltEditor initialSpec={specs[selectedSpec]}></UmveltEditor>
+      </div>
+      {/* <div className='column' style={{flex: 2}}>
+        <div>
+          <div style={{fontWeight: 'bold'}}>Umwelt</div>
+        </div>
+        <Debounce ms={250}>
+          {
+            props ? (
+              <Umwelt {...props} />
+            ) : null
+          }
+        </Debounce>
+      </div> */}
       <div className="column">
         <div style={{fontWeight: 'bold'}}>User-provided spec</div>
         <div>
@@ -88,21 +103,6 @@ function App() {
           <img src='/umwelt/umwelt.svg' />
         </div>
       </div>
-      <div className='column'>
-      <UmveltEditor initialSpec={specs[selectedSpec]}></UmveltEditor>
-      </div>
-      {/* <div className='column' style={{flex: 2}}>
-        <div>
-          <div style={{fontWeight: 'bold'}}>Umwelt</div>
-        </div>
-        <Debounce ms={250}>
-          {
-            props ? (
-              <Umwelt {...props} />
-            ) : null
-          }
-        </Debounce>
-      </div> */}
     </div>
   );
 }

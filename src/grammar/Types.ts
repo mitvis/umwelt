@@ -43,7 +43,7 @@ export interface ValueRef {
 
 export interface EncodingRef {
   property: EncodingPropName;
-  unit?: string;
+  unit: string;
 }
 
 export interface FieldDef {

@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AudioEncoding, AudioPropName, AudioUnitSpec, ElaboratedUmweltDataSource, EncodingPropName, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualEncodingFieldDef, VisualPropName, VisualUnitSpec } from './grammar';
+import { AudioEncoding, AudioPropName, AudioUnitSpec, ElaboratedUmweltDataSource, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualEncodingFieldDef, VisualPropName, VisualUnitSpec } from './grammar';
 import './text/TreeStyle.css'
 import { OlliDataset } from 'olli';
 import { getData } from './utils/data';
 import { elaborateFields } from './grammar/elaborate';
 import { debounce } from 'vega';
 import { isEqual } from 'vega-lite';
+import { set } from 'vega-lite/src/log';
 
 interface EditorProps {
   initialSpec: any
@@ -86,17 +87,21 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
   useEffect(() => {
     const nextEncodingSelect = structuredClone(fieldEncodingSelectValues);
     fields.forEach(field => {
-      const validPropNames = propertyNames.filter(x => !((field.encodings?.map(e => e.property) || []).includes(x)));
-      if (!nextEncodingSelect[field.name]) {
+      const validPropNames = propertyNames.filter(propName => {
+        if (visualPropNames.includes(propName as VisualPropName)) {
+          return visualUnitSpecs.some(spec => !spec.encoding[propName]);
+        }
+        else if (audioPropNames.includes(propName as AudioPropName)) {
+          return audioUnitSpecs.some(spec => !spec.encoding[propName]);
+        }
+      });
+      if (validPropNames.length && (!nextEncodingSelect[field.name] || !validPropNames.includes(nextEncodingSelect[field.name]))) {
         if (field.type === 'quantitative' || field.type === 'temporal') {
-          nextEncodingSelect[field.name] = 'x';
+          nextEncodingSelect[field.name] = validPropNames.find(propName => ['x', 'y', 'opacity', 'size', 'pitch', 'duration', 'volume'].includes(propName)) || validPropNames[0];
         }
         else if (field.type === 'nominal' || field.type === 'ordinal') {
-          nextEncodingSelect[field.name] = 'color';
+          nextEncodingSelect[field.name] = validPropNames.find(propName => ['color', 'shape'].includes(propName)) || validPropNames[0];
         }
-      }
-      else if (!validPropNames.includes(nextEncodingSelect[field.name])) {
-        nextEncodingSelect[field.name] = validPropNames[0];
       }
     });
     setFieldEncodingSelectValues(nextEncodingSelect);
@@ -122,22 +127,27 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
     setFieldUnitSelectValues(nextUnitSelect);
   }, [fieldEncodingSelectValues]);
 
-  const onSelectEncoding = (fieldName) => {
-    const domId = `${fieldName}-encoding-select`;
-    const value = (document.getElementById(domId) as HTMLInputElement).value;
+  const onSelectEncoding = (fieldName, propName) => {
     setFieldEncodingSelectValues({
       ...fieldEncodingSelectValues,
-      [fieldName]: value as EncodingPropName
+      [fieldName]: propName
     });
   }
 
-  const onSelectUnit = (fieldName) => {
-    const domId = `${fieldName}-unit-select`;
-    const value = (document.getElementById(domId) as HTMLInputElement).value;
+  const onSelectUnit = (fieldName, unitName) => {
     setFieldUnitSelectValues({
       ...fieldUnitSelectValues,
-      [fieldName]: value
+      [fieldName]: unitName
     });
+  }
+
+  const onMark = (visualUnitSpec, mark) => {
+    setVisualUnitSpecs(visualUnitSpecs.map(spec => {
+      if (spec.name === visualUnitSpec.name) {
+        spec.mark = mark;
+      }
+      return spec;
+    }));
   }
 
   const addEncoding = (field: FieldDef) => {
@@ -146,7 +156,8 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
     const newFields = fields.map(f => {
       if (f.name === field.name) {
         f.encodings.push({
-          property: (propName as EncodingPropName)
+          property: (propName as EncodingPropName),
+          unit: unitName,
         });
       }
       return f;
@@ -287,10 +298,33 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
     }
   }
 
+  const jumpToEncodingRef = (encodingRef: EncodingRef) => {
+    const domId = `encoding-${encodingRef.unit}-${encodingRef.property}`;
+    const element = document.getElementById(domId);
+    if (element) {
+      element.scrollIntoView({behavior: 'smooth'});
+      element.focus();
+    }
+  }
+
+  const jumpToField = (fieldName: string, propName: string) => {
+    const domId = `field-${fieldName}-${propName}`;
+    const element = document.getElementById(domId);
+    if (element) {
+      element.scrollIntoView({behavior: 'smooth'});
+      element.focus();
+    }
+  }
+
   const mtypes = ['quantitative', 'nominal', 'ordinal', 'temporal'];
   const visualPropNames: VisualPropName[] = ['x', 'y', 'color', 'shape', 'opacity'];
   const audioPropNames: AudioPropName[] = ['pitch', 'duration', 'volume'];
-  const propertyNames: EncodingPropName[] = (visualPropNames as EncodingPropName[]).concat(audioPropNames);
+  const commonPropNames = ['x', 'y', 'color', 'pitch'].reverse();
+  const propertyNames: EncodingPropName[] = (visualPropNames as EncodingPropName[]).concat(audioPropNames).sort((a, b) => {
+    const aIndex = commonPropNames.indexOf(a);
+    const bIndex = commonPropNames.indexOf(b);
+    return bIndex - aIndex;
+  });
   const markTypes = ['point', 'line', 'bar'];
   const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
   const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds', 'milliseconds'];
@@ -298,8 +332,8 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
 
   return (
     <div className='uw-structured-editor'>
-      <h3>Data</h3>
-      <input type="url" className="input-data" value={dataUrl} onChange={onData} required></input>
+      <h3 id="uw-data">Data</h3>
+      <input aria-labelledby='uw-data' type="url" className="input-data" value={dataUrl} onChange={onData} required></input>
       <h3>Fields</h3>
       {
         fields.map(field => {
@@ -307,18 +341,21 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
             <div className='field-def' key={field.name}>
               <h5 className='def-name'>{field.name}</h5>
               <div className='def-property'>
-                <div className='def-property-label'>Type:</div>
-                <div className='def-property-col'>
+                <label>
+                  Type
                   <select value={field.type}>
-                    {
-                      mtypes.map(mtype => {
-                        return (
-                          <option value={mtype}>{mtype}</option>
-                        )
-                      })
-                    }
-                  </select>
-                </div>
+                      {
+                        mtypes.map(mtype => {
+                          return (
+                            <option value={mtype}>{mtype}</option>
+                          )
+                        })
+                      }
+                    </select>
+                </label>
+                {/* <div className='def-property-col'>
+
+                </div> */}
               </div>
               <div className='def-property'>
                 <div className='def-property-label'>Encodings:</div>
@@ -328,7 +365,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                       return (
                         <div className='field-def-encoding-ref'>
                           <span>{encodingRef.property}</span>
-                          <button>Go to full definition</button>
+                          <button id={`field-${field.name}-${encodingRef.property}`} onClick={() => jumpToEncodingRef(encodingRef)}>Go to full definition</button>
                         </div>
                       )
                     })
@@ -338,7 +375,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                     (
                       <div>
                         <div className='def-property-add'>Add encoding:</div>
-                        <select id={`${field.name}-encoding-select`} value={fieldEncodingSelectValues[field.name]} onChange={() => onSelectEncoding(field.name)}>
+                        <select value={fieldEncodingSelectValues[field.name]} onChange={(e) => onSelectEncoding(field.name, e.target.value)}>
                           {
                             propertyNames.filter(propName => {
                               if (visualPropNames.includes(propName as VisualPropName)) {
@@ -356,7 +393,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                         </select>
                         {
                           visualUnitSpecs.length > 1 && visualPropNames.includes(fieldEncodingSelectValues[field.name] as VisualPropName) ? (
-                            <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
+                            <select value={fieldUnitSelectValues[field.name]} onChange={(e) => onSelectUnit(field.name, e.target.value)}>
                               {
                                 visualUnitSpecs.filter(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).map(visualUnitSpec => {
                                   return (
@@ -369,7 +406,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                         }
                         {
                           audioUnitSpecs.length > 1 && audioPropNames.includes(fieldEncodingSelectValues[field.name] as AudioPropName) ? (
-                            <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
+                            <select value={fieldUnitSelectValues[field.name]} onChange={(e) => onSelectUnit(field.name, e.target.value)}>
                               {
                                 audioUnitSpecs.filter(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).map(audioUnitSpec => {
                                   return (
@@ -390,8 +427,8 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                 <details>
                   <summary>Additional options</summary>
                   <div className='def-property'>
-                    <div className='def-property-label'>Aggregate:</div>
-                    <div className='def-property-col'>
+                    <label>
+                      Aggregate
                       <select value={field.aggregate}>
                         <option value=''>None</option>
                         {
@@ -402,17 +439,17 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                           })
                         }
                       </select>
-                    </div>
+                    </label>
                   </div>
                   <div className='def-property'>
-                    <div className='def-property-label'>Bin:</div>
-                    <div className='def-property-col'>
+                    <label>
+                      Bin
                       <input type='checkbox' checked={field.bin} />
-                    </div>
+                    </label>
                   </div>
                   <div className='def-property'>
-                    <div className='def-property-label'>Time unit:</div>
-                    <div className='def-property-col'>
+                    <label>
+                      Time unit
                       <select value={field.timeUnit}>
                         <option value=''>None</option>
                         {
@@ -423,19 +460,19 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                           })
                         }
                       </select>
-                    </div>
+                    </label>
                   </div>
                   <div className='def-property'>
-                    <div className='def-property-label'>Scale:</div>
-                    <div className='def-property-col'>
+                    <label>
+                      Scale
                       (todo: domain, zero, nice)
-                    </div>
+                      </label>
                   </div>
                   <div className='def-property'>
-                    <div className='def-property-label'>Sort:</div>
-                    <div className='def-property-col'>
+                    <label>
+                      Sort
                       (todo: ascending, descending, by encoding, by field, etc)
-                    </div>
+                    </label>
                   </div>
                 </details>
               </div>
@@ -456,7 +493,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
               <div className='def-property'>
                 <div className='def-property-label'>Mark:</div>
                 <div className='def-property-col'>
-                  <select value={visualUnitSpec.mark}>
+                  <select value={visualUnitSpec.mark} onChange={(e) => onMark(visualUnitSpec, e.target.value)}>
                     {
                       markTypes.map(mark => {
                         return (
@@ -471,20 +508,21 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                 <div className='def-property-label'>Encodings:</div>
                 <div className='def-property-col'>
                   {
+                    Object.keys(visualUnitSpec.encoding).length ?
                     Object.entries(visualUnitSpec.encoding).map(([propName, propValue]) => {
                       return (
                         <div className='enc-def'>
                           <h6 className='encoding-name'>{propName}</h6>
                           <div className='unit-encoding-def'>
                             <span>{propValue.field}</span>
-                            <button>Go to field</button>
+                            <button id={`encoding-${visualUnitSpec.name}-${propName}`} onClick={() => jumpToField(propValue.field, propName)}>Go to field</button>
                             <button onClick={() => removeEncoding(visualUnitSpec, propName)}>Remove encoding</button>
                           </div>
                           <details>
                             <summary>Additional options</summary>
                             <div className='def-property'>
-                              <div className='def-property-label'>Aggregate:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Aggregate
                                 <select value={propValue.aggregate}>
                                   <option value=''>None</option>
                                   {
@@ -495,17 +533,17 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                                     })
                                   }
                                 </select>
-                              </div>
+                              </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Bin:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Bin
                                 <input type='checkbox' checked={propValue.bin} />
-                              </div>
+                              </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Time unit:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Time unit
                                 <select value={propValue.timeUnit}>
                                   <option value=''>None</option>
                                   {
@@ -516,24 +554,25 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                                     })
                                   }
                                 </select>
-                              </div>
+                              </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Scale:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Scale
                                 (todo: domain, zero, nice)
-                              </div>
+                                </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Sort:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Sort
                                 (todo: ascending, descending, by encoding, by field, etc)
-                              </div>
+                              </label>
                             </div>
                           </details>
                         </div>
                       )
                     })
+                    : "None"
                   }
                 </div>
               </div>
@@ -566,20 +605,21 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                 <div className='def-property-label'>Encodings:</div>
                 <div className='def-property-col'>
                   {
+                    Object.keys(audioUnitSpec.encoding).length ?
                     Object.entries(audioUnitSpec.encoding).map(([propName, propValue]) => {
                       return (
                         <div>
                           <h6 className='encoding-name'>{propName}</h6>
                           <div className='unit-encoding-def'>
                             <span>{propValue.field}</span>
-                            <button>Go to field</button>
+                            <button id={`encoding-${audioUnitSpec.name}-${propName}`} onClick={() => jumpToField(propValue.field, propName)}>Go to field</button>
                             <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button>
                           </div>
                           <details>
                             <summary>Additional options</summary>
                             <div className='def-property'>
-                              <div className='def-property-label'>Aggregate:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Aggregate
                                 <select value={propValue.aggregate}>
                                   <option value=''>None</option>
                                   {
@@ -590,11 +630,11 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                                     })
                                   }
                                 </select>
-                              </div>
+                              </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Time unit:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Time unit
                                 <select value={propValue.timeUnit}>
                                   <option value=''>None</option>
                                   {
@@ -605,24 +645,24 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                                     })
                                   }
                                 </select>
-                              </div>
+                              </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Scale:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Scale
                                 (todo: domain, zero, nice)
-                              </div>
+                                </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Sort:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Sort
                                 (todo: ascending, descending, by encoding, by field, etc)
-                              </div>
+                              </label>
                             </div>
                           </details>
                         </div>
                       )
-                    })
+                    }) : "None"
                   }
                 </div>
               </div>
@@ -630,6 +670,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                 <div className='def-property-label'>Traversals:</div>
                 <div className='def-property-col'>
                   {
+                    audioUnitSpec.traversal.length ?
                     audioUnitSpec.traversal.map((traversal) => {
                       return (
                         <div className='enc-def'>
@@ -655,14 +696,14 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                           <details>
                             <summary>Additional options</summary>
                             <div className='def-property'>
-                              <div className='def-property-label'>Bin:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Bin
                                 <input type='checkbox' checked={traversal.bin} />
-                              </div>
+                              </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Time unit:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Time unit
                                 <select value={traversal.timeUnit}>
                                   <option value=''>None</option>
                                   {
@@ -673,24 +714,24 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                                     })
                                   }
                                 </select>
-                              </div>
+                              </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Scale:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Scale
                                 (todo: domain, zero, nice)
-                              </div>
+                                </label>
                             </div>
                             <div className='def-property'>
-                              <div className='def-property-label'>Sort:</div>
-                              <div className='def-property-col'>
+                              <label>
+                                Sort
                                 (todo: ascending, descending, by encoding, by field, etc)
-                              </div>
+                              </label>
                             </div>
                           </details>
                         </div>
                       )
-                    })
+                    }) : "None"
                   }
                 </div>
               </div>
