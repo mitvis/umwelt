@@ -104,13 +104,18 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
 
   useEffect(() => {
     const nextUnitSelect = structuredClone(fieldUnitSelectValues);
+    const getUnit = (unitName: string) => {
+      return visualUnitSpecs.find(spec => spec.name === unitName) || audioUnitSpecs.find(spec => spec.name === unitName);
+    }
     fields.forEach(field => {
-      if (!nextUnitSelect[field.name] || (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any) !== visualUnitSpecs.map(unit => unit.name).includes(nextUnitSelect[field.name]))) {
+      if (!nextUnitSelect[field.name] ||
+          (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any) !== visualUnitSpecs.map(unit => unit.name).includes(nextUnitSelect[field.name])) ||
+          getUnit(nextUnitSelect[field.name]).encoding[fieldEncodingSelectValues[field.name]]?.field === field.name) {
         if (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
-          nextUnitSelect[field.name] = visualUnitSpecs[0].name;
+          nextUnitSelect[field.name] = visualUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
         }
         else if (audioPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
-          nextUnitSelect[field.name] = audioUnitSpecs[0].name;
+          nextUnitSelect[field.name] = audioUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
         }
       }
     });
@@ -335,7 +340,14 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                         <div className='def-property-add'>Add encoding:</div>
                         <select id={`${field.name}-encoding-select`} value={fieldEncodingSelectValues[field.name]} onChange={() => onSelectEncoding(field.name)}>
                           {
-                            propertyNames.filter(x => !((field.encodings?.map(e => e.property) || []).includes(x))).map(propName => {
+                            propertyNames.filter(propName => {
+                              if (visualPropNames.includes(propName as VisualPropName)) {
+                                return visualUnitSpecs.some(spec => !spec.encoding[propName]);
+                              }
+                              else if (audioPropNames.includes(propName as AudioPropName)) {
+                                return audioUnitSpecs.some(spec => !spec.encoding[propName]);
+                              }
+                            }).map(propName => {
                               return (
                                 <option value={propName}>{propName}</option>
                               )
@@ -346,7 +358,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                           visualUnitSpecs.length > 1 && visualPropNames.includes(fieldEncodingSelectValues[field.name] as VisualPropName) ? (
                             <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
                               {
-                                visualUnitSpecs.map(visualUnitSpec => {
+                                visualUnitSpecs.filter(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).map(visualUnitSpec => {
                                   return (
                                     <option value={visualUnitSpec.name}>{visualUnitSpec.name}</option>
                                   )
@@ -359,7 +371,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                           audioUnitSpecs.length > 1 && audioPropNames.includes(fieldEncodingSelectValues[field.name] as AudioPropName) ? (
                             <select id={`${field.name}-unit-select`} value={fieldUnitSelectValues[field.name]} onChange={() => onSelectUnit(field.name)}>
                               {
-                                audioUnitSpecs.map(audioUnitSpec => {
+                                audioUnitSpecs.filter(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).map(audioUnitSpec => {
                                   return (
                                     <option value={audioUnitSpec.name}>{audioUnitSpec.name}</option>
                                   )
