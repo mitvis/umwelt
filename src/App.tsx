@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import './App.css';
-import Debounce from 'react-debounce-component';
-import Umwelt from './Umwelt';
-import { umwelt, UmweltOutput, UmweltSpec } from './grammar';
+import { UmweltOutput, UmweltSpec } from './grammar';
 import JSONC from 'jsonc-simple-parser';
 import { debounce } from 'vega';
 import UmveltEditor from './UmweltEditor';

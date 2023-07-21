@@ -1,9 +1,6 @@
-import { OlliDataset, OlliValue } from 'olli';
-import { isString } from 'vega';
+import { OlliDataset } from 'olli';
 import { compile } from 'vega-lite';
-import { ElaboratedEncodingFieldDef, ElaboratedFieldDef, SelectionSpec, UmweltDataSource, UmweltSpec } from '../grammar/Types';
-import { selectionTest } from './selection';
-import { isNumeric } from './values';
+import { UmweltDataSource } from '../grammar/Types';
 import { getVegaScene } from './vega';
 
 export async function getData(spec: UmweltDataSource): Promise<OlliDataset> {
@@ -38,38 +35,38 @@ export async function getData(spec: UmweltDataSource): Promise<OlliDataset> {
   }
 }
 
-export function typeCoerceData(data: OlliDataset, fields: ElaboratedFieldDef[]): OlliDataset {
-  // convert temporal fields into date objects converts quantitative into numbers
-  const lookup = Object.fromEntries(fields.map((f) => [f.name, f.type]));
-  return data.map((datum) => {
-    return Object.fromEntries(
-      Object.entries(datum).map(([field, value]: [string, OlliValue]) => {
-        switch (lookup[field]) {
-          case 'temporal':
-            return [field, new Date(value)];
-          case 'quantitative':
-            if (isString(value) && isNumeric(String(value))) {
-              return [field, Number(value)];
-            }
-        }
-        return [field, value];
-      })
-    );
-  });
-}
+// export function typeCoerceData(data: OlliDataset, fields: ElaboratedFieldDef[]): OlliDataset {
+//   // convert temporal fields into date objects converts quantitative into numbers
+//   const lookup = Object.fromEntries(fields.map((f) => [f.name, f.type]));
+//   return data.map((datum) => {
+//     return Object.fromEntries(
+//       Object.entries(datum).map(([field, value]: [string, OlliValue]) => {
+//         switch (lookup[field]) {
+//           case 'temporal':
+//             return [field, new Date(value)];
+//           case 'quantitative':
+//             if (isString(value) && isNumeric(String(value))) {
+//               return [field, Number(value)];
+//             }
+//         }
+//         return [field, value];
+//       })
+//     );
+//   });
+// }
 
-export function getDomain(fieldDef: ElaboratedEncodingFieldDef, data: OlliDataset, selectionSpec?: SelectionSpec): OlliValue[] {
-  const unique_vals = new Set<OlliValue>();
-  const dataset = selectionSpec ? selectionTest(data, selectionSpec) : data;
-  // TODO account for domain overrides in the field def
-  dataset
-    .map((d) => d[fieldDef.field])
-    .forEach((v) => {
-      unique_vals.add(v);
-    });
-  return [...unique_vals].filter((x) => x !== null && x !== undefined).sort((a: any, b: any) => a - b);
-}
+// export function getDomain(fieldDef: ElaboratedEncodingFieldDef, data: OlliDataset, selectionSpec?: SelectionSpec): OlliValue[] {
+//   const unique_vals = new Set<OlliValue>();
+//   const dataset = selectionSpec ? selectionTest(data, selectionSpec) : data;
+//   // TODO account for domain overrides in the field def
+//   dataset
+//     .map((d) => d[fieldDef.field])
+//     .forEach((v) => {
+//       unique_vals.add(v);
+//     });
+//   return [...unique_vals].filter((x) => x !== null && x !== undefined).sort((a: any, b: any) => a - b);
+// }
 
-export function getFieldDef(field: string, fields: ElaboratedFieldDef[]): ElaboratedFieldDef {
-  return fields.find((f) => f.name === field);
-}
+// export function getFieldDef(field: string, fields: ElaboratedFieldDef[]): ElaboratedFieldDef {
+//   return fields.find((f) => f.name === field);
+// }

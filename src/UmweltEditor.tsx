@@ -1,12 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AudioEncoding, AudioPropName, AudioUnitSpec, ElaboratedUmweltDataSource, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualEncodingFieldDef, VisualPropName, VisualUnitSpec } from './grammar';
+import React, { useEffect, useState } from 'react';
+import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
 import './text/TreeStyle.css'
 import { OlliDataset } from 'olli';
 import { getData } from './utils/data';
 import { elaborateFields } from './grammar/elaborate';
-import { debounce } from 'vega';
-import { isEqual } from 'vega-lite';
-import { set } from 'vega-lite/src/log';
 
 interface EditorProps {
   initialSpec: any
@@ -200,7 +197,7 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
       };
 
       fields.forEach(fieldDef => {
-        if (!Object.values(newEncoding).find(def => def.field === fieldDef.name) && !newTraversal.find(traversal => traversal.field === fieldDef.name)) {
+        if (!Object.values(newEncoding).find((def: any) => def.field === fieldDef.name) && !newTraversal.find(traversal => traversal.field === fieldDef.name)) {
           newTraversal.push({
             field: fieldDef.name,
             mode: 'interactive',

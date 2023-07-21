@@ -2,7 +2,7 @@
   "name": "umwelt",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://mitvis.github.io/umwelt",
+  "homepage": "https://mitvis.github.io/access-interaction/prototypes/jzong/uw-editor",
   "dependencies": {
     "@json-editor/json-editor": "^2.9.1",
     "@testing-library/jest-dom": "^5.14.1",

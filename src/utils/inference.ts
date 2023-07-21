@@ -1,68 +1,67 @@
 import dayjs from 'dayjs';
-import * as cql from 'compassql';
 import { OlliDataset } from 'olli';
-import { UmweltSpec, VisualSpec, ElaboratedVisualSpec, AudioSpec, ElaboratedAudioSpec, MeasureType } from '../grammar/Types';
+import { MeasureType } from '../grammar/Types';
 
-export function recommendVisuals(spec: UmweltSpec, data: OlliDataset, partial?: Partial<VisualSpec>): ElaboratedVisualSpec {
-  const encodings = [];
-  if (partial?.encoding) {
-    const encoding = partial?.encoding;
-    if (Object.keys(encoding).includes('facet')) {
-      return partial as any; // for some reason cql barfs on facet
-    }
-    Object.keys(encoding).forEach((channel) => {
-      encodings.push({
-        channel,
-        ...(encoding as any)[channel],
-      });
-    });
-  }
-  spec.fields.forEach((fieldDef) => {
-    if (encodings.some((e) => e.field === fieldDef.name)) {
-      return;
-    }
-    let channel = '?';
-    encodings.push({
-      channel,
-      field: fieldDef.name,
-      type: fieldDef.type,
-    });
-  });
+// export function recommendVisuals(spec: UmweltSpec, data: OlliDataset, partial?: Partial<VisualSpec>): ElaboratedVisualSpec {
+//   const encodings = [];
+//   if (partial?.encoding) {
+//     const encoding = partial?.encoding;
+//     if (Object.keys(encoding).includes('facet')) {
+//       return partial as any; // for some reason cql barfs on facet
+//     }
+//     Object.keys(encoding).forEach((channel) => {
+//       encodings.push({
+//         channel,
+//         ...(encoding as any)[channel],
+//       });
+//     });
+//   }
+//   spec.fields.forEach((fieldDef) => {
+//     if (encodings.some((e) => e.field === fieldDef.name)) {
+//       return;
+//     }
+//     let channel = '?';
+//     encodings.push({
+//       channel,
+//       field: fieldDef.name,
+//       type: fieldDef.type,
+//     });
+//   });
 
-  const schema = cql.schema.build(data);
-  const query = {
-    spec: {
-      data: spec.data,
-      mark: partial?.mark || '?',
-      encodings,
-    },
-    orderBy: 'effectiveness',
-  };
-  const output = cql.recommend(query, schema);
-  const result = output.result;
-  const specs = [];
-  cql.result.mapLeaves(result, function (item) {
-    const spec = item.toSpec();
-    specs.push(spec);
-  });
-  const topVlSpec = specs[0];
-  if (topVlSpec.encoding.column) {
-    topVlSpec.encoding.facet = topVlSpec.encoding.column;
-    topVlSpec.encoding.facet.columns = 2;
-    delete topVlSpec.encoding.column;
-  }
-  return {
-    mark: topVlSpec.mark,
-    encoding: topVlSpec.encoding,
-  };
-}
+//   const schema = cql.schema.build(data);
+//   const query = {
+//     spec: {
+//       data: spec.data,
+//       mark: partial?.mark || '?',
+//       encodings,
+//     },
+//     orderBy: 'effectiveness',
+//   };
+//   const output = cql.recommend(query, schema);
+//   const result = output.result;
+//   const specs = [];
+//   cql.result.mapLeaves(result, function (item) {
+//     const spec = item.toSpec();
+//     specs.push(spec);
+//   });
+//   const topVlSpec = specs[0];
+//   if (topVlSpec.encoding.column) {
+//     topVlSpec.encoding.facet = topVlSpec.encoding.column;
+//     topVlSpec.encoding.facet.columns = 2;
+//     delete topVlSpec.encoding.column;
+//   }
+//   return {
+//     mark: topVlSpec.mark,
+//     encoding: topVlSpec.encoding,
+//   };
+// }
 
-export function recommendAudio(spec: UmweltSpec, data: OlliDataset, partial?: Partial<AudioSpec>): ElaboratedAudioSpec {
-  // TODO write some clever inference for audio encodings and traversals lol.
-  // should check for a quantitative field to assign to an encoding
-  // should use information from the visual spec, if present, to inform inferences
-  return partial as any;
-}
+// export function recommendAudio(spec: UmweltSpec, data: OlliDataset, partial?: Partial<AudioSpec>): ElaboratedAudioSpec {
+//   // TODO write some clever inference for audio encodings and traversals lol.
+//   // should check for a quantitative field to assign to an encoding
+//   // should use information from the visual spec, if present, to inform inferences
+//   return partial as any;
+// }
 
 export function typeInference(data: OlliDataset, field: string): MeasureType {
   const values = data.map((datum) => datum[field]);
