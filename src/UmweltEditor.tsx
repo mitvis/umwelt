@@ -361,7 +361,13 @@ const UmveltEditor = React.memo(({ initialSpec }: EditorProps) => {
                     field.encodings?.map(encodingRef => {
                       return (
                         <div className='field-def-encoding-ref'>
-                          <span>{encodingRef.property}</span>
+                          <span>{encodingRef.property}{
+                            visualPropNames.includes(encodingRef.property as any) ? (
+                              visualUnitSpecs.length > 1 ? ` (${encodingRef.unit})` : null
+                            ) : audioPropNames.includes(encodingRef.property as any) ? (
+                              audioUnitSpecs.length > 1 ? ` (${encodingRef.unit})` : null
+                            ) : null
+                          }</span>
                           <button id={`field-${field.name}-${encodingRef.property}`} onClick={() => jumpToEncodingRef(encodingRef)}>Go to full definition</button>
                         </div>
                       )
