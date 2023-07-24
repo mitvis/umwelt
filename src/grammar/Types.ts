@@ -2,11 +2,12 @@ import { Type } from 'vega-lite/src/type';
 import { UrlData, InlineData } from 'vega-lite/src/data';
 import { Mark } from 'vega-lite/src/mark';
 import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
-import { OlliDataset, OlliNode, OlliValue } from 'olli';
-import { FieldPredicate } from 'vega-lite/src/predicate';
-import { LogicalComposition } from 'vega-lite/src/logical';
+import { OlliNode, OlliValue } from 'olli';
 import { Spec } from 'vega';
 import { TopLevelUnitSpec } from 'vega-lite/src/spec/unit';
+import { Sort } from 'vega-lite/src/sort';
+import { LogicalComposition } from 'vega-lite/src/logical';
+import { FieldPredicate } from 'vega-lite/src/predicate';
 
 export type VlSpec = TopLevelUnitSpec<any>;
 export type VgSpec = Spec;
@@ -21,8 +22,9 @@ type ScaleRange = {
 }; //  | "reverse"
 
 export type MeasureType = Exclude<Type, 'geojson'>;
-type UmweltDataSource = UrlData | InlineData;
-type ElaboratedUmweltDataSource = { values: OlliDataset };
+export type UmweltDataSource = UrlData | InlineData;
+
+export type UmweltPredicate = LogicalComposition<FieldPredicate>;
 
 export type VisualPropName = 'x' | 'y' | 'color' | 'opacity' | 'shape' | 'detail' | 'facet' | 'row' | 'column';
 export type AudioPropName = 'pitch' | 'duration' | 'volume';
@@ -32,106 +34,133 @@ export type AudioAggregateOp = 'count' | 'mean'; // | "median" | "min" | "max"; 
 
 type FieldName = string;
 
-export interface ElaboratedFieldDef {
-  name: FieldName;
-  type: MeasureType;
-  scale?: ScaleDomain;
+export interface FieldRef {
+  field: FieldName;
+}
+
+export interface ValueRef {
+  value: OlliValue;
+}
+
+export interface EncodingRef {
+  property: EncodingPropName;
+  unit: string;
 }
 
 export interface FieldDef {
   name: FieldName;
   type?: MeasureType;
+  encodings?: EncodingRef[];
+  //
   scale?: ScaleDomain;
+  timeUnit?: string;
+  aggregate?: NonArgAggregateOp;
+  bin?: boolean;
+  sort?: Sort<any>;
 }
 
-export interface EncodingFieldDef extends Omit<FieldDef, 'name'> {
+export interface VisualEncodingFieldDef {
   field: FieldName;
+  //
   scale?: ScaleDomain & ScaleRange;
+  timeUnit?: string;
   aggregate?: NonArgAggregateOp;
   bin?: boolean;
+  sort?: Sort<any>;
 }
 
-export interface ElaboratedEncodingFieldDef extends Omit<ElaboratedFieldDef, 'name'> {
+export interface AudioEncodingFieldDef {
   field: FieldName;
-  scale: ScaleDomain & ScaleRange;
+  //
+  scale?: ScaleDomain & ScaleRange;
+  timeUnit?: string;
   aggregate?: NonArgAggregateOp;
+  sort?: Sort<any>;
+  // bin: undefined;
+}
+
+export type AudioTraversalMode = 'interactive' | 'sequential';
+
+export interface AudioTraversalFieldDef {
+  field: FieldName;
+  mode: AudioTraversalMode;
+  //
+  scale?: ScaleDomain & ScaleRange;
+  timeUnit?: string;
   bin?: boolean;
-}
-
-export interface AudioEncodingFieldDef extends EncodingFieldDef {
-  bin: undefined;
-}
-
-export interface AudioTraversalFieldDef extends EncodingFieldDef {
-  aggregate: undefined;
-}
-
-export interface ElaboratedAudioEncodingFieldDef extends ElaboratedEncodingFieldDef {
-  bin: undefined;
-}
-
-export interface ElaboratedAudioTraversalFieldDef extends ElaboratedEncodingFieldDef {
-  aggregate: undefined;
+  // aggregate: undefined;
 }
 
 export type VisualEncoding = {
-  [prop in VisualPropName]?: FieldName | EncodingFieldDef;
+  [prop in VisualPropName]?: VisualEncodingFieldDef;
 };
 
-export type ElaboratedVisualEncoding = {
-  [prop in VisualPropName]?: ElaboratedEncodingFieldDef;
-};
-
-export type VisualSpec = {
-  mark?: Mark;
-  encoding?: VisualEncoding;
-};
-
-export type ElaboratedVisualSpec = {
+export type VisualUnitSpec = {
+  name: string;
   mark: Mark;
-  encoding: ElaboratedVisualEncoding;
+  encoding: VisualEncoding;
 };
 
 export type AudioEncoding = {
-  [prop in AudioPropName]?: FieldName | AudioEncodingFieldDef;
+  [prop in AudioPropName]?: AudioEncodingFieldDef;
 };
 
-export type ElaboratedAudioEncoding = {
-  [prop in AudioPropName]?: ElaboratedAudioEncodingFieldDef;
+export type AudioTraversal = AudioTraversalFieldDef[];
+
+export type AudioUnitSpec = {
+  name: string;
+  encoding: AudioEncoding;
+  traversal: AudioTraversal;
 };
 
-export type AudioTraversal = (FieldName | AudioTraversalFieldDef) | (FieldName | AudioTraversalFieldDef)[];
+export interface AudioEncodingSelectionTarget {
+  property: AudioPropName;
+  aggregate?: AudioAggregateOp;
+}
 
-export type ElaboratedAudioTraversal = ElaboratedAudioTraversalFieldDef[];
+export interface VisualEncodingSelectionTarget {
+  property: VisualPropName;
+  selected: FieldRef | ValueRef;
+  unselected: ValueRef;
+}
 
-export type AudioSpec = {
-  encoding?: AudioEncoding;
-  traversal?: AudioTraversal | 'selection';
-};
+export interface DomainSelectionTarget {
+  target: 'text-domain' | 'visual-domain';
+  rescale?: boolean;
+}
 
-export type ElaboratedAudioSpec = {
-  encoding: ElaboratedAudioEncoding;
-  traversal: ElaboratedAudioTraversal | 'selection';
-};
+export type SelectionTarget = AudioEncodingSelectionTarget | VisualEncodingSelectionTarget | DomainSelectionTarget;
 
 export interface SelectionSpec {
-  predicate: LogicalComposition<FieldPredicate>;
+  targets: SelectionTarget[];
+}
+
+export interface LayerViewComposition {
+  layer: string[];
+}
+
+export interface ConcatViewComposition {
+  concat: ViewComposition[];
+  direction: 'horizontal' | 'vertical';
+}
+
+export type ViewComposition = LayerViewComposition | ConcatViewComposition | string;
+
+export interface VisualSpec {
+  units: VisualUnitSpec[];
+  composition?: ViewComposition;
+}
+
+export interface AudioSpec {
+  units: AudioUnitSpec[];
+  composition?: ViewComposition;
 }
 
 export interface UmweltSpec {
   data: UmweltDataSource;
-  selection?: SelectionSpec;
   fields: FieldDef[];
-  visual?: VisualSpec | boolean;
-  audio?: AudioSpec | AudioSpec[] | boolean;
-  text?: OlliNode | OlliNode[] | boolean;
-}
-
-export interface ElaboratedUmweltSpec {
-  data: ElaboratedUmweltDataSource;
-  selection?: SelectionSpec;
-  fields: ElaboratedFieldDef[];
-  visual: ElaboratedVisualSpec | false;
-  audio: ElaboratedAudioSpec[] | false;
+  visual: VisualSpec | false;
+  audio: AudioSpec | false;
   text: OlliNode | OlliNode[] | boolean;
+  selection?: SelectionSpec;
 }

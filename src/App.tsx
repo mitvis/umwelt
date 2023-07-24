@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import './App.css';
 import Debounce from 'react-debounce-component';
+import { OlliDataset } from 'olli';
 import Umwelt from './Umwelt';
-import { umwelt, UmweltOutput, UmweltSpec } from './grammar';
-import JSONC from 'jsonc-simple-parser';
-import { debounce } from 'vega';
-import UmveltEditor from './UmweltEditor';
+import { UmweltSpec } from './grammar';
+import UmweltEditor from './UmweltEditor';
 
 function App() {
 
@@ -30,82 +29,45 @@ function App() {
     // useState("barley-facet-agg.uw.json");
     // useState("connected-scatterplot.uw.json");
 
-  const [textValue, setTextValue] = useState("");
-  const [specValue, setSpecValue] = useState<UmweltSpec>();
-  const [props, setProps] = useState<UmweltOutput>(null);
+  const [props, setProps] = useState<{spec: UmweltSpec, data: OlliDataset}>(null);
 
-  useEffect(() => {
-    const spec = specs[selectedSpec];
-    setTextValue(JSON.stringify(spec, null, 2));
-  }, [selectedSpec]);
-
-  const onTextValue = useCallback(debounce(250, (textValue) => {
-    try {
-      const spec = JSONC.parse(textValue);
-      setSpecValue(spec);
-    }
-    catch (e) {}
-  }), []);
-
-  useEffect(() => {
-    onTextValue(textValue);
-  }, [textValue]);
-
-  useEffect(() => {
-    if (specValue) {
-      umwelt(specValue).then((props) => {
-        setProps(props);
-      });
-    }
-  }, [specValue]);
-
-  function printableUwspec() {
-    if (props) {
-      const { data, ...uwspec } = props.uwSpec;
-      return JSON.stringify(uwspec, null, 2);
-    }
-    return null;
-  }
+  const onSpec = useCallback((spec: UmweltSpec, data: OlliDataset) => {
+    setProps({spec, data});
+  }, []);
 
   return (
     <div className="App">
-      <div className="column">
-        <div style={{fontWeight: 'bold'}}>User-provided spec</div>
-        <div>
-        Choose spec: <select onChange={(e) => setSelectedSpec(e.target.value)} value={selectedSpec}>
-          {
-            Object.keys(specs).map(spec => {
-              return <option key={spec} value={spec}>{spec.substring(0, spec.indexOf('.uw.json'))}</option>
-            })
-          }
-        </select>
-        </div><br/>
-        <textarea
-            value={textValue}
-            onChange={(e) => {setTextValue(e.target.value)}}
-        />
-        <div className="logo" aria-hidden="true">
-          <img src='/umwelt/umwelt.svg' />
-        </div>
+      <div className="logo" aria-hidden="true">
+        <img src='/umwelt/umwelt.svg' />
       </div>
-      {/* <div className='column'>
-        <div style={{fontWeight: 'bold'}}>Elaborated spec (defaults filled in)</div>
-        <div>Read only</div><br/>
-        <textarea
-          value={printableUwspec()}
-          readOnly={true}
-        />
-      </div> */}
-      <div className='column' style={{flex: 2}}>
+      <div className="column">
         <div>
-          <div style={{fontWeight: 'bold'}}>Umwelt</div>
+          Choose spec: <select onChange={(e) => setSelectedSpec(e.target.value)} value={selectedSpec}>
+            {
+              Object.keys(specs).map(spec => {
+                return <option key={spec} value={spec}>{spec.substring(0, spec.indexOf('.uw.json'))}</option>
+              })
+            }
+          </select>
         </div>
+        <UmweltEditor initialSpec={specs[selectedSpec]} onSpec={onSpec} />
+
+
+      </div>
+      <div className='column'>
         <Debounce ms={250}>
           {
             props ? (
-              <Umwelt {...props} />
+              <pre>
+                {JSON.stringify(props.spec, null, 2)}
+              </pre>
             ) : null
           }
+          {/* {
+            props ? (
+              <Umwelt {...props} />
+            ) : null
+          } */}
         </Debounce>
       </div>
     </div>

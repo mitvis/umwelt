@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import useState from 'react-usestateref';
-import { ElaboratedUmweltSpec, SelectionSpec, VlSpec } from './grammar';
-import { selectionStoreToSelectionSpec, selectionTest } from './utils/selection';
-import UmweltAudio, {  } from './UmweltAudio';
+import { UmweltPredicate, UmweltSpec } from './grammar';
+import { selectionStoreToSelection } from './utils/selection';
+import UmweltAudio from './UmweltAudio';
 import { debounce } from 'vega';
 import React from 'react';
-import { OlliDataset, OlliSpec } from 'olli';
 import UmweltVegaLite from './UmweltVegaLite';
 import { LogicalAnd } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
@@ -14,40 +13,29 @@ import UmweltOlli from './UmweltOlli';
 export type SelectionCtrl = 'vl' | 'audio' | 'olli-nav' | 'olli-int' | 'spec';
 
 interface RenderProps {
-  data: OlliDataset,
-  vlSpec: VlSpec,
-  olliSpec: OlliSpec,
-  uwSpec: ElaboratedUmweltSpec
+  uwSpec: UmweltSpec
 }
 
-const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
+const Umwelt = React.memo(({ uwSpec }: RenderProps) => {
 
-  const [selectionSpec, _setSelectionSpec] = useState<SelectionSpec>(uwSpec.selection);
-  const setSelectionSpec = useCallback(debounce(50, _setSelectionSpec), []);
+  const [selection, _setSelection] = useState<UmweltPredicate>();
+  const setSelection = useCallback(debounce(50, _setSelection), []);
   const [_selectionCtrl, setSelectionCtrl, selectionCtrl] = useState<SelectionCtrl>('spec');
   const [_selectionCtrlResolve, setSelectionCtrlResolve, selectionCtrlResolve] = useState<SelectionCtrl>();
-  const container = useRef();
 
   /* ********************** initialize state *********************** */
 
   useEffect(() => {
-    // initialize selections
-    setSelectionCtrl('spec');
-    if (uwSpec && uwSpec.selection) {
-      setSelectionSpec(uwSpec.selection);
-    }
-    else {
-      setSelectionSpec(undefined);
-    }
-
+    // initialize
+    // TODO
   }, [uwSpec]);
 
   /* *********** define listeners to update selection state from children ************ */
 
-  const onAudioState = useCallback((selectionSpec: SelectionSpec) => {
+  const onAudioState = useCallback((predicate: UmweltPredicate) => {
     // update umwelt selection from audio state
     setSelectionCtrl('audio');
-    setSelectionSpec(selectionSpec);
+    setSelection(predicate);
   }, []);
 
   // const onFocus = useCallback(getOnFocus(vlSpec, (field, value) => {
@@ -71,37 +59,37 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
     }
     else {
       setSelectionCtrl('olli-nav');
-      setSelectionSpec({predicate});
+      setSelection(predicate);
     }
-  }, [setSelectionCtrl, setSelectionSpec]);
+  }, [setSelectionCtrl, setSelection]);
 
   const onTextFilterPred = useCallback((predicate: LogicalAnd<FieldPredicate>) => {
     setSelectionCtrl('olli-int');
-    setSelectionSpec({predicate});
+    setSelection(predicate);
     setSelectionCtrlResolve('olli-int');
-  }, [setSelectionCtrl, setSelectionSpec]);
+  }, [setSelectionCtrl, setSelection]);
 
 
   const onVegaLiteSelection = useCallback((store) => {
     // update uv selection from vl store
-    const spec = selectionStoreToSelectionSpec(store);
-    setSelectionSpec(spec);
+    const spec = selectionStoreToSelection(store);
+    setSelection(spec);
     setSelectionCtrl('vl');
   }, []);
 
   /* ***************** write the selection state into all the renders **************************** */
 
   return (
-    <div className='umwelt' ref={container}>
-      <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} selectionSpec={selectionSpec} fields={uwSpec.fields} ></UmweltVegaLite>
+    <div className='umwelt'>
+      <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} selectionSpec={selection} fields={uwSpec.fields} ></UmweltVegaLite>
       <br/>
 
-      <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} setSelectionCtrlResolve={setSelectionCtrlResolve} selectionSpec={selectionSpec} onTextNavPred={onTextNavPred} onTextFilterPred={onTextFilterPred}></UmweltOlli>
+      <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} setSelectionCtrlResolve={setSelectionCtrlResolve} selectionSpec={selection} onTextNavPred={onTextNavPred} onTextFilterPred={onTextFilterPred}></UmweltOlli>
 
       <br/>
 
       {
-        uwSpec.audio ? <UmweltAudio audio={uwSpec.audio} fields={uwSpec.fields} data={data} onAudioState={onAudioState} selectionSpec={selectionSpec} selectionCtrl={selectionCtrl.current}></UmweltAudio> : null
+        uwSpec.audio ? <UmweltAudio audio={uwSpec.audio} fields={uwSpec.fields} data={data} onAudioState={onAudioState} selectionSpec={selection} selectionCtrl={selectionCtrl.current}></UmweltAudio> : null
       }
       <br/>
       <div>
@@ -120,7 +108,7 @@ const Umwelt = React.memo(({ data, vlSpec, olliSpec, uwSpec }: RenderProps) => {
         selectionCtrl: {selectionCtrl.current}
       </pre>
       <pre>
-        {JSON.stringify(selectionSpec, null, 2)}
+        {JSON.stringify(selection, null, 2)}
       </pre>
       {/* <pre id="pred-out">
         {JSON.stringify(uvSpec.text, null, 2)}

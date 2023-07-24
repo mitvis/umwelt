@@ -1,15 +1,14 @@
 import { OlliDataset, OlliValue } from 'olli';
 import { isString } from 'vega';
 import { compile } from 'vega-lite';
-import { ElaboratedEncodingFieldDef, ElaboratedFieldDef, SelectionSpec, UmweltSpec } from '../grammar/Types';
+import { SelectionSpec, UmweltDataSource } from '../grammar/Types';
 import { selectionTest } from './selection';
 import { isNumeric } from './values';
 import { getVegaScene } from './vega';
 
-export async function getData(spec: UmweltSpec): Promise<OlliDataset> {
-  const data = structuredClone(spec.data) as any;
-
-  if (data.url) {
+export async function getData(spec: UmweltDataSource): Promise<OlliDataset> {
+  const data = structuredClone(spec) as any;
+  if ('url' in data) {
     if (data.url.startsWith('/')) {
       data.url = 'https://mitvis.github.io/umwelt' + data.url;
     } else if (data.url.startsWith('data/')) {
@@ -34,7 +33,8 @@ export async function getData(spec: UmweltSpec): Promise<OlliDataset> {
 
     return dataset;
   } catch (error) {
-    throw new Error(`No data found in the Vega scenegraph \n ${error}`);
+    console.warn(`No data found in the Vega scenegraph \n ${error}`);
+    return [];
   }
 }
 

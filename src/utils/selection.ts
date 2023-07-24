@@ -2,7 +2,7 @@ import { OlliDataset, OlliDatum, OlliValue } from 'olli';
 import { isDate, toNumber, isArray, inrange } from 'vega';
 import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
 import { FieldPredicate, FieldEqualPredicate, FieldLTPredicate, FieldGTPredicate, FieldLTEPredicate, FieldGTEPredicate, FieldRangePredicate, FieldOneOfPredicate, FieldValidPredicate } from 'vega-lite/src/predicate';
-import { SelectionSpec } from '../grammar/Types';
+import { UmweltPredicate } from '../grammar/Types';
 
 const TYPE_ENUM = 'E',
   TYPE_RANGE_INC = 'R',
@@ -58,7 +58,7 @@ export const tupleTypeToPredicate = (type: string) => {
   return 'equal'; // shrug
 };
 
-export function selectionStoreToSelectionSpec(store): SelectionSpec {
+export function selectionStoreToSelection(store): UmweltPredicate {
   if (store.length) {
     const tuple = store[0];
     const and: FieldPredicate[] = tuple.fields.map((f, idx) => {
@@ -71,17 +71,13 @@ export function selectionStoreToSelectionSpec(store): SelectionSpec {
     });
     if (and.length > 1) {
       return {
-        predicate: {
-          and,
-        },
+        and,
       };
     } else {
-      return {
-        predicate: and[0],
-      };
+      return and[0];
     }
   } else {
-    return { predicate: { and: [] } };
+    return { and: [] };
   }
 }
 
@@ -136,9 +132,9 @@ export function predicateToSelectionStore(predicate: LogicalComposition<FieldPre
   }
 }
 
-export function selectionTest(data: OlliDataset, selectionSpec: SelectionSpec): OlliDataset {
+export function selectionTest(data: OlliDataset, predicate: UmweltPredicate): OlliDataset {
   try {
-    const store = predicateToSelectionStore(selectionSpec.predicate);
+    const store = predicateToSelectionStore(predicate);
     if (!store) return data;
     return data.filter((datum) => {
       return testPoint(datum, store);
