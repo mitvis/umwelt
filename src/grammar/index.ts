@@ -115,7 +115,7 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
         }
       } else {
         return {
-          vconcat: units.map((unit) => {
+          layer: units.map((unit) => {
             return compileUnits({
               ...spec,
               visual: {
@@ -142,16 +142,17 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
   }
 
   const condition = (encoding, paramName, value, empty?) => {
-    const condition = { param: paramName, empty: empty || true, ...encoding };
-    return {
-      condition,
-      value,
-    };
+    // const condition = { param: paramName, empty: empty || true, ...encoding };
+    // return {
+    //   condition,
+    //   value,
+    // };
+    return encoding; // TODO
   };
 
   return {
     data: { values: data },
-    params,
+    // params, // TODO
     ...compileUnits(spec),
   };
 }

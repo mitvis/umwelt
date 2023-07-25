@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { AudioEncoding, AudioPropName, AudioTraversalFieldDef, AudioTraversalMode, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
-import './text/TreeStyle.css'
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
 import { elaborateFields } from './grammar/elaborate';
 import { UrlData } from 'vega-lite/src/data';
-import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
+
+import './UmweltEditor.css'
 
 interface EditorProps {
   initialSpec: UmweltSpec;
@@ -182,7 +182,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     });
   }
 
-  const onSelectEncodingAggregate = (unit: VisualUnitSpec | AudioUnitSpec, propName: string, aggregate: 'None' | NonArgAggregateOp) => {
+  const onSelectEncodingAggregate = (unit: VisualUnitSpec | AudioUnitSpec, propName: string, aggregate: string) => {
     const newEncoding = structuredClone(unit.encoding);
     if (aggregate === 'None') {
       delete newEncoding[propName].aggregate;
@@ -208,7 +208,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }
   }
 
-  const onSelectFieldTimeUnit = (field, timeUnit) => {
+  const onSelectFieldTimeUnit = (field: FieldDef, timeUnit: string) => {
     const newFields = fields.map(f => {
       if (f.name === field.name) {
         if (timeUnit === 'None') {
@@ -723,7 +723,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             <div className='def-property'>
                               <label>
                                 Aggregate
-                                <select value={propValue.aggregate}>
+                                <select value={propValue.aggregate} onChange={(e) => onSelectEncodingAggregate(audioUnitSpec, propName, e.target.value)}>
                                   <option value=''>None</option>
                                   {
                                     aggregateOps.map(aggregateOp => {
@@ -860,7 +860,3 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 });
 
 export default UmweltEditor;
-
-function useCallback(arg0: () => UmweltSpec, arg1: undefined[]) {
-  throw new Error('Function not implemented.');
-}

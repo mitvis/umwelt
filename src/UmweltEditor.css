@@ -1,0 +1,52 @@
+.uw-structured-editor button {
+  margin: 0 3px;
+}
+
+.field-def, .enc-def {
+  margin-bottom: 2em;
+}
+
+.def-name {
+  margin-bottom: 0.6em;
+}
+
+.def-property {
+  margin-bottom: 0.3em;
+}
+
+.def-property-label {
+  display: inline-block;
+  width: 22%;
+}
+
+.def-property-col {
+  display: inline-block;
+  vertical-align: top;
+  width: 77%;
+}
+.def-property span {
+  display: inline-block;
+  width: 150px;
+}
+
+.def-property label select {
+  margin-left: 0.3em;
+}
+
+.field-def-encoding-ref {
+  margin-bottom: 0.3em;
+}
+
+.def-property-add {
+  font-size: 0.8em;
+}
+
+.encoding-name {
+  margin-top: 0;
+  margin-bottom: 0.3em;
+  font-size: 1em;
+}
+
+.unit-spec {
+  margin-bottom: 1em;
+}
