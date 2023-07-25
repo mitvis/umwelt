@@ -26,8 +26,8 @@ export function renderVegaLite(vlSpec: VlSpec, domSelector: string) {
       }
       return signal;
     })
-    .filter((signal, idx) => {
-      return vgSpec.signals.findIndex((s) => s.name === signal.name) === idx;
+    .filter((signal, idx, self) => {
+      return self.findIndex((s) => s.name === signal.name) === idx;
     });
   if ('mark' in vlSpec && (vlSpec.mark as any).type === 'line' && (vlSpec.mark as any).point) {
     // TODO non-unit specs

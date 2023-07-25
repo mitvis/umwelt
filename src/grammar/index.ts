@@ -1,38 +1,8 @@
 import { UmweltSpec, VlSpec } from './Types';
 import { VegaLiteAdapter } from 'olli-adapters';
 import { OlliSpec, OlliDataset } from 'olli';
-import { elaborate, elaborateFields } from './elaborate';
-import { getData, typeCoerceData } from '../utils/data';
 
 export * from './Types';
-
-export interface UmweltOutput {
-  data: OlliDataset;
-  vlSpec: VlSpec;
-  olliSpec: OlliSpec;
-  uwSpec: UmweltSpec;
-}
-
-export async function umwelt(spec: UmweltSpec): Promise<UmweltOutput> {
-  const data = await getData(spec.data);
-
-  const elaboratedFields = elaborateFields(spec.fields, data);
-  const niceData = typeCoerceData(data, elaboratedFields);
-
-  const elaboratedSpec = elaborate(spec, niceData, elaboratedFields);
-
-  console.log('elaborated', elaboratedSpec);
-
-  const vlSpec = umweltToVegaLiteSpec(elaboratedSpec);
-  const olliSpec = await umweltToOlliSpec(elaboratedSpec, vlSpec);
-
-  return {
-    data: niceData,
-    vlSpec,
-    olliSpec,
-    uwSpec: elaboratedSpec,
-  };
-}
 
 export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpec {
   if (spec.visual === false || spec.visual.units.length === 0) {
@@ -78,13 +48,18 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
       const op = spec.visual.composition || 'layer';
       return {
         columns: op === 'concat' ? (units.length < 3 ? 1 : 2) : undefined,
-        [op]: units.map((unit) => {
-          return compileUnits({
+        [op]: units.map((unit, idx) => {
+          const compiled = compileUnits({
             ...spec,
             visual: {
               units: [unit],
+              composition: op,
             },
           });
+          if (idx === 0) {
+            compiled['params'] = params;
+          }
+          return compiled;
         }),
       };
     }
@@ -104,31 +79,39 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
   }
 
   const condition = (encoding, paramName, value, empty?) => {
-    // const condition = { param: paramName, empty: empty || true, ...encoding };
-    // return {
-    //   condition,
-    //   value,
-    // };
-    return encoding; // TODO
+    const condition = { param: paramName, empty: empty || true, ...encoding };
+    return {
+      condition,
+      value,
+    };
+    // return encoding; // TODO
   };
 
-  return {
-    data: { values: data },
-    // params, // TODO
-    ...compileUnits(spec),
-  };
+  const compiled = compileUnits(spec);
+  if ('mark' in compiled) {
+    return {
+      data: { values: data },
+      params,
+      ...compiled,
+    };
+  } else {
+    return {
+      data: { values: data },
+      ...compiled,
+    };
+  }
 }
 
-export async function umweltToOlliSpec(spec: ElaboratedUmweltSpec, vlSpec: VlSpec): Promise<OlliSpec> {
+export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec): Promise<OlliSpec> {
   if (spec.text === false) return null;
-  const olliSpec = await VegaLiteAdapter(vlSpec as any);
-  olliSpec.fields = spec.fields.map((fieldDef) => {
-    const { name, ...rest } = fieldDef;
-    return {
-      ...rest,
-      field: fieldDef.name,
-    };
-  });
+  const olliSpec: OlliSpec = await VegaLiteAdapter(vlSpec as any);
+  // olliSpec.fields = spec.fields.map((fieldDef) => {
+  //   const { name, ...rest } = fieldDef;
+  //   return {
+  //     ...rest,
+  //     field: fieldDef.name,
+  //   };
+  // });
   if (spec.text !== true) {
     olliSpec.structure = spec.text;
   }

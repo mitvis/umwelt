@@ -1,7 +1,7 @@
 import { OlliGlobalState, OlliSpec, olli } from 'olli';
 import React, { useRef } from 'react';
 import { useEffect } from 'react';
-import { SelectionSpec } from './grammar';
+import { UmweltPredicate } from './grammar';
 import { SelectionCtrl } from './Umwelt';
 import { LogicalAnd } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
@@ -11,11 +11,11 @@ interface UmweltOlliProps {
   onTextNavPred: (predicate: LogicalAnd<FieldPredicate>) => void;
   onTextFilterPred: (predicate: LogicalAnd<FieldPredicate>) => void;
   selectionCtrl: SelectionCtrl,
-  selectionSpec: SelectionSpec
+  selection: UmweltPredicate
   setSelectionCtrlResolve: any
 }
 
-const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, selectionCtrl, selectionSpec, setSelectionCtrlResolve }: UmweltOlliProps) => {
+const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, selectionCtrl, selection, setSelectionCtrlResolve }: UmweltOlliProps) => {
 
   const currentOlliSpec = useRef<OlliSpec>();
 
@@ -39,12 +39,12 @@ const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, sele
 
   useEffect(() => {
     if (selectionCtrl === 'vl') {
-      if ('field' in selectionSpec.predicate || 'and' in selectionSpec.predicate) {
+      if ('field' in selection || 'and' in selection) {
         setSelectionCtrlResolve('vl');
-        ((window as any)._olli as OlliGlobalState).instancesOnPage[0].setSelection(selectionSpec.predicate);
+        ((window as any)._olli as OlliGlobalState).instancesOnPage[0].setSelection(selection);
       }
     }
-  }, [selectionSpec, selectionCtrl])
+  }, [selection, selectionCtrl])
 
   if (!olliSpec) return null;
 
@@ -53,7 +53,7 @@ const UmweltOlli = React.memo(({ olliSpec, onTextNavPred, onTextFilterPred, sele
     </div>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.olliSpec === nextProps.olliSpec && prevProps.selectionSpec === nextProps.selectionSpec;
+  return prevProps.olliSpec === nextProps.olliSpec && prevProps.selection === nextProps.selection;
 });
 
 export default UmweltOlli;

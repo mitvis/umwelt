@@ -188,10 +188,10 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   const onSelectComposition = (which: 'visual' | 'audio', composition: string) => {
     if (which === 'visual') {
-      setVisualComposition(composition);
+      setVisualComposition(composition as ViewComposition);
     }
     else if (which === 'audio') {
-      setAudioComposition(composition);
+      setAudioComposition(composition as ViewComposition);
     }
   }
 

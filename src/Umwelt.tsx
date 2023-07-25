@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import useState from 'react-usestateref';
-import { UmweltPredicate, UmweltSpec, VlSpec, umweltToVegaLiteSpec } from './grammar';
+import { UmweltPredicate, UmweltSpec, VlSpec, umweltToOlliSpec, umweltToVegaLiteSpec } from './grammar';
 import { selectionStoreToSelection } from './utils/selection';
 import UmweltAudio from './UmweltAudio';
 import { debounce } from 'vega';
@@ -9,7 +9,7 @@ import UmweltVegaLite from './UmweltVegaLite';
 import { LogicalAnd } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 import UmweltOlli from './UmweltOlli';
-import { OlliDataset } from 'olli';
+import { OlliDataset, OlliSpec } from 'olli';
 
 export type SelectionCtrl = 'vl' | 'audio' | 'olli-nav' | 'olli-int' | 'spec';
 
@@ -25,6 +25,7 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
   const [_selectionCtrl, setSelectionCtrl, selectionCtrl] = useState<SelectionCtrl>('spec');
   const [_selectionCtrlResolve, setSelectionCtrlResolve, selectionCtrlResolve] = useState<SelectionCtrl>();
   const [vlSpec, setVlSpec] = useState<VlSpec>();
+  const [olliSpec, setOlliSpec] = useState<OlliSpec>();
 
   /* ********************** initialize state *********************** */
 
@@ -32,7 +33,12 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
     const vlSpec = umweltToVegaLiteSpec(spec, data);
     console.log(vlSpec);
     setVlSpec(vlSpec);
-    // const olliSpec = await umweltToOlliSpec(elaboratedSpec, vlSpec);
+
+    async function generateOlli() {
+      const olliSpec = await umweltToOlliSpec(spec, vlSpec);
+      setOlliSpec(olliSpec);
+    }
+    generateOlli();
   }, [spec]);
 
   /* *********** define listeners to update selection state from children ************ */
@@ -71,6 +77,9 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
   /* ***************** write the selection state into all the renders **************************** */
 
   function printable(object) {
+    if (Array.isArray(object)) {
+      return object.map(printable);
+    }
     const copy = Object.assign({}, object);
     delete copy['data'];
     return copy;
@@ -79,13 +88,19 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
   return (
     <div className='umwelt'>
       <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} selection={selection} fields={spec.fields} ></UmweltVegaLite>
+
+      <br/>
+
+      <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} setSelectionCtrlResolve={setSelectionCtrlResolve} selection={selection} onTextNavPred={onTextNavPred} onTextFilterPred={onTextFilterPred}></UmweltOlli>
+
+      <pre>
+        {JSON.stringify(printable(olliSpec), null, 2)}
+      </pre>
+
       <pre>
         {JSON.stringify(printable(vlSpec), null, 2)}
       </pre>
-      <br/>
 {/*
-      <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} setSelectionCtrlResolve={setSelectionCtrlResolve} selectionSpec={selection} onTextNavPred={onTextNavPred} onTextFilterPred={onTextFilterPred}></UmweltOlli>
-
       <br/>
 
       {
