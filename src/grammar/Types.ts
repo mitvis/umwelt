@@ -135,25 +135,16 @@ export interface SelectionSpec {
   targets: SelectionTarget[];
 }
 
-export interface LayerViewComposition {
-  layer: LayerViewComposition[] | string[];
-}
-
-export interface ConcatViewComposition {
-  concat: ViewComposition[];
-  direction: 'horizontal' | 'vertical';
-}
-
-export type ViewComposition = LayerViewComposition | ConcatViewComposition;
+export type ViewComposition = 'layer' | 'concat';
 
 export interface VisualSpec {
   units: VisualUnitSpec[];
-  composition?: ViewComposition;
+  composition: ViewComposition;
 }
 
 export interface AudioSpec {
   units: AudioUnitSpec[];
-  composition?: ViewComposition;
+  composition: ViewComposition;
 }
 
 export interface UmweltSpec {

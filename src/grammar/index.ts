@@ -2,8 +2,7 @@ import { UmweltSpec, VlSpec } from './Types';
 import { VegaLiteAdapter } from 'olli-adapters';
 import { OlliSpec, OlliDataset } from 'olli';
 import { elaborate, elaborateFields } from './elaborate';
-import { getData, getFieldDef, typeCoerceData } from '../utils/data';
-import { NonNormalizedSpec } from 'vega-lite/src/spec';
+import { getData, typeCoerceData } from '../utils/data';
 
 export * from './Types';
 
@@ -76,55 +75,18 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
         },
       };
     } else if (units.length > 1) {
-      if (spec.visual.composition) {
-        if ('layer' in spec.visual.composition) {
-          return {
-            layer: spec.visual.composition.layer.map((view) => {
-              if (typeof view === 'string' || view instanceof String) {
-                const unit = units.find((unit) => unit.name === view);
-                return compileUnits({
-                  ...spec,
-                  visual: {
-                    units: [unit],
-                  },
-                });
-              } else {
-                return compileUnits({
-                  ...spec,
-                  visual: {
-                    units: units,
-                    composition: view,
-                  },
-                });
-              }
-            }),
-          };
-        } else if ('concat' in spec.visual.composition) {
-          const op = spec.visual.composition.direction === 'horizontal' ? 'hconcat' : 'vconcat';
-          return {
-            [op]: spec.visual.composition.concat.map((view) => {
-              return compileUnits({
-                ...spec,
-                visual: {
-                  units: units,
-                  composition: view,
-                },
-              });
-            }),
-          };
-        }
-      } else {
-        return {
-          layer: units.map((unit) => {
-            return compileUnits({
-              ...spec,
-              visual: {
-                units: [unit],
-              },
-            });
-          }),
-        };
-      }
+      const op = spec.visual.composition || 'layer';
+      return {
+        columns: op === 'concat' ? (units.length < 3 ? 1 : 2) : undefined,
+        [op]: units.map((unit) => {
+          return compileUnits({
+            ...spec,
+            visual: {
+              units: [unit],
+            },
+          });
+        }),
+      };
     }
   }
 

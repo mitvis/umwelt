@@ -78,10 +78,10 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
   return (
     <div className='umwelt'>
+      <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} selection={selection} fields={spec.fields} ></UmweltVegaLite>
       <pre>
         {JSON.stringify(printable(vlSpec), null, 2)}
       </pre>
-      <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} selection={selection} fields={spec.fields} ></UmweltVegaLite>
       <br/>
 {/*
       <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} setSelectionCtrlResolve={setSelectionCtrlResolve} selectionSpec={selection} onTextNavPred={onTextNavPred} onTextFilterPred={onTextFilterPred}></UmweltOlli>
