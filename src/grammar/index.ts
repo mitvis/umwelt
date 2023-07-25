@@ -115,7 +115,7 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
         }
       } else {
         return {
-          layer: spec.visual.units.map((unit) => {
+          vconcat: units.map((unit) => {
             return compileUnits({
               ...spec,
               visual: {

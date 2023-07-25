@@ -5,6 +5,7 @@ import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
 import { elaborateFields } from './grammar/elaborate';
 import { UrlData } from 'vega-lite/src/data';
+import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
 
 interface EditorProps {
   initialSpec: UmweltSpec;
@@ -179,6 +180,47 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       ...fieldUnitSelectValues,
       [fieldName]: unitName
     });
+  }
+
+  const onSelectEncodingAggregate = (unit: VisualUnitSpec | AudioUnitSpec, propName: string, aggregate: 'None' | NonArgAggregateOp) => {
+    const newEncoding = structuredClone(unit.encoding);
+    if (aggregate === 'None') {
+      delete newEncoding[propName].aggregate;
+    }
+    else {
+      newEncoding[propName].aggregate = aggregate;
+    }
+    if ('mark' in unit) {
+      setVisualUnitSpecs(visualUnitSpecs.map(spec => {
+        if (spec.name === unit.name) {
+          spec.encoding = newEncoding as VisualEncoding;
+        }
+        return spec;
+      }));
+    }
+    else if ('traversal' in unit) {
+      setAudioUnitSpecs(audioUnitSpecs.map(spec => {
+        if (spec.name === unit.name) {
+          spec.encoding = newEncoding as AudioEncoding;
+        }
+        return spec;
+      }));
+    }
+  }
+
+  const onSelectFieldTimeUnit = (field, timeUnit) => {
+    const newFields = fields.map(f => {
+      if (f.name === field.name) {
+        if (timeUnit === 'None') {
+          delete f.timeUnit;
+        }
+        else {
+          f.timeUnit = timeUnit;
+        }
+      }
+      return f;
+    });
+    setFields(newFields);
   }
 
   const onSelectTraversalMode = (traversal: AudioTraversalFieldDef, unitName: string, mode: AudioTraversalMode) => {
@@ -511,7 +553,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                   <div className='def-property'>
                     <label>
                       Time unit
-                      <select value={field.timeUnit}>
+                      <select value={field.timeUnit} onChange={(e) => onSelectFieldTimeUnit(field, e.target.value)}>
                         <option value=''>None</option>
                         {
                           timeUnits.map(timeUnit => {
@@ -584,7 +626,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             <div className='def-property'>
                               <label>
                                 Aggregate
-                                <select value={propValue.aggregate}>
+                                <select value={propValue.aggregate} onChange={(e) => onSelectEncodingAggregate(visualUnitSpec, propName, e.target.value)}>
                                   <option value=''>None</option>
                                   {
                                     aggregateOps.map(aggregateOp => {

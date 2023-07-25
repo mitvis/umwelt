@@ -33,18 +33,21 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selection, fields, o
 
   useEffect(() => {
     if (vlSpec) {
-      const view = renderVegaLite(vlSpec, '#vl-container');
-      setView(view);
+      try {
+        const view = renderVegaLite(vlSpec, '#vl-container');
+        setView(view);
 
-      document.getElementById('vl-container').addEventListener('mouseenter', mouseenter)
-      document.getElementById('vl-container').addEventListener('mouseleave', mouseleave)
+        document.getElementById('vl-container').addEventListener('mouseenter', mouseenter)
+        document.getElementById('vl-container').addEventListener('mouseleave', mouseleave)
 
-      view.addDataListener('brush_store', (_, value) => {
-        updateValue(value);
-      });
+        view.addDataListener('brush_store', (_, value) => {
+          updateValue(value);
+        });
 
-      (window as any).view = view;
-
+        (window as any).view = view;
+      } catch (e) {
+        console.error(e);
+      }
     }
   }, [vlSpec]);
 
