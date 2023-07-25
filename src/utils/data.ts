@@ -1,7 +1,7 @@
 import { OlliDataset, OlliValue } from 'olli';
 import { isString } from 'vega';
 import { compile } from 'vega-lite';
-import { SelectionSpec, UmweltDataSource } from '../grammar/Types';
+import { FieldDef, SelectionSpec, UmweltDataSource } from '../grammar/Types';
 import { selectionTest } from './selection';
 import { isNumeric } from './values';
 import { getVegaScene } from './vega';
@@ -38,7 +38,7 @@ export async function getData(spec: UmweltDataSource): Promise<OlliDataset> {
   }
 }
 
-export function typeCoerceData(data: OlliDataset, fields: ElaboratedFieldDef[]): OlliDataset {
+export function typeCoerceData(data: OlliDataset, fields: FieldDef[]): OlliDataset {
   // convert temporal fields into date objects converts quantitative into numbers
   const lookup = Object.fromEntries(fields.map((f) => [f.name, f.type]));
   return data.map((datum) => {

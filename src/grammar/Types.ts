@@ -4,12 +4,12 @@ import { Mark } from 'vega-lite/src/mark';
 import { NonArgAggregateOp } from 'vega-lite/src/aggregate';
 import { OlliNode, OlliValue } from 'olli';
 import { Spec } from 'vega';
-import { TopLevelUnitSpec } from 'vega-lite/src/spec/unit';
+import { TopLevelSpec } from 'vega-lite/src/spec';
 import { Sort } from 'vega-lite/src/sort';
 import { LogicalComposition } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 
-export type VlSpec = TopLevelUnitSpec<any>;
+export type VlSpec = TopLevelSpec;
 export type VgSpec = Spec;
 
 type ScaleDomain = {
@@ -136,7 +136,7 @@ export interface SelectionSpec {
 }
 
 export interface LayerViewComposition {
-  layer: string[];
+  layer: LayerViewComposition[] | string[];
 }
 
 export interface ConcatViewComposition {
@@ -144,7 +144,7 @@ export interface ConcatViewComposition {
   direction: 'horizontal' | 'vertical';
 }
 
-export type ViewComposition = LayerViewComposition | ConcatViewComposition | string;
+export type ViewComposition = LayerViewComposition | ConcatViewComposition;
 
 export interface VisualSpec {
   units: VisualUnitSpec[];

@@ -3,6 +3,7 @@ import { VegaLiteAdapter } from 'olli-adapters';
 import { OlliSpec, OlliDataset } from 'olli';
 import { elaborate, elaborateFields } from './elaborate';
 import { getData, getFieldDef, typeCoerceData } from '../utils/data';
+import { NonNormalizedSpec } from 'vega-lite/src/spec';
 
 export * from './Types';
 
@@ -34,8 +35,8 @@ export async function umwelt(spec: UmweltSpec): Promise<UmweltOutput> {
   };
 }
 
-function umweltToVegaLiteSpec(spec: UmweltSpec): VlSpec {
-  if (spec.visual === false) {
+export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpec {
+  if (spec.visual === false || spec.visual.units.length === 0) {
     return null;
   }
 
@@ -50,14 +51,92 @@ function umweltToVegaLiteSpec(spec: UmweltSpec): VlSpec {
     },
   ];
 
-  if (spec.visual.mark === 'line' || spec.visual.mark === 'bar') {
-    const yField = spec.visual.encoding.y.field;
-    const xField = spec.visual.encoding.x.field;
-    const yFieldDef = getFieldDef(yField, spec.fields);
-    const xFieldDef = getFieldDef(xField, spec.fields);
-    if (yFieldDef.type === 'quantitative' && xFieldDef.type !== 'quantitative') {
+  function compileUnits(spec: UmweltSpec) {
+    if (spec.visual === false) {
+      return null;
+    }
+    const units = spec.visual.units;
+
+    if (units.length === 1) {
+      const unit = units[0];
+      const encoding = structuredClone(unit.encoding);
+      Object.keys(encoding).forEach((channel) => {
+        const { name, encodings, ...fieldDef } = spec.fields.find((field) => field.name === encoding[channel].field);
+        encoding[channel] = {
+          ...fieldDef,
+          ...encoding[channel],
+        };
+      });
+      return {
+        mark: unit.mark === 'line' ? { type: 'line', point: true } : unit.mark,
+        encoding: {
+          ...encoding,
+          opacity: condition(encoding.opacity || { value: 1 }, 'external_state', 0.3, false),
+          color: condition(encoding.color || { value: 'navy' }, 'brush', 'grey'),
+        },
+      };
+    } else if (units.length > 1) {
+      if (spec.visual.composition) {
+        if ('layer' in spec.visual.composition) {
+          return {
+            layer: spec.visual.composition.layer.map((view) => {
+              if (typeof view === 'string' || view instanceof String) {
+                const unit = units.find((unit) => unit.name === view);
+                return compileUnits({
+                  ...spec,
+                  visual: {
+                    units: [unit],
+                  },
+                });
+              } else {
+                return compileUnits({
+                  ...spec,
+                  visual: {
+                    units: units,
+                    composition: view,
+                  },
+                });
+              }
+            }),
+          };
+        } else if ('concat' in spec.visual.composition) {
+          const op = spec.visual.composition.direction === 'horizontal' ? 'hconcat' : 'vconcat';
+          return {
+            [op]: spec.visual.composition.concat.map((view) => {
+              return compileUnits({
+                ...spec,
+                visual: {
+                  units: units,
+                  composition: view,
+                },
+              });
+            }),
+          };
+        }
+      } else {
+        return {
+          layer: spec.visual.units.map((unit) => {
+            return compileUnits({
+              ...spec,
+              visual: {
+                units: [unit],
+              },
+            });
+          }),
+        };
+      }
+    }
+  }
+
+  if (spec.visual.units[0].mark === 'line' || spec.visual.units[0].mark === 'bar') {
+    const unit = spec.visual.units[0];
+    const yField = unit.encoding.y?.field;
+    const xField = unit.encoding.x?.field;
+    const yFieldDef = spec.fields.find((field) => field.name === yField);
+    const xFieldDef = spec.fields.find((field) => field.name === xField);
+    if (yFieldDef?.type === 'quantitative' && xFieldDef?.type !== 'quantitative') {
       params[0]['select'] = { type: 'interval', encodings: ['x'] };
-    } else if (xFieldDef.type === 'quantitative' && yFieldDef.type !== 'quantitative') {
+    } else if (xFieldDef?.type === 'quantitative' && yFieldDef?.type !== 'quantitative') {
       params[0]['select'] = { type: 'interval', encodings: ['y'] };
     }
   }
@@ -70,21 +149,14 @@ function umweltToVegaLiteSpec(spec: UmweltSpec): VlSpec {
     };
   };
 
-  const encoding = spec.visual.encoding;
-
   return {
-    data: spec.data,
-    mark: spec.visual.mark === 'line' ? { type: 'line', point: true } : spec.visual.mark,
-    encoding: {
-      ...encoding,
-      opacity: condition(encoding.opacity || { value: 1 }, 'external_state', 0.3, false),
-      color: condition(encoding.color || { value: 'navy' }, 'brush', 'grey'),
-    } as any,
+    data: { values: data },
     params,
+    ...compileUnits(spec),
   };
 }
 
-async function umweltToOlliSpec(spec: ElaboratedUmweltSpec, vlSpec: VlSpec): Promise<OlliSpec> {
+export async function umweltToOlliSpec(spec: ElaboratedUmweltSpec, vlSpec: VlSpec): Promise<OlliSpec> {
   if (spec.text === false) return null;
   const olliSpec = await VegaLiteAdapter(vlSpec as any);
   olliSpec.fields = spec.fields.map((fieldDef) => {

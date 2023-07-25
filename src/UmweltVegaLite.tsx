@@ -1,6 +1,6 @@
 import React, { MutableRefObject, useState, useRef, useCallback } from 'react';
 import { useEffect } from 'react';
-import { ElaboratedFieldDef, SelectionSpec, VlSpec } from './grammar';
+import { FieldDef, UmweltPredicate, VlSpec } from './grammar';
 import { renderVegaLite } from './utils/render';
 import { predicateToSelectionStore } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
@@ -10,11 +10,11 @@ interface UmweltVegaLiteProps {
   vlSpec: VlSpec,
   onVegaLiteSelection,
   selectionCtrl: MutableRefObject<SelectionCtrl>,
-  selectionSpec: SelectionSpec,
-  fields: ElaboratedFieldDef[]
+  selection: UmweltPredicate,
+  fields: FieldDef[]
 }
 
-const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, fields, onVegaLiteSelection }: UmweltVegaLiteProps) => {
+const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selection, fields, onVegaLiteSelection }: UmweltVegaLiteProps) => {
 
   const [view, setView] = useState<View>();
   const isMouseOver = useRef<boolean>(false);
@@ -39,7 +39,7 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
       document.getElementById('vl-container').addEventListener('mouseenter', mouseenter)
       document.getElementById('vl-container').addEventListener('mouseleave', mouseleave)
 
-      view.addDataListener('brush_store', (name, value) => {
+      view.addDataListener('brush_store', (_, value) => {
         updateValue(value);
       });
 
@@ -49,23 +49,23 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selectionSpec, field
   }, [vlSpec]);
 
   useEffect(() => {
-    if (vlSpec && view && selectionSpec && (selectionCtrl.current === 'audio' || selectionCtrl.current === 'olli-nav')) {
-      const store = predicateToSelectionStore(selectionSpec.predicate);
+    if (vlSpec && view && selection && (selectionCtrl.current === 'audio' || selectionCtrl.current === 'olli-nav')) {
+      const store = predicateToSelectionStore(selection);
       view.data('external_state_store', store).run();
     }
-    if (vlSpec && view && selectionSpec && (selectionCtrl.current === 'spec')) {
+    if (vlSpec && view && selection && (selectionCtrl.current === 'spec')) {
       // const store = selectionSpecToSelectionStore(selectionSpec);
       // view.data('brush_store', store).run();
       // TODO: when we implement olli custom selection menu, we'll need to impl a way to go from selection to brush x/y coords
       // which will be better than stuffing the store in because you'll get the visual brush
     }
-  }, [selectionSpec, fields, view, vlSpec, selectionCtrl])
+  }, [selection, fields, view, vlSpec, selectionCtrl])
 
   return (
     <div id="vl-container" />
   );
 }, (prevProps, nextProps) => {
-  return prevProps.vlSpec === nextProps.vlSpec && prevProps.selectionSpec === nextProps.selectionSpec;
+  return prevProps.vlSpec === nextProps.vlSpec && prevProps.selection === nextProps.selection;
 });
 
 export default UmweltVegaLite;

@@ -56,18 +56,18 @@ function App() {
       </div>
       <div className='column'>
         <Debounce ms={250}>
-          {
+          {/* {
             props ? (
               <pre>
                 {JSON.stringify(props.spec, null, 2)}
               </pre>
             ) : null
-          }
-          {/* {
+          } */}
+          {
             props ? (
               <Umwelt {...props} />
             ) : null
-          } */}
+          }
         </Debounce>
       </div>
     </div>

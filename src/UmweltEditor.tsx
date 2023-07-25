@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { AudioEncoding, AudioPropName, AudioTraversal, AudioTraversalFieldDef, AudioTraversalMode, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
+import { AudioEncoding, AudioPropName, AudioTraversalFieldDef, AudioTraversalMode, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
 import './text/TreeStyle.css'
 import { OlliDataset } from 'olli';
-import { getData } from './utils/data';
+import { getData, typeCoerceData } from './utils/data';
 import { elaborateFields } from './grammar/elaborate';
-import { UrlData, InlineData } from 'vega-lite/src/data';
+import { UrlData } from 'vega-lite/src/data';
 
 interface EditorProps {
   initialSpec: UmweltSpec;
@@ -14,7 +14,7 @@ interface EditorProps {
 const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   const [dataUrl, setDataUrl] = useState<string>((initialSpec?.data as UrlData)?.url);
-  const [data, setData] = useState<OlliDataset>((initialSpec?.data as InlineData)?.values || []);
+  const [data, setData] = useState<OlliDataset>([]);
   const [fields, _setFields] = useState<FieldDef[]>([]);
   const setFields = (fields) => {
     _setFields(fields.map(field => {
@@ -78,11 +78,17 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         })
         const elaboratedFields = elaborateFields(allFields, data);
         setFields(elaboratedFields);
+
+        const niceData = typeCoerceData(data, elaboratedFields);
+        setData(niceData);
       }
 
       if (fields.some(field => !field.type)) {
         const elaboratedFields = elaborateFields(fields, data);
         setFields(elaboratedFields);
+
+        const niceData = typeCoerceData(data, elaboratedFields);
+        setData(niceData);
       }
 
       if (visualUnitSpecs.length === 0) {
@@ -156,6 +162,9 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       return f;
     });
     setFields(newFields);
+
+    const niceData = typeCoerceData(data, newFields);
+    setData(niceData);
   }
 
   const onSelectEncoding = (fieldName, propName) => {
@@ -313,7 +322,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       const nextId = visualUnitSpecs.map(spec => parseInt(spec.name.split('_')[2])).reduce((a, b) => Math.max(a, b), 0) + 1;
       const nextSpecs = [...visualUnitSpecs, {
         name: `vis_unit_${nextId}`,
-        mark: 'point',
+        mark: visualUnitSpecs[visualUnitSpecs.length - 1].mark,
         encoding: {
         }
       } as VisualUnitSpec];
@@ -734,7 +743,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           <div className='def-property'>
                             <div className='def-property-label'>Mode:</div>
                             <div className='def-property-col'>
-                              <select value={traversal.mode} onChange={(e) => onSelectTraversalMode(traversal, audioUnitSpec.name, e.target.value)}>
+                              <select value={traversal.mode} onChange={(e) => onSelectTraversalMode(traversal, audioUnitSpec.name, e.target.value as AudioTraversalMode)}>
                                 {
                                   traversalModes.map(traversalMode => {
                                     return (
