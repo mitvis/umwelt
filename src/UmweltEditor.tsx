@@ -147,7 +147,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     fields.forEach(field => {
       if (!nextUnitSelect[field.name] ||
           (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any) !== visualUnitSpecs.map(unit => unit.name).includes(nextUnitSelect[field.name])) ||
-          getUnit(nextUnitSelect[field.name]).encoding[fieldEncodingSelectValues[field.name]]?.field === field.name) {
+          getUnit(nextUnitSelect[field.name])?.encoding[fieldEncodingSelectValues[field.name]]?.field === field.name) {
         if (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
           nextUnitSelect[field.name] = visualUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
         }
