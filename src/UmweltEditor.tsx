@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AudioEncoding, AudioPropName, AudioTraversalFieldDef, AudioTraversalMode, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
+import { AudioEncoding, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
 import { elaborateFields } from './grammar/elaborate';
