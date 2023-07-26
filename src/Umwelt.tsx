@@ -31,7 +31,6 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
   useEffect(() => {
     const vlSpec = umweltToVegaLiteSpec(spec, data);
-    console.log(vlSpec);
     setVlSpec(vlSpec);
 
     async function generateOlli() {

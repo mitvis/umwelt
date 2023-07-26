@@ -127,7 +127,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           return audioUnitSpecs.some(spec => !spec.encoding[propName]);
         }
       });
-      if (validPropNames.length && (!nextEncodingSelect[field.name] || !validPropNames.includes(nextEncodingSelect[field.name]))) {
+      if (validPropNames.length) {
         if (field.type === 'quantitative' || field.type === 'temporal') {
           nextEncodingSelect[field.name] = validPropNames.find(propName => ['x', 'y', 'opacity', 'size', 'pitch', 'duration', 'volume'].includes(propName)) || validPropNames[0];
         }
@@ -137,7 +137,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       }
     });
     setFieldEncodingSelectValues(nextEncodingSelect);
-  }, [fields]);
+  }, [fields, visualUnitSpecs, audioUnitSpecs]);
 
   useEffect(() => {
     const nextUnitSelect = structuredClone(fieldUnitSelectValues);
@@ -436,7 +436,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   });
   const markTypes = ['point', 'line', 'bar'];
   const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
-  const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds', 'milliseconds'];
+  const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
   const traversalModes = ['sequential', 'interactive'];
 
   return (
