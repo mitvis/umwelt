@@ -144,6 +144,10 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   }, [notes]);
 
   useEffect(() => {
+    playCurrentValue();
+  }, [notes, specIndices]);
+
+  const playCurrentValue = useCallback(() => {
     if (audioCtrl.current === 'interaction') {
       const note = notes.find(note => {
         return Object.keys(note.indices).every((field) => {
@@ -157,19 +161,38 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     }
   }, [notes, specIndices]);
 
+  const play = useCallback(() => {
+    setAudioCtrl('sequence');
+    Tone.Transport.start();
+  }, []);
+
+  const pause = useCallback(() => {
+    setAudioCtrl('interaction');
+    Tone.Transport.pause();
+  }, []);
+
+  const playFromBeginning = useCallback(() => {
+    setAudioCtrl('sequence');
+    Tone.Transport.seconds = 0;
+    Tone.Transport.start();
+  }, []);
+
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
-    if (document.activeElement?.closest(".uv-audio") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
+    if (document.activeElement?.closest(".audio-container") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
       switch (e.key) {
         case 'p':
           if (!e.repeat) {
-            if (Tone.Transport.state === 'started') {
-              setAudioCtrl('interaction');
-              Tone.Transport.pause();
+            if (e.shiftKey) {
+              if (Tone.Transport.state === 'started') {
+                pause();
+              }
+              else {
+                play();
+              }
             }
             else {
-              setAudioCtrl('sequence');
-              Tone.Transport.start();
+              playCurrentValue();
             }
           }
           break;
@@ -262,11 +285,15 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       <div>
         {Object.entries(audioUnitSpec.encoding).map(([field, encFieldDef]) => { return (<div>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}
       </div>
-      <div>
-        <button>Play current</button>
-        <button>Play to end</button>
-        <button>Play from beginning</button>
-      </div>
+      {
+        Tone.Transport.state === 'started' ? <button onClick={pause}>Pause</button> : (
+          <div>
+            <button onClick={playCurrentValue}>Current value</button>
+            <button onClick={play}>Play</button>
+            <button onClick={playFromBeginning}>Play from beginning</button>
+          </div>
+        )
+      }
       <pre>
         {JSON.stringify(audioUnitSpec, null, 2)}
       </pre>
