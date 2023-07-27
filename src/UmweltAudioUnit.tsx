@@ -45,14 +45,14 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const [notes, setNotes] = useState<SonifierNote[]>([]);
 
   function getFieldSelectedIndices(audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices {
-    return Object.fromEntries(audioUnitSpec.traversal.filter(({mode}) => mode === 'interactive').map(({field}) => {
+    return Object.fromEntries(audioUnitSpec.traversal.map(({field}) => {
       return [field, 0];
     }))
   }
 
   function getFieldDomains(audioUnitSpec: AudioUnitSpec): AudioUnitFieldDomains {
     return Object.fromEntries(
-      audioUnitSpec.traversal.filter(({mode}) => mode === 'interactive').map((fieldDef) => {
+      audioUnitSpec.traversal.map((fieldDef) => {
         return [fieldDef.field, (
           fieldDef.bin ?
           getBins(fieldDef, data, domainFilter) :
