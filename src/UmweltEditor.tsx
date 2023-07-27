@@ -92,7 +92,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   useEffect(() => {
     if (data && data.length > 0) {
-      if (fields.length === 0) {
+      if (!(fields.length === Object.keys(data[0]).length && fields.every(field => Object.keys(data[0]).includes(field.name)))) {
         const allFields = Object.keys(data[0]).map(name => {
           return {
             name
@@ -100,17 +100,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         })
         const elaboratedFields = elaborateFields(allFields, data);
         setFields(elaboratedFields);
-
-        const niceData = typeCoerceData(data, elaboratedFields);
-        setData(niceData);
-      }
-
-      if (fields.some(field => !field.type)) {
-        const elaboratedFields = elaborateFields(fields, data);
-        setFields(elaboratedFields);
-
-        const niceData = typeCoerceData(data, elaboratedFields);
-        setData(niceData);
       }
 
       if (visualUnitSpecs.length === 0) {
@@ -132,6 +121,11 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       }
     }
   }, [data]);
+
+  useEffect(() => {
+    const niceData = typeCoerceData(data, fields);
+    setData(niceData);
+  }, [fields]);
 
   useEffect(() => {
     const nextEncodingSelect = structuredClone(fieldEncodingSelectValues);
@@ -195,9 +189,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       return f;
     });
     setFields(newFields);
-
-    const niceData = typeCoerceData(data, newFields);
-    setData(niceData);
   }
 
   const onSelectEncoding = (fieldName, propName) => {
@@ -691,7 +682,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             <div className='def-property'>
                               <label>
                                 Aggregate
-                                <select value={propValue.aggregate || fieldDef.aggregate} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'aggregate', e.target.value)}>
+                                <select value={propValue.aggregate ?? fieldDef.aggregate} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'aggregate', e.target.value)}>
                                   <option value=''>None</option>
                                   {
                                     aggregateOps.map(aggregateOp => {
@@ -706,7 +697,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             <div className='def-property'>
                               <label>
                                 Bin
-                                <input type='checkbox' checked={propValue.bin || fieldDef.bin} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'bin', e.target.checked)}/>
+                                <input type='checkbox' checked={propValue.bin ?? fieldDef.bin} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'bin', e.target.checked)}/>
                               </label>
                             </div>
                             {
@@ -714,7 +705,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                 <div className='def-property'>
                                   <label>
                                     Time unit
-                                    <select value={propValue.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'timeUnit', e.target.value)}>
+                                    <select value={propValue.timeUnit ?? fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'timeUnit', e.target.value)}>
                                       <option value=''>None</option>
                                       {
                                         timeUnits.map(timeUnit => {
@@ -806,7 +797,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             <div className='def-property'>
                               <label>
                                 Aggregate
-                                <select value={propValue.aggregate || fieldDef.aggregate} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'aggregate', e.target.value)}>
+                                <select value={propValue.aggregate ?? fieldDef.aggregate} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'aggregate', e.target.value)}>
                                   <option value=''>None</option>
                                   {
                                     aggregateOps.map(aggregateOp => {
@@ -823,7 +814,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                 <div className='def-property'>
                                   <label>
                                     Time unit
-                                    <select value={propValue.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'timeUnit', e.target.value)}>
+                                    <select value={propValue.timeUnit ?? fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'timeUnit', e.target.value)}>
                                       <option value=''>None</option>
                                       {
                                         timeUnits.map(timeUnit => {
@@ -871,7 +862,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             <button>Go to field</button>
                             <button onClick={() => removeTraversal(audioUnitSpec, traversal.field)}>Remove traversal</button>
                           </div>
-                          <div className='def-property'>
+                          {/* <div className='def-property'>
                             <div className='def-property-label'>Mode:</div>
                             <div className='def-property-col'>
                               <select value={traversal.mode} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'mode', e.target.value)}>
@@ -884,13 +875,13 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                 }
                               </select>
                             </div>
-                          </div>
+                          </div> */}
                           <details>
                             <summary>Additional options</summary>
                             <div className='def-property'>
                               <label>
                                 Bin
-                                <input type='checkbox' checked={traversal.bin || fieldDef.bin} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'bin', e.target.checked)}/>
+                                <input type='checkbox' checked={traversal.bin ?? fieldDef.bin} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'bin', e.target.checked)}/>
                               </label>
                             </div>
                             {
@@ -898,7 +889,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                 <div className='def-property'>
                                   <label>
                                     Time unit
-                                    <select value={traversal.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'timeUnit', e.target.value)}>
+                                    <select value={traversal.timeUnit ?? fieldDef.timeUnit} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'timeUnit', e.target.value)}>
                                       <option value=''>None</option>
                                       {
                                         timeUnits.map(timeUnit => {

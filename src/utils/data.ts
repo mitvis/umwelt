@@ -41,21 +41,29 @@ export async function getData(spec: UmweltDataSource): Promise<OlliDataset> {
 export function typeCoerceData(data: OlliDataset, fields: FieldDef[]): OlliDataset {
   // convert temporal fields into date objects converts quantitative into numbers
   const lookup = Object.fromEntries(fields.map((f) => [f.name, f.type]));
+
+  if (data.length === 0) return data;
+  if (JSON.stringify(typeCoerceDatum(lookup, data[0])) === JSON.stringify(data[0])) return data; // no type coercion needed
+
   return data.map((datum) => {
-    return Object.fromEntries(
-      Object.entries(datum).map(([field, value]: [string, OlliValue]) => {
-        switch (lookup[field]) {
-          case 'temporal':
-            return [field, new Date(value)];
-          case 'quantitative':
-            if (isString(value) && isNumeric(String(value))) {
-              return [field, Number(value)];
-            }
-        }
-        return [field, value];
-      })
-    );
+    return typeCoerceDatum(lookup, datum);
   });
+}
+
+function typeCoerceDatum(lookup, datum) {
+  return Object.fromEntries(
+    Object.entries(datum).map(([field, value]: [string, OlliValue]) => {
+      switch (lookup[field]) {
+        case 'temporal':
+          return [field, new Date(value)];
+        case 'quantitative':
+          if (isString(value) && isNumeric(String(value))) {
+            return [field, Number(value)];
+          }
+      }
+      return [field, value];
+    })
+  );
 }
 
 export function getDomain(fieldDef: EncodingFieldDef, data: OlliDataset, predicate?: UmweltPredicate): OlliValue[] {
@@ -82,6 +90,7 @@ export function getDomain(fieldDef: EncodingFieldDef, data: OlliDataset, predica
         unique_vals.add(v);
       });
   }
+  // if (fieldDef.field === 'date') debugger;
   return [...unique_vals].filter((x) => x !== null && x !== undefined).sort((a: any, b: any) => a - b);
 }
 

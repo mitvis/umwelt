@@ -10,6 +10,7 @@ import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
+import { fmtValue } from './utils/values';
 
 interface AudioUnitProps {
   audioUnitSpec: AudioUnitSpec,
@@ -68,12 +69,11 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   useEffect(() => {
     // re-initialize when spec changes
-    console.log('bruh', getFieldSelectedIndices(audioUnitSpec))
-    setSpecIndices(getFieldSelectedIndices(audioUnitSpec));
-    setSpecDomains(getFieldDomains(audioUnitSpec));
     setAudioCtrl('umwelt');
     setDomainFilter(null);
-  }, [fields, audioUnitSpec, data])
+    setSpecIndices(getFieldSelectedIndices(audioUnitSpec));
+    setSpecDomains(getFieldDomains(audioUnitSpec));
+  }, [audioUnitSpec])
 
   useEffect(() => {
     // update domain filter on external selection change
@@ -207,7 +207,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   return (
     <div className="audio-spec">
       {
-        audioUnitSpec.traversal.filter(({mode}) => mode === 'interactive').map((traversalFieldDef) => {
+        audioUnitSpec.traversal.map((traversalFieldDef) => {
           const field = traversalFieldDef.field;
           const fieldDef = getFieldDef(field, fields);
           const domain = specDomains[field];
@@ -229,6 +229,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               <div key={field}>
                 <label htmlFor={id}>{field}</label>
                 <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
+                <button>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
               </div>
             );
           }
@@ -252,26 +253,25 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                     return <option key={String(val)} value={String(val)}>{String(val)}</option>
                   })}
                 </select>
+                <button>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
               </div>
             )
           }
         })
       }
-      {
-        audioUnitSpec.traversal.filter(({mode}) => mode === 'sequential').length ? (
-          <div>
-            sequence: {audioUnitSpec.traversal.filter(({mode}) => mode === 'sequential').map(({field}) => field).join(', ')}
-          </div>
-        ): null
-      }
       <div>
         {Object.entries(audioUnitSpec.encoding).map(([field, encFieldDef]) => { return (<div>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}
+      </div>
+      <div>
+        <button>Play current</button>
+        <button>Play to end</button>
+        <button>Play from beginning</button>
       </div>
       <pre>
         {JSON.stringify(audioUnitSpec, null, 2)}
       </pre>
       <pre>
-        {JSON.stringify(specIndices, null, 2)}
+        {JSON.stringify(specDomains, null, 2)}
       </pre>
     </div>
   )

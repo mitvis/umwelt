@@ -41,7 +41,9 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
     generateOlli();
 
     if (spec.audio) {
-      setAudioSpec(spec.audio);
+      if (JSON.stringify(spec.audio) !== JSON.stringify(audioSpec)) {
+        setAudioSpec(structuredClone(spec.audio));
+      }
     }
   }, [spec]);
 
@@ -111,6 +113,10 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
       <pre>
         {JSON.stringify(printable(vlSpec), null, 2)}
+      </pre>
+
+      <pre>
+        {JSON.stringify(printable(spec), null, 2)}
       </pre>
 
 

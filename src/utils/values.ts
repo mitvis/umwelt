@@ -79,3 +79,12 @@ export function dateToTimeUnit(date: Date, timeUnit: string): string {
   }
   return date.toLocaleString('en-US', opts);
 }
+
+export const fmtValue = (value, fieldDef): string => {
+  if (value instanceof Date) {
+    return dateToTimeUnit(value, fieldDef.timeUnit);
+  } else if (typeof value !== 'string' && !isNaN(value) && value % 1 != 0) {
+    return Number(value).toFixed(2);
+  }
+  return String(value);
+};
