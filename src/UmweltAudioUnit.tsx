@@ -36,23 +36,23 @@ export type SonifierNoteMap = {
 
 export type AudioCtrl = 'interaction' | 'sequence' | 'umwelt';
 
-function UmweltAudioUnit({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted}: AudioUnitProps) {
+const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted}: AudioUnitProps) => {
 
   const [domainFilter, setDomainFilter] = useState<UmweltPredicate>();
-  const [specIndices, setSpecIndices] = useState<AudioUnitFieldSelectedIndices>({});
-  const [specDomains, setSpecDomains] = useState<AudioUnitFieldDomains>({});
+  const [specIndices, setSpecIndices] = useState<AudioUnitFieldSelectedIndices>(getFieldSelectedIndices(audioUnitSpec));
+  const [specDomains, setSpecDomains] = useState<AudioUnitFieldDomains>(getFieldDomains(audioUnitSpec));
   const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('umwelt');
   const [notes, setNotes] = useState<SonifierNote[]>([]);
 
   function getFieldSelectedIndices(audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices {
-    return Object.fromEntries(audioUnitSpec.traversal.map(({field}) => {
+    return Object.fromEntries(audioUnitSpec.traversal.filter(({mode}) => mode === 'interactive').map(({field}) => {
       return [field, 0];
     }))
   }
 
   function getFieldDomains(audioUnitSpec: AudioUnitSpec): AudioUnitFieldDomains {
     return Object.fromEntries(
-      audioUnitSpec.traversal.map((fieldDef) => {
+      audioUnitSpec.traversal.filter(({mode}) => mode === 'interactive').map((fieldDef) => {
         return [fieldDef.field, (
           fieldDef.bin ?
           getBins(fieldDef, data, domainFilter) :
@@ -68,6 +68,7 @@ function UmweltAudioUnit({audioUnitSpec, fields, data, onAudioState, selection, 
 
   useEffect(() => {
     // re-initialize when spec changes
+    console.log('bruh', getFieldSelectedIndices(audioUnitSpec))
     setSpecIndices(getFieldSelectedIndices(audioUnitSpec));
     setSpecDomains(getFieldDomains(audioUnitSpec));
     setAudioCtrl('umwelt');
@@ -111,7 +112,6 @@ function UmweltAudioUnit({audioUnitSpec, fields, data, onAudioState, selection, 
       }
     }
   }), [specIndices, specDomains]);
-
 
   useEffect(() => {
     // generate sequence from domains
@@ -201,77 +201,80 @@ function UmweltAudioUnit({audioUnitSpec, fields, data, onAudioState, selection, 
   }
 
   if (!audioStateFieldsAreCurrent()) {
-    return <div className="uv-audio"></div>;
+    return <div className="audio-spec"></div>;
   }
 
   return (
-    <div className="uv-audio">
-      <div className="audio-spec">
-        {
-          audioUnitSpec.traversal.map((traversalFieldDef) => {
-            const field = traversalFieldDef.field;
-            const fieldDef = getFieldDef(field, fields);
-            const domain = getDomain(traversalFieldDef, data, domainFilter);
+    <div className="audio-spec">
+      {
+        audioUnitSpec.traversal.filter(({mode}) => mode === 'interactive').map((traversalFieldDef) => {
+          const field = traversalFieldDef.field;
+          const fieldDef = getFieldDef(field, fields);
+          const domain = specDomains[field];
 
-            if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
-              const id = `${field}-slider`;
-              const onchange = (e) => {
-                setAudioCtrl('interaction');
-                Tone.Transport.pause();
-                const selectedIdx = Number(e.target.value);
-                setSpecIndices((specIndices) => {
-                  return {
-                    ...specIndices,
-                    [field]: selectedIdx
-                  };
-                });
-              };
-              const sliderDomain = traversalFieldDef.bin ? getBins(traversalFieldDef, data, domainFilter) : domain;
-              return (
-                <div key={field}>
-                  <label htmlFor={id}>{field}</label>
-                  <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={sliderDomain.length - 1} value={specIndices?.[field]}></input>
-                </div>
-              );
+          if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
+            const id = `${field}-slider`;
+            const onchange = (e) => {
+              setAudioCtrl('interaction');
+              Tone.Transport.pause();
+              const selectedIdx = Number(e.target.value);
+              setSpecIndices((specIndices) => {
+                return {
+                  ...specIndices,
+                  [field]: selectedIdx
+                };
+              });
+            };
+            return (
+              <div key={field}>
+                <label htmlFor={id}>{field}</label>
+                <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
+              </div>
+            );
+          }
+          else {
+            const id = `${field}-select`;
+            const onchange = (e) => {
+              setAudioCtrl('interaction');
+              Tone.Transport.pause();
+              setSpecIndices((specIndices) => {
+                return {
+                  ...specIndices,
+                  [field]: e.target.selectedIndex
+                }
+              });
             }
-            else {
-              const id = `${field}-select`;
-              const onchange = (e) => {
-                setAudioCtrl('interaction');
-                Tone.Transport.pause();
-                setSpecIndices((specIndices) => {
-                  return {
-                    ...specIndices,
-                    [field]: e.target.selectedIndex
-                  }
-                });
-              }
-              return (
-                <div key={field}>
-                  <label htmlFor={id}>{field}</label>
-                  <select onChange={onchange} id={id} value={String(domain[specIndices?.[field]])}>
-                    {domain.map(val => {
-                      return <option key={String(val)} value={String(val)}>{String(val)}</option>
-                    })}
-                  </select>
-                </div>
-              )
-            }
-          })
-        }
-        <div>
-          {Object.entries(audioUnitSpec.encoding).map(([field, encFieldDef]) => { return (<div>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}
-        </div>
+            return (
+              <div key={field}>
+                <label htmlFor={id}>{field}</label>
+                <select onChange={onchange} id={id} value={String(domain[specIndices?.[field]])}>
+                  {domain.map(val => {
+                    return <option key={String(val)} value={String(val)}>{String(val)}</option>
+                  })}
+                </select>
+              </div>
+            )
+          }
+        })
+      }
+      {
+        audioUnitSpec.traversal.filter(({mode}) => mode === 'sequential').length ? (
+          <div>
+            sequence: {audioUnitSpec.traversal.filter(({mode}) => mode === 'sequential').map(({field}) => field).join(', ')}
+          </div>
+        ): null
+      }
+      <div>
+        {Object.entries(audioUnitSpec.encoding).map(([field, encFieldDef]) => { return (<div>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}
       </div>
-      <label><input type="checkbox" className="uv_mute" checked={muted} onChange={(e) => setMuted(e.target.checked)} /> Mute</label>
-      {/* <pre>
-        {selectionCtrl}
-      </pre> */}
-      {/* <pre>
-        {JSON.stringify(selectionSpec, null, 2)}
-      </pre> */}
+      <pre>
+        {JSON.stringify(audioUnitSpec, null, 2)}
+      </pre>
+      <pre>
+        {JSON.stringify(specIndices, null, 2)}
+      </pre>
     </div>
-  );
+  )
 }
 
 export default UmweltAudioUnit;

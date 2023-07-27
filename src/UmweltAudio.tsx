@@ -39,6 +39,11 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
           )
         })
       }
+      {
+        audioSpec?.units.length ? (
+          <label><input type="checkbox" className="uv_mute" checked={muted} onChange={(e) => setMuted(e.target.checked)} /> Mute</label>
+        ) : null
+      }
     </div>
   );
 }
