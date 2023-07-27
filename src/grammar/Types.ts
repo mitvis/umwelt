@@ -81,8 +81,6 @@ export interface AudioEncodingFieldDef {
 
 export type EncodingFieldDef = VisualEncodingFieldDef | AudioEncodingFieldDef;
 
-export type AudioTraversalMode = 'interactive' | 'sequential';
-
 export interface AudioTraversalFieldDef {
   field: FieldName;
   //

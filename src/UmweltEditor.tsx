@@ -291,7 +291,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     const newTraversal = structuredClone(unit.traversal).filter(traversal => traversal.field !== fieldName);
     newTraversal.push({
       field: fieldName,
-      mode: 'interactive',
     });
     setAudioUnitSpecs(audioUnitSpecs.map(spec => {
       if (spec.name === unitName) {
@@ -354,7 +353,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         if (!Object.values(newEncoding).find((def: any) => def.field === fieldDef.name) && !newTraversal.find(traversal => traversal.field === fieldDef.name)) {
           newTraversal.push({
             field: fieldDef.name,
-            mode: 'interactive',
           });
         }
       });
@@ -405,7 +403,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           else {
             spec.traversal.push({
               field: encodingFieldDef.field,
-              mode: 'interactive',
             })
           }
         }
