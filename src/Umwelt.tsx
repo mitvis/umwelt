@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import useState from 'react-usestateref';
-import { UmweltPredicate, UmweltSpec, VlSpec, umweltToOlliSpec, umweltToVegaLiteSpec } from './grammar';
+import { AudioSpec, UmweltPredicate, UmweltSpec, VlSpec, umweltToOlliSpec, umweltToVegaLiteSpec } from './grammar';
 import { selectionStoreToSelection } from './utils/selection';
 import UmweltAudio from './UmweltAudio';
 import { debounce } from 'vega';
@@ -26,6 +26,7 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
   const [_selectionCtrlResolve, setSelectionCtrlResolve, selectionCtrlResolve] = useState<SelectionCtrl>();
   const [vlSpec, setVlSpec] = useState<VlSpec>();
   const [olliSpec, setOlliSpec] = useState<OlliSpec>();
+  const [audioSpec, setAudioSpec] = useState<AudioSpec>();
 
   /* ********************** initialize state *********************** */
 
@@ -38,6 +39,10 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
       setOlliSpec(olliSpec);
     }
     generateOlli();
+
+    if (spec.audio) {
+      setAudioSpec(spec.audio);
+    }
   }, [spec]);
 
   /* *********** define listeners to update selection state from children ************ */
@@ -92,6 +97,14 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
       <UmweltOlli olliSpec={olliSpec} selectionCtrl={selectionCtrl.current} setSelectionCtrlResolve={setSelectionCtrlResolve} selection={selection} onTextNavPred={onTextNavPred} onTextFilterPred={onTextFilterPred}></UmweltOlli>
 
+      <br/>
+
+      <UmweltAudio audioSpec={audioSpec} fields={spec.fields} data={data} onAudioState={onAudioState} selection={selection} selectionCtrl={selectionCtrl.current}></UmweltAudio>
+
+      <pre>
+        {JSON.stringify(printable(audioSpec), null, 2)}
+      </pre>
+
       <pre>
         {JSON.stringify(printable(olliSpec), null, 2)}
       </pre>
@@ -99,12 +112,8 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
       <pre>
         {JSON.stringify(printable(vlSpec), null, 2)}
       </pre>
-{/*
-      <br/>
 
-      {
-        uwSpec.audio ? <UmweltAudio audio={uwSpec.audio} fields={uwSpec.fields} data={data} onAudioState={onAudioState} selectionSpec={selection} selectionCtrl={selectionCtrl.current}></UmweltAudio> : null
-      } */}
+
       <br/>
       <div>
         <div style={{fontWeight: 'bold'}}>Audio key bindings</div>

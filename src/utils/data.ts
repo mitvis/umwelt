@@ -1,9 +1,9 @@
 import { OlliDataset, OlliValue } from 'olli';
 import { isString } from 'vega';
 import { compile } from 'vega-lite';
-import { FieldDef, SelectionSpec, UmweltDataSource } from '../grammar/Types';
+import { EncodingFieldDef, FieldDef, SelectionSpec, UmweltDataSource, UmweltPredicate } from '../grammar/Types';
 import { selectionTest } from './selection';
-import { isNumeric } from './values';
+import { dateToTimeUnit, isNumeric } from './values';
 import { getVegaScene } from './vega';
 
 export async function getData(spec: UmweltDataSource): Promise<OlliDataset> {
@@ -58,18 +58,33 @@ export function typeCoerceData(data: OlliDataset, fields: FieldDef[]): OlliDatas
   });
 }
 
-export function getDomain(fieldDef: ElaboratedEncodingFieldDef, data: OlliDataset, selectionSpec?: SelectionSpec): OlliValue[] {
+export function getDomain(fieldDef: EncodingFieldDef, data: OlliDataset, predicate?: UmweltPredicate): OlliValue[] {
   const unique_vals = new Set<OlliValue>();
-  const dataset = selectionSpec ? selectionTest(data, selectionSpec) : data;
+  const dataset = predicate ? selectionTest(data, predicate) : data;
   // TODO account for domain overrides in the field def
-  dataset
-    .map((d) => d[fieldDef.field])
-    .forEach((v) => {
-      unique_vals.add(v);
-    });
+  if (fieldDef.timeUnit) {
+    const unique_time_vals = new Set<string>();
+    dataset
+      .map((d) => d[fieldDef.field])
+      .forEach((v) => {
+        if (v instanceof Date) {
+          const time_val = dateToTimeUnit(v, fieldDef.timeUnit);
+          if (!unique_time_vals.has(time_val)) {
+            unique_time_vals.add(time_val);
+            unique_vals.add(v);
+          }
+        }
+      });
+  } else {
+    dataset
+      .map((d) => d[fieldDef.field])
+      .forEach((v) => {
+        unique_vals.add(v);
+      });
+  }
   return [...unique_vals].filter((x) => x !== null && x !== undefined).sort((a: any, b: any) => a - b);
 }
 
-export function getFieldDef(field: string, fields: ElaboratedFieldDef[]): ElaboratedFieldDef {
+export function getFieldDef(field: string, fields: FieldDef[]): FieldDef {
   return fields.find((f) => f.name === field);
 }

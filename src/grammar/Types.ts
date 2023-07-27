@@ -27,7 +27,7 @@ export type UmweltDataSource = UrlData | InlineData;
 export type UmweltPredicate = LogicalComposition<FieldPredicate>;
 
 export type VisualPropName = 'x' | 'y' | 'color' | 'opacity' | 'shape' | 'detail' | 'facet' | 'row' | 'column';
-export type AudioPropName = 'pitch' | 'duration' | 'volume';
+export type AudioPropName = 'pitch' | 'duration' | 'volume' | 'pan' | 'waveform';
 export type EncodingPropName = VisualPropName | AudioPropName;
 
 export type AudioAggregateOp = 'count' | 'mean'; // | "median" | "min" | "max"; //
@@ -78,6 +78,8 @@ export interface AudioEncodingFieldDef {
   sort?: Sort<any>;
   // bin: undefined;
 }
+
+export type EncodingFieldDef = VisualEncodingFieldDef | AudioEncodingFieldDef;
 
 export type AudioTraversalMode = 'interactive' | 'sequential';
 

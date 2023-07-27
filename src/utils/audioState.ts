@@ -1,58 +1,47 @@
-import { OlliDataset, OlliDatum } from 'olli';
-import { Bin } from 'vega-lite/src/bin';
-import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
-import { FieldPredicate, FieldEqualPredicate, FieldRangePredicate } from 'vega-lite/src/predicate';
-import { SelectionSpec, ElaboratedAudioSpec, ElaboratedFieldDef, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, ElaboratedAudioTraversalFieldDef, ElaboratedAudioEncodingFieldDef, ElaboratedAudioEncoding, EncodingPropName } from '../grammar';
+import { OlliDataset } from 'olli';
+import { FieldEqualPredicate, FieldRangePredicate } from 'vega-lite/src/predicate';
+import { AudioEncoding, AudioPropName, AudioUnitSpec, FieldDef, UmweltPredicate } from '../grammar';
 import { SonifierNote } from './sonifier';
-import { AudioSpecDomains, AudioSpecIndices } from '../UmweltAudio';
 import { aggregate } from './aggregate';
-import { getBins } from './bin';
-import { getDomain, getFieldDef } from './data';
-import { getScaleFunction, ScaleFunction } from './scales';
-import { datumToPredicate, selectionTest } from './selection';
-import { rangesAreEqual, serializeValue } from './values';
+import { getScaleFunction } from './scales';
+import { selectionTest } from './selection';
 import { Sonifier } from './sonifier';
 import fastCartesian from 'fast-cartesian';
+import { AudioUnitFieldDomains, AudioUnitFieldSelectedIndices } from '../UmweltAudioUnit';
+import { getFieldDef } from './data';
 
-export function audioStateToSelectionSpec(indices: AudioSpecIndices, domains: AudioSpecDomains): SelectionSpec {
+export function audioStateToPredicate(indices: AudioUnitFieldSelectedIndices, domains: AudioUnitFieldDomains): UmweltPredicate {
   return {
-    predicate: {
-      and: Object.entries(indices).map(([field, idx]) => {
-        const value = domains[field][idx];
-        if (Array.isArray(value)) {
-          return {
-            field,
-            range: value,
-          } as FieldRangePredicate;
-        } else {
-          return {
-            field,
-            equal: value,
-          } as FieldEqualPredicate;
-        }
-      }),
-    },
+    and: Object.entries(indices).map(([field, idx]) => {
+      const value = domains[field][idx];
+      if (Array.isArray(value)) {
+        return {
+          field,
+          range: value,
+        } as FieldRangePredicate;
+      } else {
+        return {
+          field,
+          equal: value,
+        } as FieldEqualPredicate;
+      }
+    }),
   };
 }
 
-export function generateSequence(audioSpec: ElaboratedAudioSpec, specDomains: AudioSpecDomains, data: OlliDataset): SonifierNote[] {
-  if (audioSpec.traversal === 'selection') return [];
-
+export function generateSequence(audioSpec: AudioUnitSpec, specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset): SonifierNote[] {
   const sequenceFields = [...audioSpec.traversal.map((f) => f.field)];
-
-  const states: AudioSpecIndices[] = fastCartesian(sequenceFields.map((field) => specDomains[field].map((_, idx: number) => idx))).map((s) => {
+  const states: AudioUnitFieldSelectedIndices[] = fastCartesian(sequenceFields.map((field) => (specDomains[field] || []).map((_, idx: number) => idx))).map((s) => {
     return Object.fromEntries(
       s.map((value, index) => {
-        if (audioSpec.traversal !== 'selection') {
-          return [audioSpec.traversal[index].field, value];
-        }
+        return [audioSpec.traversal[index].field, value];
       })
     );
   });
 
   const notes = states.map((state) => {
     return {
-      ...audioStateToNote(audioSpec, state, specDomains, data),
+      ...audioStateToNote(audioSpec, state, specDomains, fields, data),
       indices: state,
     };
   });
@@ -67,15 +56,15 @@ export function generateSequence(audioSpec: ElaboratedAudioSpec, specDomains: Au
   return notes;
 }
 
-export function audioStateToNote(audioSpec: ElaboratedAudioSpec, specIndices: AudioSpecIndices, specDomains: AudioSpecDomains, data: OlliDataset): SonifierNote {
-  const selectionSpec = audioStateToSelectionSpec(specIndices, specDomains);
+export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUnitFieldSelectedIndices, specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset): SonifierNote {
+  const selectionSpec = audioStateToPredicate(specIndices, specDomains);
   const selection = selectionTest(data, selectionSpec);
 
-  function encodeAudio(audioEncoding: ElaboratedAudioEncoding, selection: OlliDataset) {
+  function encodeAudio(audioEncoding: AudioEncoding, selection: OlliDataset) {
     return Object.entries(audioEncoding)
       .map(([prop, encodingFieldDef]) => {
         if (encodingFieldDef?.field) {
-          const scale = getScaleFunction(prop as AudioPropName, encodingFieldDef, data);
+          const scale = getScaleFunction(prop as AudioPropName, encodingFieldDef, fields, data);
           if (selection.length > 1 && encodingFieldDef.aggregate) {
             const aggregatedValue = aggregate(encodingFieldDef, selection);
 
@@ -129,9 +118,10 @@ export function audioStateToNote(audioSpec: ElaboratedAudioSpec, specIndices: Au
     note.pauseAfter = Sonifier.pauseDuration * endCount;
   } else {
     note.pauseAfter = 0;
-    if (audioSpec.traversal !== 'selection' && !audioSpec.encoding.duration) {
+    if (!audioSpec.encoding.duration) {
       // ramp if the innermost loop is a slider value
-      const fieldDef = audioSpec.traversal[audioSpec.traversal.length - 1];
+      const traversalFieldDef = audioSpec.traversal[audioSpec.traversal.length - 1];
+      const fieldDef = getFieldDef(traversalFieldDef.field, fields);
       if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
         note.ramp = true;
       }

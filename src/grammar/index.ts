@@ -105,18 +105,5 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
 export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec): Promise<OlliSpec> {
   if (spec.text === false) return null;
   const olliSpec: OlliSpec = await VegaLiteAdapter(vlSpec as any);
-  // olliSpec.fields = spec.fields.map((fieldDef) => {
-  //   const { name, ...rest } = fieldDef;
-  //   return {
-  //     ...rest,
-  //     field: fieldDef.name,
-  //   };
-  // });
-  if (spec.text !== true) {
-    olliSpec.structure = spec.text;
-  }
-  // const { data, ...print } = olliSpec;
-  // console.log('umwelt olliSpec', JSON.stringify(print));
-  // console.log('olliSpec', olliSpec);
   return olliSpec;
 }
