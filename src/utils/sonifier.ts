@@ -1,6 +1,5 @@
 import * as Tone from 'tone';
-import { AudioSpecIndices } from '../UmweltAudio';
-import { RefObject } from 'react';
+import { AudioUnitFieldSelectedIndices } from '../UmweltAudioUnit';
 
 export type SonifierNote = {
   duration: number; // duration in seconds
@@ -10,7 +9,7 @@ export type SonifierNote = {
   pitch?: number;
   volume?: number;
   ramp?: boolean; // should we ramp from this note
-  indices: AudioSpecIndices; // corresponding spec state
+  indices: AudioUnitFieldSelectedIndices; // corresponding spec state
 };
 
 class UmweltSonifier {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
-import { elaborateFields } from './grammar/elaborate';
+import { elaborateFields } from './utils/inference';
 import { UrlData } from 'vega-lite/src/data';
 
 import './UmweltEditor.css'
