@@ -85,7 +85,6 @@ export type AudioTraversalMode = 'interactive' | 'sequential';
 
 export interface AudioTraversalFieldDef {
   field: FieldName;
-  mode: AudioTraversalMode;
   //
   scale?: ScaleDomain & ScaleRange;
   timeUnit?: string;

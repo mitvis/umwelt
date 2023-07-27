@@ -595,12 +595,16 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       </select>
                     </label>
                   </div>
-                  <div className='def-property'>
-                    <label>
-                      Bin
-                      <input type='checkbox' checked={field.bin} onChange={(e) => onSelectFieldProperty(field, 'bin', e.target.checked)}/>
-                    </label>
-                  </div>
+                  {
+                    field.type === 'quantitative' || field.type === 'temporal' ? (
+                      <div className='def-property'>
+                        <label>
+                          Bin
+                          <input type='checkbox' checked={field.bin} onChange={(e) => onSelectFieldProperty(field, 'bin', e.target.checked)}/>
+                        </label>
+                      </div>
+                    ) : null
+                  }
                   {
                     field.type === 'temporal' ? (
                       <div className='def-property'>
@@ -673,7 +677,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         <div className='enc-def'>
                           <h6 className='encoding-name'>{propName}</h6>
                           <div className='unit-encoding-def'>
-                            <span>{propValue.field}</span>
+                            <span>{propValue.bin ? `binned ` : null}{propValue.aggregate ? `${propValue.aggregate} ` : null}{propValue.field}{propValue.timeUnit ? ` (${propValue.timeUnit})` : null}</span>
                             <button id={`encoding-${visualUnitSpec.name}-${propName}`} onClick={() => jumpToField(propValue.field, propName)}>Go to field</button>
                             <button onClick={() => removeEncoding(visualUnitSpec, propName)}>Remove encoding</button>
                           </div>
@@ -694,12 +698,16 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                 </select>
                               </label>
                             </div>
-                            <div className='def-property'>
-                              <label>
-                                Bin
-                                <input type='checkbox' checked={propValue.bin ?? fieldDef.bin} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'bin', e.target.checked)}/>
-                              </label>
-                            </div>
+                            {
+                              fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' ? (
+                                <div className='def-property'>
+                                  <label>
+                                    Bin
+                                    <input type='checkbox' checked={propValue.bin ?? fieldDef.bin} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'bin', e.target.checked)}/>
+                                  </label>
+                                </div>
+                              ) : null
+                            }
                             {
                               fieldDef.type === 'temporal' ? (
                                 <div className='def-property'>
@@ -788,7 +796,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         <div>
                           <h6 className='encoding-name'>{propName}</h6>
                           <div className='unit-encoding-def'>
-                            <span>{propValue.field}</span>
+                            <span>{propValue.aggregate ? `${propValue.aggregate} ` : null}{propValue.field}{propValue.timeUnit ? ` (${propValue.timeUnit})` : null}</span>
                             <button id={`encoding-${audioUnitSpec.name}-${propName}`} onClick={() => jumpToField(propValue.field, propName)}>Go to field</button>
                             <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button>
                           </div>
@@ -858,7 +866,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       return (
                         <div className='enc-def'>
                           <div className='unit-encoding-def'>
-                            <span>{traversal.field}</span>
+                            <span><span>{traversal.bin ? `binned ` : null}{traversal.field}{traversal.timeUnit ? ` (${traversal.timeUnit})` : null}</span></span>
                             <button>Go to field</button>
                             <button onClick={() => removeTraversal(audioUnitSpec, traversal.field)}>Remove traversal</button>
                           </div>
@@ -878,12 +886,16 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           </div> */}
                           <details>
                             <summary>Additional options</summary>
-                            <div className='def-property'>
-                              <label>
-                                Bin
-                                <input type='checkbox' checked={traversal.bin ?? fieldDef.bin} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'bin', e.target.checked)}/>
-                              </label>
-                            </div>
+                            {
+                              fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' ? (
+                                <div className='def-property'>
+                                  <label>
+                                    Bin
+                                    <input type='checkbox' checked={traversal.bin ?? fieldDef.bin} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'bin', e.target.checked)}/>
+                                  </label>
+                                </div>
+                              ) : null
+                            }
                             {
                               fieldDef.type === 'temporal' ? (
                                 <div className='def-property'>
