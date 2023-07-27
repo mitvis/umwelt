@@ -610,21 +610,25 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       <input type='checkbox' checked={field.bin} onChange={(e) => onSelectFieldProperty(field, 'bin', e.target.checked)}/>
                     </label>
                   </div>
-                  <div className='def-property'>
-                    <label>
-                      Time unit
-                      <select value={field.timeUnit} onChange={(e) => onSelectFieldProperty(field, 'timeUnit', e.target.value)}>
-                        <option value=''>None</option>
-                        {
-                          timeUnits.map(timeUnit => {
-                            return (
-                              <option value={timeUnit}>{timeUnit}</option>
-                            )
-                          })
-                        }
-                      </select>
-                    </label>
-                  </div>
+                  {
+                    field.type === 'temporal' ? (
+                      <div className='def-property'>
+                        <label>
+                          Time unit
+                          <select value={field.timeUnit} onChange={(e) => onSelectFieldProperty(field, 'timeUnit', e.target.value)}>
+                            <option value=''>None</option>
+                            {
+                              timeUnits.map(timeUnit => {
+                                return (
+                                  <option value={timeUnit}>{timeUnit}</option>
+                                )
+                              })
+                            }
+                          </select>
+                        </label>
+                      </div>
+                    ) : null
+                  }
                   <div className='def-property'>
                     <label>
                       Scale
@@ -705,21 +709,25 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                 <input type='checkbox' checked={propValue.bin || fieldDef.bin} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'bin', e.target.checked)}/>
                               </label>
                             </div>
-                            <div className='def-property'>
-                              <label>
-                                Time unit
-                                <select value={propValue.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'timeUnit', e.target.value)}>
-                                  <option value=''>None</option>
-                                  {
-                                    timeUnits.map(timeUnit => {
-                                      return (
-                                        <option value={timeUnit}>{timeUnit}</option>
-                                      )
-                                    })
-                                  }
-                                </select>
-                              </label>
-                            </div>
+                            {
+                              fieldDef.type === 'temporal' ? (
+                                <div className='def-property'>
+                                  <label>
+                                    Time unit
+                                    <select value={propValue.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'timeUnit', e.target.value)}>
+                                      <option value=''>None</option>
+                                      {
+                                        timeUnits.map(timeUnit => {
+                                          return (
+                                            <option value={timeUnit}>{timeUnit}</option>
+                                          )
+                                        })
+                                      }
+                                    </select>
+                                  </label>
+                                </div>
+                              ) : null
+                            }
                             <div className='def-property'>
                               <label>
                                 Scale
@@ -810,21 +818,26 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                 </select>
                               </label>
                             </div>
-                            <div className='def-property'>
-                              <label>
-                                Time unit
-                                <select value={propValue.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'timeUnit', e.target.value)}>
-                                  <option value=''>None</option>
-                                  {
-                                    timeUnits.map(timeUnit => {
-                                      return (
-                                        <option value={timeUnit}>{timeUnit}</option>
-                                      )
-                                    })
-                                  }
-                                </select>
-                              </label>
-                            </div>
+                            {
+                              fieldDef.type === 'temporal' ? (
+                                <div className='def-property'>
+                                  <label>
+                                    Time unit
+                                    <select value={propValue.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'timeUnit', e.target.value)}>
+                                      <option value=''>None</option>
+                                      {
+                                        timeUnits.map(timeUnit => {
+                                          return (
+                                            <option value={timeUnit}>{timeUnit}</option>
+                                          )
+                                        })
+                                      }
+                                    </select>
+                                  </label>
+                                </div>
+                              ) : null
+                            }
+
                             <div className='def-property'>
                               <label>
                                 Scale
@@ -880,21 +893,25 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                 <input type='checkbox' checked={traversal.bin || fieldDef.bin} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'bin', e.target.checked)}/>
                               </label>
                             </div>
-                            <div className='def-property'>
-                              <label>
-                                Time unit
-                                <select value={traversal.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'timeUnit', e.target.value)}>
-                                  <option value=''>None</option>
-                                  {
-                                    timeUnits.map(timeUnit => {
-                                      return (
-                                        <option value={timeUnit}>{timeUnit}</option>
-                                      )
-                                    })
-                                  }
-                                </select>
-                              </label>
-                            </div>
+                            {
+                              fieldDef.type === 'temporal' ? (
+                                <div className='def-property'>
+                                  <label>
+                                    Time unit
+                                    <select value={traversal.timeUnit || fieldDef.timeUnit} onChange={(e) => onSelectTraversalProperty(traversal, audioUnitSpec.name, 'timeUnit', e.target.value)}>
+                                      <option value=''>None</option>
+                                      {
+                                        timeUnits.map(timeUnit => {
+                                          return (
+                                            <option value={timeUnit}>{timeUnit}</option>
+                                          )
+                                        })
+                                      }
+                                    </select>
+                                  </label>
+                                </div>
+                              ) : null
+                            }
                             <div className='def-property'>
                               <label>
                                 Scale
