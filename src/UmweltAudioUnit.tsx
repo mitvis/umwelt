@@ -93,7 +93,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     // if a value exists in the new domain, use its new index
     const remappedIndices = Object.fromEntries(
       Object.keys(specIndices).map((field) => {
-        const nextIndex = nextDomains[field].findIndex(v => v === selectedValues[field]);
+        const nextIndex = nextDomains[field]?.findIndex(v => v === selectedValues[field]) || -1;
         return [field, nextIndex === -1 ? 0 : nextIndex];
       })
     )
