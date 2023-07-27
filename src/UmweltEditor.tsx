@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AudioEncoding, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
+import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
 import { elaborateFields } from './grammar/elaborate';
@@ -31,6 +31,23 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const [audioComposition, setAudioComposition] = useState<ViewComposition>('concat');
   const [fieldEncodingSelectValues, setFieldEncodingSelectValues] = useState<{[fieldName: string]: EncodingPropName}>({});
   const [fieldUnitSelectValues, setFieldUnitSelectValues] = useState<{[fieldName: string]: string}>({});
+  const [unitTraversalSelectValues, setUnitTraversalSelectValues] = useState<{[unitName: string]: string}>({});
+
+
+  const mtypes = ['quantitative', 'nominal', 'ordinal', 'temporal'];
+  const visualPropNames: VisualPropName[] = ['x', 'y', 'color', 'shape', 'opacity'];
+  const audioPropNames: AudioPropName[] = ['pitch', 'duration', 'volume'];
+  const commonPropNames = ['x', 'y', 'color', 'pitch'].reverse();
+  const propertyNames: EncodingPropName[] = (visualPropNames as EncodingPropName[]).concat(audioPropNames).sort((a, b) => {
+    const aIndex = commonPropNames.indexOf(a);
+    const bIndex = commonPropNames.indexOf(b);
+    return bIndex - aIndex;
+  });
+  const markTypes = ['point', 'line', 'bar'];
+  const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
+  const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
+  const traversalModes = ['sequential', 'interactive'];
+
 
   const toSpec = (): UmweltSpec => {
     return {
@@ -118,15 +135,15 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   useEffect(() => {
     const nextEncodingSelect = structuredClone(fieldEncodingSelectValues);
+    const validPropNames = propertyNames.filter(propName => {
+      if (visualPropNames.includes(propName as VisualPropName)) {
+        return visualUnitSpecs.some(spec => !spec.encoding[propName]);
+      }
+      else if (audioPropNames.includes(propName as AudioPropName)) {
+        return audioUnitSpecs.some(spec => !spec.encoding[propName]);
+      }
+    });
     fields.forEach(field => {
-      const validPropNames = propertyNames.filter(propName => {
-        if (visualPropNames.includes(propName as VisualPropName)) {
-          return visualUnitSpecs.some(spec => !spec.encoding[propName]);
-        }
-        else if (audioPropNames.includes(propName as AudioPropName)) {
-          return audioUnitSpecs.some(spec => !spec.encoding[propName]);
-        }
-      });
       if (validPropNames.length) {
         if (field.type === 'quantitative' || field.type === 'temporal') {
           nextEncodingSelect[field.name] = validPropNames.find(propName => ['x', 'y', 'opacity', 'size', 'pitch', 'duration', 'volume'].includes(propName)) || validPropNames[0];
@@ -137,6 +154,17 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       }
     });
     setFieldEncodingSelectValues(nextEncodingSelect);
+
+    const nextTraversalSelect = structuredClone(unitTraversalSelectValues);
+    audioUnitSpecs.forEach(spec => {
+      const validFields = fields.filter(field => {
+        return !spec.traversal.find(traversal => traversal.field === field.name) && !Object.values(spec.encoding).find((def: AudioEncodingFieldDef) => def.field === field.name);
+      });
+      if (validFields.length) {
+        nextTraversalSelect[spec.name] = validFields[0].name;
+      }
+    });
+    setUnitTraversalSelectValues(nextTraversalSelect);
   }, [fields, visualUnitSpecs, audioUnitSpecs]);
 
   useEffect(() => {
@@ -183,6 +211,13 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     setFieldUnitSelectValues({
       ...fieldUnitSelectValues,
       [fieldName]: unitName
+    });
+  }
+
+  const onSelectTraversal = (unitName, fieldName) => {
+    setUnitTraversalSelectValues({
+      ...unitTraversalSelectValues,
+      [unitName]: fieldName
     });
   }
 
@@ -254,6 +289,22 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     setVisualUnitSpecs(visualUnitSpecs.map(spec => {
       if (spec.name === visualUnitSpec.name) {
         spec.mark = mark;
+      }
+      return spec;
+    }));
+  }
+
+  const addTraversal = (unitName: string) => {
+    const fieldName = unitTraversalSelectValues[unitName];
+    const unit = audioUnitSpecs.find(spec => spec.name === unitName);
+    const newTraversal = structuredClone(unit.traversal).filter(traversal => traversal.field !== fieldName);
+    newTraversal.push({
+      field: fieldName,
+      mode: 'interactive',
+    });
+    setAudioUnitSpecs(audioUnitSpecs.map(spec => {
+      if (spec.name === unitName) {
+        spec.traversal = newTraversal;
       }
       return spec;
     }));
@@ -372,6 +423,16 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }
   }
 
+  const removeTraversal = (unitSpec: AudioUnitSpec, field) => {
+    const newTraversal = unitSpec.traversal.filter(traversal => traversal.field !== field);
+    setAudioUnitSpecs(audioUnitSpecs.map(spec => {
+      if (spec.name === unitSpec.name) {
+        spec.traversal = newTraversal;
+      }
+      return spec;
+    }));
+  }
+
   const addUnit = (specs: VisualUnitSpec[] | AudioUnitSpec[]) => {
     if ('mark' in specs[0]) {
       const nextId = visualUnitSpecs.map(spec => parseInt(spec.name.split('_')[2])).reduce((a, b) => Math.max(a, b), 0) + 1;
@@ -424,20 +485,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       element.focus();
     }
   }
-
-  const mtypes = ['quantitative', 'nominal', 'ordinal', 'temporal'];
-  const visualPropNames: VisualPropName[] = ['x', 'y', 'color', 'shape', 'opacity'];
-  const audioPropNames: AudioPropName[] = ['pitch', 'duration', 'volume'];
-  const commonPropNames = ['x', 'y', 'color', 'pitch'].reverse();
-  const propertyNames: EncodingPropName[] = (visualPropNames as EncodingPropName[]).concat(audioPropNames).sort((a, b) => {
-    const aIndex = commonPropNames.indexOf(a);
-    const bIndex = commonPropNames.indexOf(b);
-    return bIndex - aIndex;
-  });
-  const markTypes = ['point', 'line', 'bar'];
-  const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
-  const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
-  const traversalModes = ['sequential', 'interactive'];
 
   return (
     <div className='uw-structured-editor'>
@@ -809,7 +856,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           <div className='unit-encoding-def'>
                             <span>{traversal.field}</span>
                             <button>Go to field</button>
-                            {/* <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button> */}
+                            <button onClick={() => removeTraversal(audioUnitSpec, traversal.field)}>Remove traversal</button>
                           </div>
                           <div className='def-property'>
                             <div className='def-property-label'>Mode:</div>
@@ -864,6 +911,26 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         </div>
                       )
                     }) : "None"
+                  }
+                  {
+                    Object.keys(audioUnitSpec.encoding).length && audioUnitSpec.traversal.length + new Set(Object.values(audioUnitSpec.encoding).map(e => e.field)).size < fields.length ?
+                    (
+                      <div>
+                        <div className='def-property-add'>Add traversal:</div>
+                        <select value={unitTraversalSelectValues[audioUnitSpec.name]} onChange={(e) => onSelectTraversal(audioUnitSpec.name, e.target.value)}>
+                          {
+                            fields.filter(field => {
+                              return !audioUnitSpec.traversal.find(traversal => traversal.field === field.name) && !Object.values(audioUnitSpec.encoding).find((def: AudioEncodingFieldDef) => def.field === field.name);
+                            }).map(field => {
+                              return (
+                                <option value={field.name}>{field.name}</option>
+                              )
+                            })
+                          }
+                        </select>
+                        <button onClick={() => addTraversal(audioUnitSpec.name)}>Add</button>
+                      </div>
+                    ) : null
                   }
                 </div>
               </div>
