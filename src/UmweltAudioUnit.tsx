@@ -144,20 +144,20 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   }, [notes]);
 
   useEffect(() => {
-    playCurrentValue();
+    if (audioCtrl.current === 'interaction') {
+      playCurrentValue();
+    }
   }, [notes, specIndices]);
 
   const playCurrentValue = useCallback(() => {
-    if (audioCtrl.current === 'interaction') {
-      const note = notes.find(note => {
-        return Object.keys(note.indices).every((field) => {
-          return note.indices[field] === specIndices[field]
-        });
+    const note = notes.find(note => {
+      return Object.keys(note.indices).every((field) => {
+        return note.indices[field] === specIndices[field]
       });
-      if (note) {
-        Tone.Transport.seconds = note.elapsed;
-        Sonifier.triggerSynth(note, true);
-      }
+    });
+    if (note) {
+      Tone.Transport.seconds = note.elapsed;
+      Sonifier.triggerSynth(note, true);
     }
   }, [notes, specIndices]);
 
@@ -181,15 +181,18 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     await Tone.start();
     if (document.activeElement?.closest(".audio-container") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
       switch (e.key) {
+        case 'P':
+          if (Tone.Transport.state === 'started') {
+            pause();
+          }
+          else {
+            play();
+          }
+        break;
         case 'p':
           if (!e.repeat) {
-            if (e.shiftKey) {
-              if (Tone.Transport.state === 'started') {
-                pause();
-              }
-              else {
-                play();
-              }
+            if (Tone.Transport.state === 'started') {
+              pause();
             }
             else {
               playCurrentValue();
