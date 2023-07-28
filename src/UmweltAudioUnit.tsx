@@ -86,6 +86,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
       if (idx === notes.length - 1) {
         Tone.Transport.schedule(() => {
+          Sonifier.releaseSynth();
           Tone.Transport.pause();
         }, note.elapsed + note.duration)
       }
@@ -130,23 +131,27 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     const predNotes = structuredClone(notes.filter(note => {
       return note.indices[field] === predIndex;
     }));
+    const originalLastNotePosition = predNotes[predNotes.length - 1].elapsed;
     if (predNotes.length) {
-      assignNoteTimings(predNotes);
       if (!audioUnitSpec.encoding.duration) {
         predNotes.forEach((note) => {
           note.duration = Sonifier.defaultSequenceDuration / predNotes.length;
         })
       }
+      assignNoteTimings(predNotes);
+      console.log(predNotes);
       // temporarily populate transport with predicate notes
       notesToTransport(predNotes);
       const lastNote = predNotes[predNotes.length - 1];
       Tone.Transport.schedule(() => {
         // put the real notes back
         notesToTransport(notes);
-      }, lastNote.elapsed + lastNote.duration + 0.25);
+        Tone.Transport.seconds = originalLastNotePosition;
+        pause();
+      }, lastNote.elapsed + lastNote.duration);
       playFromBeginning();
     }
-  }, [audioUnitSpec, data, fields, getFieldDomains, notes, notesToTransport, playFromBeginning]);
+  }, [audioUnitSpec.encoding.duration, notes, notesToTransport, playFromBeginning, specDomains]);
 
   useEffect(() => {
     // re-initialize when spec changes
