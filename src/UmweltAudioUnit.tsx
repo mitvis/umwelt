@@ -41,34 +41,57 @@ export type AudioCtrl = 'interaction' | 'sequence' | 'umwelt';
 
 const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted}: AudioUnitProps) => {
 
+  const getFieldSelectedIndices = useCallback((audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices => {
+    return Object.fromEntries(audioUnitSpec.traversal.map(({field}) => {
+      return [field, 0];
+    }))
+  }, []);
+
+  const getFieldDomains = useCallback((audioUnitSpec: AudioUnitSpec, predicate?: UmweltPredicate): AudioUnitFieldDomains => {
+    return Object.fromEntries(
+      audioUnitSpec.traversal.map((fieldDef) => {
+        return [fieldDef.field, (
+          fieldDef.bin ?
+          getBins(fieldDef, data, predicate) :
+          getDomain(fieldDef, data, predicate)
+        )];
+      })
+    )
+  }, [data]);
+
   const [domainFilter, setDomainFilter] = useState<UmweltPredicate>();
   const [specIndices, setSpecIndices] = useState<AudioUnitFieldSelectedIndices>(getFieldSelectedIndices(audioUnitSpec));
   const [specDomains, setSpecDomains] = useState<AudioUnitFieldDomains>(getFieldDomains(audioUnitSpec));
   const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('umwelt');
   const [notes, setNotes] = useState<SonifierNote[]>([]);
 
-  function getFieldSelectedIndices(audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices {
-    return Object.fromEntries(audioUnitSpec.traversal.map(({field}) => {
-      return [field, 0];
-    }))
-  }
+  const notesToTransport = useCallback((notes: SonifierNote[]) => {
+    Sonifier.resetTransport();
+    notes.forEach((note, idx) => {
+      Tone.Transport.schedule(() => {
+        if (audioCtrl.current === 'sequence') {
+          // play note
+          Sonifier.noteToState(note);
+          Sonifier.triggerSynth(note);
 
-  function getFieldDomains(audioUnitSpec: AudioUnitSpec): AudioUnitFieldDomains {
-    return Object.fromEntries(
-      audioUnitSpec.traversal.map((fieldDef) => {
-        return [fieldDef.field, (
-          fieldDef.bin ?
-          getBins(fieldDef, data, domainFilter) :
-          getDomain(fieldDef, data, domainFilter)
-        )];
-      })
-    )
-  }
+          setSpecIndices(note.indices);
+        }
+      }, note.elapsed)
 
-  useEffect(() => {
-    Sonifier.mute(muted)
-  }, [muted])
+      if (note.pauseAfter) {
+        Tone.Transport.schedule(() => {
+          // release synth
+          Sonifier.releaseSynth();
+        }, note.elapsed + note.duration)
+      }
 
+      if (idx === notes.length - 1) {
+        Tone.Transport.schedule(() => {
+          Tone.Transport.pause();
+        }, note.elapsed + note.duration)
+      }
+    });
+  }, [setSpecIndices]);
 
   const playCurrentValue = useCallback(() => {
     const note = notes.find(note => {
@@ -86,7 +109,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     setAudioCtrl('sequence');
     Tone.Transport.seconds = 0;
     Tone.Transport.start();
-  }, [setAudioCtrl]);
+  }, []);
 
   const play = useCallback(() => {
     if (notes.length && Tone.Transport.state !== 'started' && Tone.Transport.seconds > notes[notes.length - 1].elapsed) {
@@ -96,28 +119,25 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       setAudioCtrl('sequence');
       Tone.Transport.start();
     }
-  }, [notes, playFromBeginning, setAudioCtrl]);
+  }, [notes, playFromBeginning]);
 
   const pause = useCallback(() => {
     setAudioCtrl('interaction');
     Tone.Transport.pause();
-  }, [setAudioCtrl]);
+  }, []);
 
   const playPredicate = useCallback((predicate: FieldEqualPredicate) => {
-    setDomainFilter(predicate);
-    // playFromBeginning();
-    // const fieldIndex = specDomains[predicate.field].findIndex(v => v === predicate.equal);
-    // const predNotes = notes.filter(note => {
-    //   return note.indices[predicate.field] === fieldIndex;
-    // });
-    // debugger;
-    // if (predNotes.length) {
-    //   setAudioCtrl('sequence');
-    //   predNotes.forEach(note => {
-    //     Tone.Transport
-    //   });
-    // }
-  }, [notes]);
+    const predDomains = getFieldDomains(audioUnitSpec, predicate);
+    const predNotes = generateSequence(audioUnitSpec, predDomains, fields, data);
+    // temporarily populate transport with predicate notes
+    notesToTransport(predNotes);
+    const lastNote = predNotes[predNotes.length - 1];
+    Tone.Transport.schedule(() => {
+      // put the real notes back
+      notesToTransport(notes);
+    }, lastNote.elapsed + lastNote.duration + 0.25);
+    playFromBeginning();
+  }, [audioUnitSpec, data, fields, getFieldDomains, notes, notesToTransport, playFromBeginning]);
 
   useEffect(() => {
     // re-initialize when spec changes
@@ -137,7 +157,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   useEffect(() => {
     console.log('domainFilter', new Date().getTime())
     // update specStates using domain filter
-    const nextDomains = getFieldDomains(audioUnitSpec);
+    const nextDomains = getFieldDomains(audioUnitSpec, domainFilter);
     const selectedValues = Object.fromEntries(
       Object.entries(specIndices).map(([field, index]) => {
         return [field, specDomains[field][index]];
@@ -174,33 +194,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   useEffect(() => {
     // schedule notes in transport
-    Sonifier.resetTransport();
-    notes.forEach((note, idx) => {
-      Tone.Transport.schedule(() => {
-        if (audioCtrl.current === 'sequence') {
-          // play note
-          Sonifier.noteToState(note);
-          Sonifier.triggerSynth(note);
-
-          setSpecIndices(note.indices);
-        }
-      }, note.elapsed)
-
-      if (note.pauseAfter) {
-        Tone.Transport.schedule(() => {
-          // release synth
-          Sonifier.releaseSynth();
-        }, note.elapsed + note.duration)
-      }
-
-      if (idx === notes.length - 1) {
-        Tone.Transport.schedule(() => {
-          Tone.Transport.pause();
-        }, note.elapsed + note.duration)
-      }
-    });
+    notesToTransport(notes);
     console.log('done updating transport', new Date().getTime())
-  }, [audioCtrl, notes]);
+  }, [notes, notesToTransport]);
 
   useEffect(() => {
     if (audioCtrl.current === 'interaction') {

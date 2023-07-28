@@ -3,6 +3,8 @@ import useState from 'react-usestateref';
 import { AudioSpec, FieldDef, UmweltPredicate } from './grammar';
 import { SelectionCtrl } from './Umwelt';
 import UmweltAudioUnit from './UmweltAudioUnit';
+import { useEffect } from 'react';
+import { Sonifier } from './utils/sonifier';
 
 interface AudioProps {
   audioSpec: AudioSpec,
@@ -16,6 +18,10 @@ interface AudioProps {
 function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectionCtrl}: AudioProps) {
 
   const [muted, setMuted] = useState(false);
+
+  useEffect(() => {
+    Sonifier.mute(muted)
+  }, [muted])
 
   return (
     <div id="audio-container">
