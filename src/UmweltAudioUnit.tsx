@@ -346,6 +346,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           </div>
         )
       }
+      {/*
       <pre>
         Transport: {Tone.Transport.state} {Tone.Transport.seconds}
       </pre>
@@ -354,7 +355,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       </pre>
       <pre>
         {JSON.stringify(specDomains, null, 2)}
-      </pre>
+      </pre> */}
     </div>
   )
 }

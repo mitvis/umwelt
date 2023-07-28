@@ -103,7 +103,7 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
       <UmweltAudio audioSpec={audioSpec} fields={spec.fields} data={data} onAudioState={onAudioState} selection={selection} selectionCtrl={selectionCtrl.current}></UmweltAudio>
 
-      <pre>
+      {/* <pre>
         {JSON.stringify(printable(audioSpec), null, 2)}
       </pre>
 
@@ -117,10 +117,10 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
       <pre>
         {JSON.stringify(printable(spec), null, 2)}
-      </pre>
+      </pre> */}
 
 
-      <br/>
+      {/* <br/>
       <div>
         <div style={{fontWeight: 'bold'}}>Audio key bindings</div>
         <ul>
@@ -131,14 +131,14 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
           <li>t — open table view</li>
           <li>f — open filter view</li>
         </ul>
-      </div>
-      <div style={{fontWeight: 'bold'}}>Debug info</div>
+      </div> */}
+      {/* <div style={{fontWeight: 'bold'}}>Debug info</div>
       <pre>
         selectionCtrl: {selectionCtrl.current}
       </pre>
       <pre>
         {JSON.stringify(selection, null, 2)}
-      </pre>
+      </pre> */}
       {/* <pre id="pred-out">
         {JSON.stringify(uvSpec.text, null, 2)}
       </pre> */}
