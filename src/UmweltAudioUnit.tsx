@@ -68,6 +68,69 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     Sonifier.mute(muted)
   }, [muted])
 
+
+  const playCurrentValue = useCallback(() => {
+    const note = notes.find(note => {
+      return Object.keys(note.indices).every((field) => {
+        return note.indices[field] === specIndices[field]
+      });
+    });
+    if (note) {
+      Tone.Transport.seconds = note.elapsed;
+      Sonifier.triggerSynth(note, true);
+    }
+  }, [notes, specIndices]);
+
+  const play = useCallback(() => {
+    setAudioCtrl('sequence');
+    Tone.Transport.start();
+  }, [setAudioCtrl]);
+
+  const pause = useCallback(() => {
+    setAudioCtrl('interaction');
+    Tone.Transport.pause();
+  }, [setAudioCtrl]);
+
+  const playFromBeginning = useCallback(() => {
+    setAudioCtrl('sequence');
+
+    const startNote = notes.find(note => {
+      return Object.keys(note.indices).every((field) => {
+        return note.indices[field] === 0
+      });
+    });
+    const endNote = notes.find(note => {
+      return Object.keys(note.indices).every((field) => {
+        return note.indices[field] === specDomains[field].length - 1
+      });
+    });
+    if (startNote && endNote) {
+      Tone.Transport.seconds = startNote.elapsed;
+      Tone.Transport.scheduleOnce(() => {
+        console.log('scheduleOnce');
+        Tone.Transport.pause();
+      }, endNote.elapsed + endNote.duration);
+      Tone.Transport.start();
+    }
+
+  }, [notes, setAudioCtrl, specDomains]);
+
+  const playPredicate = useCallback((predicate: FieldEqualPredicate) => {
+    setDomainFilter(predicate);
+    // playFromBeginning();
+    // const fieldIndex = specDomains[predicate.field].findIndex(v => v === predicate.equal);
+    // const predNotes = notes.filter(note => {
+    //   return note.indices[predicate.field] === fieldIndex;
+    // });
+    // debugger;
+    // if (predNotes.length) {
+    //   setAudioCtrl('sequence');
+    //   predNotes.forEach(note => {
+    //     Tone.Transport
+    //   });
+    // }
+  }, [notes]);
+
   useEffect(() => {
     // re-initialize when spec changes
     setAudioCtrl('umwelt');
@@ -156,50 +219,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       playCurrentValue();
     }
   }, [notes, specIndices]);
-
-  const playCurrentValue = useCallback(() => {
-    const note = notes.find(note => {
-      return Object.keys(note.indices).every((field) => {
-        return note.indices[field] === specIndices[field]
-      });
-    });
-    if (note) {
-      Tone.Transport.seconds = note.elapsed;
-      Sonifier.triggerSynth(note, true);
-    }
-  }, [notes, specIndices]);
-
-  const play = useCallback(() => {
-    setAudioCtrl('sequence');
-    Tone.Transport.start();
-  }, []);
-
-  const pause = useCallback(() => {
-    setAudioCtrl('interaction');
-    Tone.Transport.pause();
-  }, []);
-
-  const playFromBeginning = useCallback(() => {
-    setAudioCtrl('sequence');
-    Tone.Transport.seconds = 0;
-    Tone.Transport.start();
-  }, []);
-
-  const playPredicate = useCallback((predicate: FieldEqualPredicate) => {
-    setDomainFilter(predicate);
-    // playFromBeginning();
-    // const fieldIndex = specDomains[predicate.field].findIndex(v => v === predicate.equal);
-    // const predNotes = notes.filter(note => {
-    //   return note.indices[predicate.field] === fieldIndex;
-    // });
-    // debugger;
-    // if (predNotes.length) {
-    //   setAudioCtrl('sequence');
-    //   predNotes.forEach(note => {
-    //     Tone.Transport
-    //   });
-    // }
-  }, [notes]);
 
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
