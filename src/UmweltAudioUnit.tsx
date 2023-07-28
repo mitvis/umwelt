@@ -81,16 +81,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     }
   }, [notes, specIndices]);
 
-  const play = useCallback(() => {
-    setAudioCtrl('sequence');
-    Tone.Transport.start();
-  }, [setAudioCtrl]);
-
-  const pause = useCallback(() => {
-    setAudioCtrl('interaction');
-    Tone.Transport.pause();
-  }, [setAudioCtrl]);
-
   const playFromBeginning = useCallback(() => {
     setAudioCtrl('sequence');
 
@@ -114,6 +104,21 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     }
 
   }, [notes, setAudioCtrl, specDomains]);
+
+  const play = useCallback(() => {
+    if (notes.length && Tone.Transport.state !== 'started' && Tone.Transport.seconds > notes[notes.length - 1].elapsed) {
+      playFromBeginning();
+    }
+    else {
+      setAudioCtrl('sequence');
+      Tone.Transport.start();
+    }
+  }, [notes, playFromBeginning, setAudioCtrl]);
+
+  const pause = useCallback(() => {
+    setAudioCtrl('interaction');
+    Tone.Transport.pause();
+  }, [setAudioCtrl]);
 
   const playPredicate = useCallback((predicate: FieldEqualPredicate) => {
     setDomainFilter(predicate);
@@ -351,6 +356,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           </div>
         )
       }
+      <pre>
+        Transport: {Tone.Transport.state} {Tone.Transport.seconds}
+      </pre>
       <pre>
         {JSON.stringify(audioUnitSpec, null, 2)}
       </pre>
