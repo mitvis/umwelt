@@ -139,7 +139,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         })
       }
       assignNoteTimings(predNotes);
-      console.log(predNotes);
       // temporarily populate transport with predicate notes
       notesToTransport(predNotes);
       const lastNote = predNotes[predNotes.length - 1];
@@ -169,7 +168,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   }, [selection, selectionCtrl]);
 
   useEffect(() => {
-    console.log('domainFilter', new Date().getTime())
     // update specStates using domain filter
     const nextDomains = getFieldDomains(audioUnitSpec, domainFilter);
     const selectedValues = Object.fromEntries(
@@ -209,7 +207,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   useEffect(() => {
     // schedule notes in transport
     notesToTransport(notes);
-    console.log('done updating transport', new Date().getTime())
   }, [notes, notesToTransport]);
 
   useEffect(() => {
