@@ -5,14 +5,13 @@ import { AudioUnitSpec, FieldDef, UmweltPredicate } from './grammar';
 import { getDomain, getFieldDef } from './utils/data';
 import { SelectionCtrl } from './Umwelt';
 import { Sonifier, SonifierNote } from './utils/sonifier';
-import { audioStateToPredicate, generateSequence } from './utils/audioState';
+import { assignNoteTimings, audioStateToPredicate, generateSequence } from './utils/audioState';
 import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
-import { fmtValue } from './utils/values';
-import { FieldEqualPredicate } from 'vega-lite/src/predicate';
-import { set } from 'vega-lite/src/log';
+import { fmtValue, serializeValue } from './utils/values';
+import { FieldEqualPredicate, FieldRangePredicate } from 'vega-lite/src/predicate';
 
 interface AudioUnitProps {
   audioUnitSpec: AudioUnitSpec,
@@ -126,17 +125,27 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     Tone.Transport.pause();
   }, []);
 
-  const playPredicate = useCallback((predicate: FieldEqualPredicate) => {
-    const predDomains = getFieldDomains(audioUnitSpec, predicate);
-    const predNotes = generateSequence(audioUnitSpec, predDomains, fields, data);
-    // temporarily populate transport with predicate notes
-    notesToTransport(predNotes);
-    const lastNote = predNotes[predNotes.length - 1];
-    Tone.Transport.schedule(() => {
-      // put the real notes back
-      notesToTransport(notes);
-    }, lastNote.elapsed + lastNote.duration + 0.25);
-    playFromBeginning();
+  const playPredicate = useCallback((field, value) => {
+    const predIndex = specDomains[field].indexOf(value);
+    const predNotes = structuredClone(notes.filter(note => {
+      return note.indices[field] === predIndex;
+    }));
+    if (predNotes.length) {
+      assignNoteTimings(predNotes);
+      if (!audioUnitSpec.encoding.duration) {
+        predNotes.forEach((note) => {
+          note.duration = Sonifier.defaultSequenceDuration / predNotes.length;
+        })
+      }
+      // temporarily populate transport with predicate notes
+      notesToTransport(predNotes);
+      const lastNote = predNotes[predNotes.length - 1];
+      Tone.Transport.schedule(() => {
+        // put the real notes back
+        notesToTransport(notes);
+      }, lastNote.elapsed + lastNote.duration + 0.25);
+      playFromBeginning();
+    }
   }, [audioUnitSpec, data, fields, getFieldDomains, notes, notesToTransport, playFromBeginning]);
 
   useEffect(() => {
@@ -271,7 +280,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               <div key={field}>
                 <label htmlFor={id}>{field}</label>
                 <input id={id} type="text" readOnly={true} value={fmtValue(domain[specIndices?.[field]], traversalFieldDef)}></input>
-                <button onClick={() => playPredicate({field, equal: domain[specIndices?.[field]]})}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+                <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
               </div>
             );
           }
@@ -293,7 +302,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               <div key={field}>
                 <label htmlFor={id}>{field}</label>
                 <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
-                <button onClick={() => playPredicate({field, equal: domain[specIndices?.[field]]})}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+                <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
               </div>
             );
           }
@@ -317,14 +326,14 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                     return <option key={String(val)} value={String(val)}>{String(val)}</option>
                   })}
                 </select>
-                <button onClick={() => playPredicate({field, equal: domain[specIndices?.[field]]})}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+                <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
               </div>
             )
           }
         })
       }
       <div>
-        {Object.entries(audioUnitSpec.encoding).map(([field, encFieldDef]) => { return (<div>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}
+        {Object.entries(audioUnitSpec.encoding).map(([field, encFieldDef]) => { return (<div key={field}>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}
       </div>
       {
         Tone.Transport.state === 'started' ? <button onClick={pause}>Pause</button> : (

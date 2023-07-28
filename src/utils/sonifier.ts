@@ -41,8 +41,9 @@ class UmweltSonifier {
     this.noise = new Tone.NoiseSynth({
       envelope: {
         sustain: 0.1,
+        attackCurve: 'sine',
       },
-      volume: -15,
+      volume: -30,
     }).connect(this.vol);
 
     Tone.Transport.on('pause', () => {

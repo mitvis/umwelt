@@ -46,14 +46,18 @@ export function generateSequence(audioSpec: AudioUnitSpec, specDomains: AudioUni
     };
   });
 
+  assignNoteTimings(notes);
+
+  return notes;
+}
+
+export function assignNoteTimings(notes: SonifierNote[]) {
   if (notes.length) {
     notes[0].elapsed = 0;
     for (let i = 1; i < notes.length; i++) {
       notes[i].elapsed = notes[i - 1].elapsed + notes[i - 1].duration + (notes[i - 1].pauseAfter || 0);
     }
   }
-
-  return notes;
 }
 
 export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUnitFieldSelectedIndices, specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset): SonifierNote {

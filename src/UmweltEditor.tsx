@@ -491,7 +491,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       {
                         mtypes.map(mtype => {
                           return (
-                            <option value={mtype}>{mtype}</option>
+                            <option key={mtype} value={mtype}>{mtype}</option>
                           )
                         })
                       }
@@ -507,7 +507,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                   {
                     field.encodings?.map(encodingRef => {
                       return (
-                        <div className='field-def-encoding-ref'>
+                        <div className='field-def-encoding-ref' key={encodingRef.property}>
                           <span>{encodingRef.property}{
                             visualPropNames.includes(encodingRef.property as any) ? (
                               visualUnitSpecs.length > 1 ? ` (${encodingRef.unit})` : null
@@ -537,7 +537,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                               return false;
                             }).map(propName => {
                               return (
-                                <option value={propName}>{propName}</option>
+                                <option key={propName} value={propName}>{propName}</option>
                               )
                             })
                           }
@@ -548,7 +548,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                               {
                                 visualUnitSpecs.filter(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).map(visualUnitSpec => {
                                   return (
-                                    <option value={visualUnitSpec.name}>{visualUnitSpec.name}</option>
+                                    <option key={visualUnitSpec.name} value={visualUnitSpec.name}>{visualUnitSpec.name}</option>
                                   )
                                 })
                               }
@@ -561,7 +561,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                               {
                                 audioUnitSpecs.filter(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).map(audioUnitSpec => {
                                   return (
-                                    <option value={audioUnitSpec.name}>{audioUnitSpec.name}</option>
+                                    <option key={audioUnitSpec.name} value={audioUnitSpec.name}>{audioUnitSpec.name}</option>
                                   )
                                 })
                               }
@@ -585,7 +585,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         {
                           aggregateOps.map(aggregateOp => {
                             return (
-                              <option value={aggregateOp}>{aggregateOp}</option>
+                              <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
                             )
                           })
                         }
@@ -612,7 +612,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             {
                               timeUnits.map(timeUnit => {
                                 return (
-                                  <option value={timeUnit}>{timeUnit}</option>
+                                  <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
                                 )
                               })
                             }
@@ -643,7 +643,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       {
         visualUnitSpecs.map((visualUnitSpec) => {
           return (
-            <div className='unit-spec'>
+            <div className='unit-spec' key={visualUnitSpec.name}>
               {
                 visualUnitSpecs.length > 1 ? (
                   <h5 className='def-name'>{visualUnitSpec.name}</h5>
@@ -656,7 +656,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     {
                       markTypes.map(mark => {
                         return (
-                          <option value={mark}>{mark}</option>
+                          <option key={mark} value={mark}>{mark}</option>
                         )
                       })
                     }
@@ -671,7 +671,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     Object.entries(visualUnitSpec.encoding).map(([propName, propValue]) => {
                       const fieldDef = fields.find(field => field.name === propValue.field);
                       return (
-                        <div className='enc-def'>
+                        <div className='enc-def' key={propName}>
                           <h6 className='encoding-name'>{propName}</h6>
                           <div className='unit-encoding-def'>
                             <span>{propValue.bin ? `binned ` : null}{propValue.aggregate ? `${propValue.aggregate} ` : null}{propValue.field}{propValue.timeUnit ? ` (${propValue.timeUnit})` : null}</span>
@@ -688,7 +688,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                   {
                                     aggregateOps.map(aggregateOp => {
                                       return (
-                                        <option value={aggregateOp}>{aggregateOp}</option>
+                                        <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
                                       )
                                     })
                                   }
@@ -715,7 +715,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                       {
                                         timeUnits.map(timeUnit => {
                                           return (
-                                            <option value={timeUnit}>{timeUnit}</option>
+                                            <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
                                           )
                                         })
                                       }
@@ -776,7 +776,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       {
         audioUnitSpecs.map((audioUnitSpec) => {
           return (
-            <div className='unit-spec'>
+            <div className='unit-spec' key={audioUnitSpec.name}>
               {
                 audioUnitSpecs.length > 1 ? (
                   <h5 className='def-name'>{audioUnitSpec.name}</h5>
@@ -790,7 +790,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     Object.entries(audioUnitSpec.encoding).map(([propName, propValue]) => {
                       const fieldDef = fields.find(field => field.name === propValue.field);
                       return (
-                        <div>
+                        <div key={propName}>
                           <h6 className='encoding-name'>{propName}</h6>
                           <div className='unit-encoding-def'>
                             <span>{propValue.aggregate ? `${propValue.aggregate} ` : null}{propValue.field}{propValue.timeUnit ? ` (${propValue.timeUnit})` : null}</span>
@@ -807,7 +807,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                   {
                                     aggregateOps.map(aggregateOp => {
                                       return (
-                                        <option value={aggregateOp}>{aggregateOp}</option>
+                                        <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
                                       )
                                     })
                                   }
@@ -824,7 +824,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                       {
                                         timeUnits.map(timeUnit => {
                                           return (
-                                            <option value={timeUnit}>{timeUnit}</option>
+                                            <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
                                           )
                                         })
                                       }
@@ -861,7 +861,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     audioUnitSpec.traversal.map((traversal) => {
                       const fieldDef = fields.find(field => field.name === traversal.field);
                       return (
-                        <div className='enc-def'>
+                        <div className='enc-def' key={traversal.field}>
                           <div className='unit-encoding-def'>
                             <span><span>{traversal.bin ? `binned ` : null}{traversal.field}{traversal.timeUnit ? ` (${traversal.timeUnit})` : null}</span></span>
                             <button>Go to field</button>
@@ -903,7 +903,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                       {
                                         timeUnits.map(timeUnit => {
                                           return (
-                                            <option value={timeUnit}>{timeUnit}</option>
+                                            <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
                                           )
                                         })
                                       }
@@ -940,7 +940,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                               return !audioUnitSpec.traversal.find(traversal => traversal.field === field.name) && !Object.values(audioUnitSpec.encoding).find((def: AudioEncodingFieldDef) => def.field === field.name);
                             }).map(field => {
                               return (
-                                <option value={field.name}>{field.name}</option>
+                                <option key={field.name} value={field.name}>{field.name}</option>
                               )
                             })
                           }
