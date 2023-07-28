@@ -12,6 +12,7 @@ import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
 import { fmtValue } from './utils/values';
 import { FieldEqualPredicate } from 'vega-lite/src/predicate';
+import { set } from 'vega-lite/src/log';
 
 interface AudioUnitProps {
   audioUnitSpec: AudioUnitSpec,
@@ -83,27 +84,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   const playFromBeginning = useCallback(() => {
     setAudioCtrl('sequence');
-
-    const startNote = notes.find(note => {
-      return Object.keys(note.indices).every((field) => {
-        return note.indices[field] === 0
-      });
-    });
-    const endNote = notes.find(note => {
-      return Object.keys(note.indices).every((field) => {
-        return note.indices[field] === specDomains[field].length - 1
-      });
-    });
-    if (startNote && endNote) {
-      Tone.Transport.seconds = startNote.elapsed;
-      Tone.Transport.scheduleOnce(() => {
-        console.log('scheduleOnce');
-        Tone.Transport.pause();
-      }, endNote.elapsed + endNote.duration);
-      Tone.Transport.start();
-    }
-
-  }, [notes, setAudioCtrl, specDomains]);
+    Tone.Transport.seconds = 0;
+    Tone.Transport.start();
+  }, [setAudioCtrl]);
 
   const play = useCallback(() => {
     if (notes.length && Tone.Transport.state !== 'started' && Tone.Transport.seconds > notes[notes.length - 1].elapsed) {
@@ -217,7 +200,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       }
     });
     console.log('done updating transport', new Date().getTime())
-  }, [notes]);
+  }, [audioCtrl, notes]);
 
   useEffect(() => {
     if (audioCtrl.current === 'interaction') {
