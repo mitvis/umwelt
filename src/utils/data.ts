@@ -84,10 +84,19 @@ export function getDomain(fieldDef: EncodingFieldDef, data: OlliDataset, predica
         }
       });
   } else {
+    const unique_time_vals = new Set<number>();
     dataset
       .map((d) => d[fieldDef.field])
       .forEach((v) => {
-        unique_vals.add(v);
+        if (v instanceof Date) {
+          const time_val = v.getTime();
+          if (!unique_time_vals.has(time_val)) {
+            unique_time_vals.add(time_val);
+            unique_vals.add(v);
+          }
+        } else {
+          unique_vals.add(v);
+        }
       });
   }
   // if (fieldDef.field === 'date') debugger;

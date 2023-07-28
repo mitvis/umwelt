@@ -11,6 +11,7 @@ import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
 import { fmtValue } from './utils/values';
+import { FieldEqualPredicate } from 'vega-lite/src/predicate';
 
 interface AudioUnitProps {
   audioUnitSpec: AudioUnitSpec,
@@ -83,6 +84,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   }, [selection, selectionCtrl]);
 
   useEffect(() => {
+    console.log('domainFilter', new Date().getTime())
     // update specStates using domain filter
     const nextDomains = getFieldDomains(audioUnitSpec);
     const selectedValues = Object.fromEntries(
@@ -122,7 +124,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   useEffect(() => {
     // schedule notes in transport
     Sonifier.resetTransport();
-    notes.forEach(note => {
+    notes.forEach((note, idx) => {
       Tone.Transport.schedule(() => {
         if (audioCtrl.current === 'sequence') {
           // play note
@@ -139,8 +141,14 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           Sonifier.releaseSynth();
         }, note.elapsed + note.duration)
       }
-    });
 
+      if (idx === notes.length - 1) {
+        Tone.Transport.schedule(() => {
+          Tone.Transport.pause();
+        }, note.elapsed + note.duration)
+      }
+    });
+    console.log('done updating transport', new Date().getTime())
   }, [notes]);
 
   useEffect(() => {
@@ -177,6 +185,22 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     Tone.Transport.start();
   }, []);
 
+  const playPredicate = useCallback((predicate: FieldEqualPredicate) => {
+    setDomainFilter(predicate);
+    // playFromBeginning();
+    // const fieldIndex = specDomains[predicate.field].findIndex(v => v === predicate.equal);
+    // const predNotes = notes.filter(note => {
+    //   return note.indices[predicate.field] === fieldIndex;
+    // });
+    // debugger;
+    // if (predNotes.length) {
+    //   setAudioCtrl('sequence');
+    //   predNotes.forEach(note => {
+    //     Tone.Transport
+    //   });
+    // }
+  }, [notes]);
+
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
     if (document.activeElement?.closest(".audio-container") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
@@ -205,7 +229,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
       }
     }
-  }, [audioUnitSpec, fields]);
+  }, [muted, pause, play, playCurrentValue, setMuted]);
 
   const onClick = useCallback(async (e) => {
     await Tone.start();
@@ -238,6 +262,17 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           const fieldDef = getFieldDef(field, fields);
           const domain = specDomains[field];
 
+          if (domain.length === 1) {
+            const id = `${field}-value`;
+            return (
+              <div key={field}>
+                <label htmlFor={id}>{field}</label>
+                <input id={id} type="text" readOnly={true} value={fmtValue(domain[specIndices?.[field]], traversalFieldDef)}></input>
+                <button onClick={() => playPredicate({field, equal: domain[specIndices?.[field]]})}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+              </div>
+            );
+          }
+
           if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
             const id = `${field}-slider`;
             const onchange = (e) => {
@@ -255,7 +290,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               <div key={field}>
                 <label htmlFor={id}>{field}</label>
                 <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
-                <button>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+                <button onClick={() => playPredicate({field, equal: domain[specIndices?.[field]]})}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
               </div>
             );
           }
@@ -279,7 +314,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                     return <option key={String(val)} value={String(val)}>{String(val)}</option>
                   })}
                 </select>
-                <button>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+                <button onClick={() => playPredicate({field, equal: domain[specIndices?.[field]]})}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
               </div>
             )
           }
