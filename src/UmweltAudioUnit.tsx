@@ -182,7 +182,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       pitch: countPitch,
       indices: specIndices,
     };
-    console.log(count, countPitch, countNote);
     Sonifier.triggerSynth(countNote, true);
   }, [data, domainFilter]);
 

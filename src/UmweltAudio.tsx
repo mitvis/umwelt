@@ -48,7 +48,6 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
   }
 
   const layerSpec = (audioSpec: AudioSpec) => {
-    console.log('hi')
     const commonTraversals = audioSpec?.units[0].traversal.filter(traversal => {
       return audioSpec?.units.every(unit => {
         return unit.traversal.some(traversal2 => traversal2.field === traversal.field);
