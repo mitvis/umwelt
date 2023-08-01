@@ -135,7 +135,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     if (predNotes.length) {
       if (!audioUnitSpec.encoding.duration) {
         predNotes.forEach((note) => {
-          note.duration = Sonifier.defaultSequenceDuration / predNotes.length;
+          note.duration = Math.min(0.5, Sonifier.defaultSequenceDuration / predNotes.length);
         })
       }
       assignNoteTimings(predNotes);

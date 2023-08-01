@@ -41,7 +41,7 @@ function App() {
         <img src='/umwelt/umwelt.svg' />
       </div>
       <div className="column">
-        <div>
+        {/* <div>
           Choose spec: <select onChange={(e) => setSelectedSpec(e.target.value)} value={selectedSpec}>
             {
               Object.keys(specs).map(spec => {
@@ -49,7 +49,7 @@ function App() {
               })
             }
           </select>
-        </div>
+        </div> */}
         <UmweltEditor initialSpec={specs[selectedSpec]} onSpec={onSpec} />
 
 

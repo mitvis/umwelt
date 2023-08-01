@@ -99,11 +99,13 @@ export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUni
   }
 
   if (!note.duration) {
-    note.duration =
+    note.duration = Math.min(
+      0.5,
       Sonifier.defaultSequenceDuration /
-      Object.values(specDomains)
-        .map((d) => d.length)
-        .reduce((acc, v) => acc + v);
+        Object.values(specDomains)
+          .map((d) => d.length)
+          .reduce((acc, v) => acc + v)
+    );
   }
 
   // add pauses for the end values
