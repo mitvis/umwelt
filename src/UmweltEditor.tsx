@@ -364,7 +364,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }
   }
 
-  const removeEncodingReference = (propName, fieldName) => {
+  const removeEncodingReference = (propName: string, fieldName: string) => {
     const newFields = fields.map(f => {
       if (f.name === fieldName) {
         f.encodings = f.encodings.filter(e => e.property !== propName);
@@ -372,6 +372,29 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       return f;
     });
     setFields(newFields);
+  }
+
+  const removeEncodingFromField = (field: string, encodingRef: EncodingRef) => {
+    removeEncodingReference(encodingRef.property, field);
+    const unit = audioUnitSpecs.find(spec => spec.name === encodingRef.unit) || visualUnitSpecs.find(spec => spec.name === encodingRef.unit);
+    const newEncoding = structuredClone(unit.encoding);
+    delete newEncoding[encodingRef.property];
+    if ('mark' in unit) {
+      setVisualUnitSpecs(visualUnitSpecs.map(spec => {
+        if (spec.name === unit.name) {
+          spec.encoding = newEncoding as VisualEncoding;
+        }
+        return spec;
+      }));
+    }
+    else if ('traversal' in unit) {
+      setAudioUnitSpecs(audioUnitSpecs.map(spec => {
+        if (spec.name === unit.name) {
+          spec.encoding = newEncoding as AudioEncoding;
+        }
+        return spec;
+      }));
+    }
   }
 
   const removeEncoding = (unitSpec: VisualUnitSpec | AudioUnitSpec, propName) => {
@@ -533,6 +556,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                               ) : null
                             }</span>
                             <button id={`field-${field.name}-${encodingRef.property}`} onClick={() => jumpToEncodingRef(encodingRef)}>Go to full definition</button>
+                            <button onClick={() => removeEncodingFromField(field.name, encodingRef)}>Remove encoding</button>
                           </div>
                         )
                       })
