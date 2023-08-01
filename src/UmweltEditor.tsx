@@ -469,12 +469,15 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   }
 
   const jumpToField = (fieldName: string, propName: string) => {
-    const domId = `field-${fieldName}-${propName}`;
-    const element = document.getElementById(domId);
-    if (element) {
-      element.scrollIntoView({behavior: 'smooth'});
-      element.focus();
-    }
+    setTab('fields');
+    setTimeout(() => {
+      const domId = `field-${fieldName}-${propName}`;
+      const element = document.getElementById(domId);
+      if (element) {
+        element.scrollIntoView({behavior: 'smooth'});
+        element.focus();
+      }
+    }, 100);
   }
 
   return (
