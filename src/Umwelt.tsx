@@ -103,10 +103,11 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
       <UmweltAudio audioSpec={audioSpec} fields={spec.fields} data={data} onAudioState={onAudioState} selection={selection} selectionCtrl={selectionCtrl.current}></UmweltAudio>
 
-      {/* <pre>
+      <pre>
         {JSON.stringify(printable(audioSpec), null, 2)}
       </pre>
 
+      {/*
       <pre>
         {JSON.stringify(printable(olliSpec), null, 2)}
       </pre>

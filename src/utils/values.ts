@@ -81,6 +81,9 @@ export function dateToTimeUnit(date: Date, timeUnit: string): string {
 }
 
 export const fmtValue = (value, fieldDef): string => {
+  if (fieldDef.type === 'temporal' && !(value instanceof Date)) {
+    value = new Date(value);
+  }
   if (value instanceof Date) {
     return dateToTimeUnit(value, fieldDef.timeUnit);
   } else if (typeof value !== 'string' && !isNaN(value) && value % 1 != 0) {

@@ -1,5 +1,5 @@
 import { OlliDataset, OlliValue } from 'olli';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import useState from 'react-usestateref';
 import { AudioUnitSpec, FieldDef, UmweltPredicate } from './grammar';
 import { getDomain, getFieldDef } from './utils/data';
@@ -12,6 +12,7 @@ import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
 import { fmtValue, serializeValue } from './utils/values';
 import { FieldEqualPredicate, FieldRangePredicate } from 'vega-lite/src/predicate';
+import { set } from 'vega-lite/src/log';
 
 interface AudioUnitProps {
   audioUnitSpec: AudioUnitSpec,
@@ -22,6 +23,8 @@ interface AudioUnitProps {
   selectionCtrl: SelectionCtrl;
   muted: boolean;
   setMuted: any;
+  activeUnitRef: any;
+  setActiveUnit: any;
 }
 
 export type AudioUnitFieldSelectedIndices = {
@@ -38,7 +41,7 @@ export type SonifierNoteMap = {
 
 export type AudioCtrl = 'interaction' | 'sequence' | 'umwelt';
 
-const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted}: AudioUnitProps) => {
+const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted, activeUnitRef, setActiveUnit}: AudioUnitProps) => {
 
   const getFieldSelectedIndices = useCallback((audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices => {
     return Object.fromEntries(audioUnitSpec.traversal.map(({field}) => {
@@ -93,7 +96,23 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     });
   }, [setSpecIndices]);
 
+  const beforePlay = () => {
+    if (activeUnitRef.current !== audioUnitSpec.name) {
+      notesToTransport(notes);
+      const note = notes.find(note => {
+        return Object.keys(note.indices).every((field) => {
+          return note.indices[field] === specIndices[field]
+        });
+      });
+      if (note) {
+        Tone.Transport.seconds = note.elapsed;
+      }
+      setActiveUnit(audioUnitSpec.name);
+    }
+  }
+
   const playCurrentValue = useCallback(() => {
+    beforePlay();
     const note = notes.find(note => {
       return Object.keys(note.indices).every((field) => {
         return note.indices[field] === specIndices[field]
@@ -103,15 +122,17 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       Tone.Transport.seconds = note.elapsed;
       Sonifier.triggerSynth(note, true);
     }
-  }, [notes, specIndices]);
+  }, [notes, specIndices, activeUnitRef.current]);
 
   const playFromBeginning = useCallback(() => {
+    beforePlay();
     setAudioCtrl('sequence');
     Tone.Transport.seconds = 0;
     Tone.Transport.start();
-  }, []);
+  }, [activeUnitRef.current]);
 
   const play = useCallback(() => {
+    beforePlay();
     if (notes.length && Tone.Transport.state !== 'started' && Tone.Transport.seconds > notes[notes.length - 1].elapsed) {
       playFromBeginning();
     }
@@ -119,7 +140,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       setAudioCtrl('sequence');
       Tone.Transport.start();
     }
-  }, [notes, playFromBeginning]);
+  }, [notes, playFromBeginning, activeUnitRef.current]);
 
   const pause = useCallback(() => {
     setAudioCtrl('interaction');
@@ -127,6 +148,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   }, []);
 
   const playPredicate = useCallback((field, value) => {
+    beforePlay();
     const predIndex = specDomains[field].indexOf(value);
     const predNotes = structuredClone(notes.filter(note => {
       return note.indices[field] === predIndex;
@@ -198,9 +220,13 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     }
   }), [specIndices, specDomains]);
 
+  const generateSequenceMemo = useMemo(() => {
+    return generateSequence(audioUnitSpec, specDomains, fields, data);
+  }, [audioUnitSpec, specDomains, fields, data]);
+
   useEffect(() => {
     // generate sequence from domains
-    const notes = generateSequence(audioUnitSpec, specDomains, fields, data);
+    const notes = generateSequenceMemo;
     setNotes(notes);
   }, [specDomains]);
 
@@ -303,7 +329,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             return (
               <div key={field}>
                 <label htmlFor={id}>{field}</label>
-                <input aria-valuetext={field} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
+                <input aria-valuetext={fmtValue(domain[specIndices?.[field]], traversalFieldDef)} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
                 <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
               </div>
             );
@@ -356,6 +382,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       <pre>
         {JSON.stringify(specDomains, null, 2)}
       </pre> */}
+      <pre>
+        {JSON.stringify(specIndices, null, 2)}
+      </pre>
     </div>
   )
 }

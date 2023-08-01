@@ -47,33 +47,26 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const markTypes = ['point', 'line', 'bar'];
   const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
   const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
-  const traversalModes = ['sequential', 'interactive'];
-
-
-  const toSpec = (): UmweltSpec => {
-    return {
-      data: {
-        url: dataUrl,
-      },
-      fields,
-      visual: {
-        units: visualUnitSpecs,
-        composition: visualComposition
-      },
-      audio: {
-        units: audioUnitSpecs,
-        composition: audioComposition
-      },
-      text: true,
-    }
-  };
 
   useEffect(() => {
     if (data && data.length > 0) {
-      const spec = toSpec();
-      onSpec(spec, data);
+      onSpec({
+        data: {
+          url: dataUrl,
+        },
+        fields,
+        visual: {
+          units: visualUnitSpecs,
+          composition: visualComposition
+        },
+        audio: {
+          units: audioUnitSpecs,
+          composition: audioComposition
+        },
+        text: true,
+      }, data);
     }
-  }, [data, fields, visualUnitSpecs, audioUnitSpecs]);
+  }, [data, fields, visualUnitSpecs, audioUnitSpecs, onSpec, dataUrl, visualComposition, audioComposition]);
 
   const onData = () => {
     const value = (document.querySelector('.input-data') as HTMLInputElement).value;
@@ -519,7 +512,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     {
                       field.encodings?.map(encodingRef => {
                         return (
-                          <div className='field-def-encoding-ref' key={encodingRef.property}>
+                          <div className='field-def-encoding-ref' key={`${encodingRef.property}-${encodingRef.unit}`}>
                             <span>{encodingRef.property}{
                               visualPropNames.includes(encodingRef.property as any) ? (
                                 visualUnitSpecs.length > 1 ? ` (${encodingRef.unit})` : null
@@ -686,7 +679,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       Object.entries(visualUnitSpec.encoding).map(([propName, propValue]) => {
                         const fieldDef = fields.find(field => field.name === propValue.field);
                         return (
-                          <div className='enc-def' key={propName}>
+                          <div className='enc-def' key={`${propName}-${visualUnitSpec.name}`}>
                             <h6 className='encoding-name'>{propName}</h6>
                             <div className='unit-encoding-def'>
                               <span>{propValue.bin ? `binned ` : null}{propValue.aggregate ? `${propValue.aggregate} ` : null}{propValue.field}{propValue.timeUnit ? ` (${propValue.timeUnit})` : null}</span>
@@ -807,7 +800,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       Object.entries(audioUnitSpec.encoding).map(([propName, propValue]) => {
                         const fieldDef = fields.find(field => field.name === propValue.field);
                         return (
-                          <div key={propName}>
+                          <div key={`${propName}-${audioUnitSpec.name}`}>
                             <h6 className='encoding-name'>{propName}</h6>
                             <div className='unit-encoding-def'>
                               <span>{propValue.aggregate ? `${propValue.aggregate} ` : null}{propValue.field}{propValue.timeUnit ? ` (${propValue.timeUnit})` : null}</span>
@@ -878,7 +871,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       audioUnitSpec.traversal.map((traversal) => {
                         const fieldDef = fields.find(field => field.name === traversal.field);
                         return (
-                          <div className='enc-def' key={traversal.field}>
+                          <div className='enc-def' key={`${traversal.field}-${audioUnitSpec.name}`}>
                             <div className='unit-encoding-def'>
                               <span><span>{traversal.bin ? `binned ` : null}{traversal.field}{traversal.timeUnit ? ` (${traversal.timeUnit})` : null}</span></span>
                               <button>Go to field</button>
@@ -982,7 +975,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         <div>
           <button onClick={() => addUnit(audioUnitSpecs)}>Add audio unit</button>
         </div>
-        {/* {
+        {
           audioUnitSpecs.length > 1 ? (
             <div className='def-property'>
               <label>
@@ -994,7 +987,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                 </label>
             </div>
           ) : null
-        } */}
+        }
       </div>
     </div>
   );
