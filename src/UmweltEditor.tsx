@@ -451,12 +451,21 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   }
 
   const jumpToEncodingRef = (encodingRef: EncodingRef) => {
-    const domId = `encoding-${encodingRef.unit}-${encodingRef.property}`;
-    const element = document.getElementById(domId);
-    if (element) {
-      element.scrollIntoView({behavior: 'smooth'});
-      element.focus();
+    if (visualUnitSpecs.find(spec => spec.name === encodingRef.unit)) {
+      setTab('visual');
     }
+    else if (audioUnitSpecs.find(spec => spec.name === encodingRef.unit)) {
+      setTab('audio');
+    }
+    setTimeout(() => {
+      const domId = `encoding-${encodingRef.unit}-${encodingRef.property}`;
+      const element = document.getElementById(domId);
+      if (element) {
+        element.scrollIntoView({behavior: 'smooth'});
+        element.focus();
+      }
+    }, 100);
+
   }
 
   const jumpToField = (fieldName: string, propName: string) => {
