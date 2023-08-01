@@ -13,6 +13,8 @@ import { debounce } from 'vega';
 import { fmtValue, serializeValue } from './utils/values';
 import { FieldEqualPredicate, FieldRangePredicate } from 'vega-lite/src/predicate';
 import { set } from 'vega-lite/src/log';
+import { selectionTest } from './utils/selection';
+import { DEFAULT_RANGES, scale } from './utils/scales';
 
 interface AudioUnitProps {
   audioUnitSpec: AudioUnitSpec,
@@ -40,6 +42,7 @@ export type SonifierNoteMap = {
 }
 
 export type AudioCtrl = 'interaction' | 'sequence' | 'umwelt';
+export type AudioPlaybackMode = 'current' | 'onward' | 'beginning' | 'count' | string;
 
 const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted, activeUnitRef, setActiveUnit}: AudioUnitProps) => {
 
@@ -66,6 +69,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const [specDomains, setSpecDomains] = useState<AudioUnitFieldDomains>(getFieldDomains(audioUnitSpec));
   const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('umwelt');
   const [notes, setNotes] = useState<SonifierNote[]>([]);
+  const [playbackMode, setPlaybackMode] = useState<AudioPlaybackMode>('current');
 
   const notesToTransport = useCallback((notes: SonifierNote[]) => {
     Sonifier.resetTransport();
@@ -131,7 +135,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     Tone.Transport.start();
   }, [activeUnitRef.current]);
 
-  const play = useCallback(() => {
+  const playCurrentOnward = useCallback(() => {
     beforePlay();
     if (notes.length && Tone.Transport.state !== 'started' && Tone.Transport.seconds > notes[notes.length - 1].elapsed) {
       playFromBeginning();
@@ -142,16 +146,10 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     }
   }, [notes, playFromBeginning, activeUnitRef.current]);
 
-  const pause = useCallback(() => {
-    setAudioCtrl('interaction');
-    Tone.Transport.pause();
-  }, []);
-
-  const playPredicate = useCallback((field, value) => {
+  const playPredicate = useCallback((field, domainIndex) => {
     beforePlay();
-    const predIndex = specDomains[field].indexOf(value);
     const predNotes = structuredClone(notes.filter(note => {
-      return note.indices[field] === predIndex;
+      return note.indices[field] === domainIndex;
     }));
     const originalLastNotePosition = predNotes[predNotes.length - 1].elapsed;
     if (predNotes.length) {
@@ -173,6 +171,46 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       playFromBeginning();
     }
   }, [audioUnitSpec.encoding.duration, notes, notesToTransport, playFromBeginning, specDomains]);
+
+  const playCount = useCallback(() => {
+    beforePlay();
+    const count = selectionTest(data, domainFilter).length;
+    const countPitch = scale(count, [0, data.length], DEFAULT_RANGES['pitch']); // TODO change this to volume
+    const countNote = {
+      elapsed: 0,
+      duration: 0.5,
+      pitch: countPitch,
+      indices: specIndices,
+    };
+    console.log(count, countPitch, countNote);
+    Sonifier.triggerSynth(countNote, true);
+  }, [data, domainFilter]);
+
+  const pause = useCallback(() => {
+    setAudioCtrl('interaction');
+    Tone.Transport.pause();
+  }, []);
+
+  const play = () => {
+    switch (playbackMode) {
+      case 'current':
+        playCurrentValue();
+        break;
+      case 'beginning':
+        playFromBeginning();
+        break;
+      case 'onward':
+        playCurrentOnward();
+        break;
+      case 'count':
+        playCount();
+        break;
+      default:
+        const {field, domainIndex} = JSON.parse(playbackMode);
+        playPredicate(field, domainIndex);
+        break;
+    }
+  }
 
   useEffect(() => {
     // re-initialize when spec changes
@@ -250,7 +288,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             pause();
           }
           else {
-            play();
+            playCurrentOnward();
           }
         break;
         case 'p':
@@ -269,7 +307,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
       }
     }
-  }, [muted, pause, play, playCurrentValue, setMuted]);
+  }, [muted, pause, playCurrentOnward, playCurrentValue, setMuted]);
 
   const onClick = useCallback(async (e) => {
     await Tone.start();
@@ -308,7 +346,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               <div key={field}>
                 <label htmlFor={id}>{field}</label>
                 <input id={id} type="text" readOnly={true} value={fmtValue(domain[specIndices?.[field]], traversalFieldDef)}></input>
-                <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+                {/* <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button> */}
               </div>
             );
           }
@@ -330,7 +368,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               <div key={field}>
                 <label htmlFor={id}>{field}</label>
                 <input aria-valuetext={fmtValue(domain[specIndices?.[field]], traversalFieldDef)} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
-                <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+                {/* <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button> */}
               </div>
             );
           }
@@ -354,7 +392,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                     return <option key={String(val)} value={String(val)}>{String(val)}</option>
                   })}
                 </select>
-                <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button>
+                {/* <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button> */}
               </div>
             )
           }
@@ -363,15 +401,36 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       <div>
         {Object.entries(audioUnitSpec.encoding).map(([field, encFieldDef]) => { return (<div key={field}>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}
       </div>
-      {
-        Tone.Transport.state === 'started' ? <button onClick={pause}>Pause</button> : (
+
           <div>
-            <button onClick={playCurrentValue}>Current value</button>
+            <label>
+              Playback mode
+              <select value={playbackMode} onChange={(e) => setPlaybackMode(e.target.value)}>
+                <option value="current">Current</option>
+                <option value="onward">From current onward</option>
+                <option value="beginning">From beginning</option>
+                {
+                  audioUnitSpec.traversal.map((traversalFieldDef) => {
+                    const field = traversalFieldDef.field;
+                    const otherFields = audioUnitSpec.traversal.filter(traversalFieldDef => traversalFieldDef.field !== field).map(traversalFieldDef => traversalFieldDef.field);
+                    const domain = specDomains[field];
+                    return (
+                      <option key={field} value={JSON.stringify({field, domainIndex: specIndices?.[field]})}>{fmtValue(domain[specIndices?.[field]], traversalFieldDef)} by {otherFields.join(', ')}</option>
+                    );
+                  })
+                }
+                <option value="count">Count of selected</option>
+              </select>
+            </label>
+            {
+              Tone.Transport.state === 'started' ?
+                  <button onClick={pause}>Pause</button> :
+                  <button onClick={play}>Play</button>
+            }
+            {/* <button onClick={playCurrentValue}>Current value</button>
             <button onClick={play}>Play</button>
-            <button onClick={playFromBeginning}>Play from beginning</button>
+            <button onClick={playFromBeginning}>Play from beginning</button> */}
           </div>
-        )
-      }
       {/*
       <pre>
         Transport: {Tone.Transport.state} {Tone.Transport.seconds}
@@ -382,8 +441,11 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       <pre>
         {JSON.stringify(specDomains, null, 2)}
       </pre> */}
-      <pre>
+      {/* <pre>
         {JSON.stringify(specIndices, null, 2)}
+      </pre> */}
+      <pre>
+        {playbackMode}
       </pre>
     </div>
   )

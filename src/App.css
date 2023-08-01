@@ -73,3 +73,7 @@
   overflow-y: scroll;
   border: 1px solid black;
 }
+
+label select {
+  margin-left: 0.3em;
+}
