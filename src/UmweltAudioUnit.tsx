@@ -283,21 +283,21 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     await Tone.start();
     if (document.activeElement?.closest(".audio-container") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
       switch (e.key) {
-        case 'P':
-          if (Tone.Transport.state === 'started') {
-            pause();
-          }
-          else {
-            playCurrentOnward();
-          }
-        break;
+        // case 'P':
+        //   if (Tone.Transport.state === 'started') {
+        //     pause();
+        //   }
+        //   else {
+        //     playCurrentOnward();
+        //   }
+        // break;
         case 'p':
           if (!e.repeat) {
             if (Tone.Transport.state === 'started') {
               pause();
             }
             else {
-              playCurrentValue();
+              play();
             }
           }
           break;
@@ -352,7 +352,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           }
 
           if (fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' || fieldDef.type === 'ordinal') {
-            const id = `${field}-slider`;
             const onchange = (e) => {
               setAudioCtrl('interaction');
               Tone.Transport.pause();
@@ -366,14 +365,15 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             };
             return (
               <div key={field}>
-                <label htmlFor={id}>{field}</label>
-                <input aria-valuetext={fmtValue(domain[specIndices?.[field]], traversalFieldDef)} onChange={onchange} id={id} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
+                <label>
+                  {field}
+                  <input aria-valuetext={fmtValue(domain[specIndices?.[field]], traversalFieldDef)} onChange={onchange} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
+                </label>
                 {/* <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button> */}
               </div>
             );
           }
           else {
-            const id = `${field}-select`;
             const onchange = (e) => {
               setAudioCtrl('interaction');
               Tone.Transport.pause();
@@ -386,12 +386,14 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             }
             return (
               <div key={field}>
-                <label htmlFor={id}>{field}</label>
-                <select onChange={onchange} id={id} value={String(domain[specIndices?.[field]])}>
-                  {domain.map(val => {
-                    return <option key={String(val)} value={String(val)}>{String(val)}</option>
-                  })}
-                </select>
+                <label>
+                  {field}
+                  <select onChange={onchange} value={String(domain[specIndices?.[field]])}>
+                    {domain.map(val => {
+                      return <option key={String(val)} value={String(val)}>{String(val)}</option>
+                    })}
+                  </select>
+                </label>
                 {/* <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button> */}
               </div>
             )
@@ -444,9 +446,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       {/* <pre>
         {JSON.stringify(specIndices, null, 2)}
       </pre> */}
-      <pre>
+      {/* <pre>
         {playbackMode}
-      </pre>
+      </pre> */}
     </div>
   )
 }
