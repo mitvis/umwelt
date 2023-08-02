@@ -670,7 +670,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                 </div>
                 <div className='def-property'>
                   <div className='def-property-label'>Encodings:</div>
-                  <div className='def-property-col'>
+                  <div className='def-property-col' aria-live="polite">
                     {/* {
                       field.encodings?.map(encodingRef => {
                         return (
@@ -695,7 +695,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       ) : null
                     }
                     {
-                      field.encodings.map((encodingRef, idx) => {
+                      [...field.encodings].reverse().map((encodingRef, idx) => {
                         return (
                           <div key={`${encodingRef.property}-${encodingRef.unit}`}>
                             <select value={encodingRef.property} onChange={(e) => onSelectEncoding(field.name, idx, e.target.value)}>

@@ -146,10 +146,10 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     }
   }, [notes, playFromBeginning, activeUnitRef.current]);
 
-  const playPredicate = useCallback((field, domainIndex) => {
+  const playPredicate = (field) => {
     beforePlay();
     const predNotes = structuredClone(notes.filter(note => {
-      return note.indices[field] === domainIndex;
+      return note.indices[field] === specIndices[field];
     }));
     const originalLastNotePosition = predNotes[predNotes.length - 1].elapsed;
     if (predNotes.length) {
@@ -170,7 +170,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       }, lastNote.elapsed + lastNote.duration);
       playFromBeginning();
     }
-  }, [audioUnitSpec.encoding.duration, notes, notesToTransport, playFromBeginning, specDomains]);
+  };
 
   const playCount = useCallback(() => {
     beforePlay();
@@ -205,8 +205,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         playCount();
         break;
       default:
-        const {field, domainIndex} = JSON.parse(playbackMode);
-        playPredicate(field, domainIndex);
+        playPredicate(playbackMode);
         break;
     }
   }
@@ -366,7 +365,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               <div key={field}>
                 <label>
                   {field}
-                  <input aria-valuetext={fmtValue(domain[specIndices?.[field]], traversalFieldDef)} onChange={onchange} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
+                  <input aria-valuetext={field} onChange={onchange} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
                 </label>
                 {/* <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button> */}
               </div>
@@ -416,7 +415,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                     const otherFields = audioUnitSpec.traversal.filter(traversalFieldDef => traversalFieldDef.field !== field).map(traversalFieldDef => traversalFieldDef.field);
                     const domain = specDomains[field];
                     return (
-                      <option key={field} value={JSON.stringify({field, domainIndex: specIndices?.[field]})}>{fmtValue(domain[specIndices?.[field]], traversalFieldDef)} by {otherFields.join(', ')}</option>
+                      <option key={field} value={field}>{fmtValue(domain[specIndices?.[field]], traversalFieldDef)} by {otherFields.join(', ')}</option>
                     );
                   })
                 }

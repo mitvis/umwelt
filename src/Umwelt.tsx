@@ -115,9 +115,9 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
       <pre>
         {JSON.stringify(printable(vlSpec), null, 2)}
       </pre> */}
-      <pre>
+      {/* <pre>
         {JSON.stringify(printable(spec), null, 2)}
-      </pre>
+      </pre> */}
 
 
       {/* <br/>
