@@ -700,7 +700,12 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           <div key={`${encodingRef.property}-${encodingRef.unit}`}>
                             <select value={encodingRef.property} onChange={(e) => onSelectEncoding(field.name, idx, e.target.value)}>
                               {
-                                [encodingRef.property, ...assignablePropertyNames()].map(propName => {
+                                !assignablePropertyNames().includes(encodingRef.property) ? (
+                                  <option value={encodingRef.property}>{encodingRef.property}</option>
+                                ) : null
+                              }
+                              {
+                                assignablePropertyNames().map(propName => {
                                   return (
                                     <option key={propName} value={propName}>{propName}</option>
                                   )
@@ -711,7 +716,12 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                               assignableUnitsForFieldAndProperty(field.name, encodingRef.property).length ? (
                                 <select value={encodingRef.unit} onChange={(e) => onSelectUnit(field.name, idx, e.target.value)}>
                                   {
-                                    [encodingRef.unit, ...assignableUnitsForFieldAndProperty(field.name, encodingRef.property)].map(unitName => {
+                                    !assignableUnitsForFieldAndProperty(field.name, encodingRef.property).includes(encodingRef.unit) ? (
+                                      <option value={encodingRef.unit}>{encodingRef.unit}</option>
+                                    ) : null
+                                  }
+                                  {
+                                    assignableUnitsForFieldAndProperty(field.name, encodingRef.property).map(unitName => {
                                       return (
                                         <option key={unitName} value={unitName}>{unitName}</option>
                                       )
