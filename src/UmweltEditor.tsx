@@ -30,8 +30,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const [audioUnitSpecs, setAudioUnitSpecs] = useState<AudioUnitSpec[]>([]);
   const [visualComposition, setVisualComposition] = useState<ViewComposition>('layer');
   const [audioComposition, setAudioComposition] = useState<ViewComposition>('concat');
-  const [fieldEncodingSelectValues, setFieldEncodingSelectValues] = useState<{[fieldName: string]: EncodingPropName}>({});
-  const [fieldUnitSelectValues, setFieldUnitSelectValues] = useState<{[fieldName: string]: string}>({});
   const [unitTraversalSelectValues, setUnitTraversalSelectValues] = useState<{[unitName: string]: string}>({});
 
 
@@ -49,6 +47,27 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
   const vegaDatasets = ['stocks.csv', 'cars.json', 'weather.csv', 'seattle-weather.csv', 'penguins.json', 'driving.json', 'barley.json'];
   const umweltDatasets = ['phoenix_chicago_temp.json'];
+
+  const assignablePropertyNames = (): string[] => {
+    return propertyNames.filter(propName => {
+      if (visualPropNames.includes(propName as VisualPropName)) {
+        return visualUnitSpecs.some(spec => !spec.encoding[propName]);
+      }
+      else if (audioPropNames.includes(propName as AudioPropName)) {
+        return audioUnitSpecs.some(spec => !spec.encoding[propName]);
+      }
+      return false;
+    })
+  }
+
+  const assignableUnitsForFieldAndProperty = (fieldName: string, propName: string): string[] => {
+    if (visualPropNames.includes(propName as VisualPropName)) {
+      return visualUnitSpecs.filter(spec => spec.encoding[propName]?.field !== fieldName).map(spec => spec.name);
+    }
+    else if (audioPropNames.includes(propName as AudioPropName)) {
+      return audioUnitSpecs.filter(spec => spec.encoding[propName]?.field !== fieldName).map(spec => spec.name);
+    }
+  }
 
   useEffect(() => {
     if (data && data.length > 0) {
@@ -137,59 +156,51 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     setData(niceData);
   }, [fields]);
 
-  useEffect(() => {
-    const nextEncodingSelect = structuredClone(fieldEncodingSelectValues);
-    const validPropNames = propertyNames.filter(propName => {
-      if (visualPropNames.includes(propName as VisualPropName)) {
-        return visualUnitSpecs.some(spec => !spec.encoding[propName]);
-      }
-      else if (audioPropNames.includes(propName as AudioPropName)) {
-        return audioUnitSpecs.some(spec => !spec.encoding[propName]);
-      }
-    });
-    fields.forEach(field => {
-      if (validPropNames.length) {
-        if (field.type === 'quantitative' || field.type === 'temporal') {
-          nextEncodingSelect[field.name] = validPropNames.find(propName => ['x', 'y', 'opacity', 'size', 'pitch', 'duration', 'volume'].includes(propName)) || validPropNames[0];
-        }
-        else if (field.type === 'nominal' || field.type === 'ordinal') {
-          nextEncodingSelect[field.name] = validPropNames.find(propName => ['color', 'shape'].includes(propName)) || validPropNames[0];
-        }
-      }
-    });
-    setFieldEncodingSelectValues(nextEncodingSelect);
+  // useEffect(() => {
+  //   const validPropNames = assignablePropertyNames();
+  //   fields.forEach(field => {
+  //     if (validPropNames.length) {
+  //       if (field.type === 'quantitative' || field.type === 'temporal') {
+  //         nextEncodingSelect[field.name] = validPropNames.find(propName => ['x', 'y', 'opacity', 'size', 'pitch', 'duration', 'volume'].includes(propName)) || validPropNames[0];
+  //       }
+  //       else if (field.type === 'nominal' || field.type === 'ordinal') {
+  //         nextEncodingSelect[field.name] = validPropNames.find(propName => ['color', 'shape'].includes(propName)) || validPropNames[0];
+  //       }
+  //     }
+  //   });
+  //   setFieldEncodingSelectValues(nextEncodingSelect);
 
-    const nextTraversalSelect = structuredClone(unitTraversalSelectValues);
-    audioUnitSpecs.forEach(spec => {
-      const validFields = fields.filter(field => {
-        return !spec.traversal.find(traversal => traversal.field === field.name) && !Object.values(spec.encoding).find((def: AudioEncodingFieldDef) => def.field === field.name);
-      });
-      if (validFields.length) {
-        nextTraversalSelect[spec.name] = validFields[0].name;
-      }
-    });
-    setUnitTraversalSelectValues(nextTraversalSelect);
-  }, [fields, visualUnitSpecs, audioUnitSpecs]);
+  //   const nextTraversalSelect = structuredClone(unitTraversalSelectValues);
+  //   audioUnitSpecs.forEach(spec => {
+  //     const validFields = fields.filter(field => {
+  //       return !spec.traversal.find(traversal => traversal.field === field.name) && !Object.values(spec.encoding).find((def: AudioEncodingFieldDef) => def.field === field.name);
+  //     });
+  //     if (validFields.length) {
+  //       nextTraversalSelect[spec.name] = validFields[0].name;
+  //     }
+  //   });
+  //   setUnitTraversalSelectValues(nextTraversalSelect);
+  // }, [fields, visualUnitSpecs, audioUnitSpecs]);
 
-  useEffect(() => {
-    const nextUnitSelect = structuredClone(fieldUnitSelectValues);
-    const getUnit = (unitName: string) => {
-      return visualUnitSpecs.find(spec => spec.name === unitName) || audioUnitSpecs.find(spec => spec.name === unitName);
-    }
-    fields.forEach(field => {
-      if (!nextUnitSelect[field.name] ||
-          (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any) !== visualUnitSpecs.map(unit => unit.name).includes(nextUnitSelect[field.name])) ||
-          getUnit(nextUnitSelect[field.name])?.encoding[fieldEncodingSelectValues[field.name]]?.field === field.name) {
-        if (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
-          nextUnitSelect[field.name] = visualUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
-        }
-        else if (audioPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
-          nextUnitSelect[field.name] = audioUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
-        }
-      }
-    });
-    setFieldUnitSelectValues(nextUnitSelect);
-  }, [fieldEncodingSelectValues]);
+  // useEffect(() => {
+  //   const nextUnitSelect = structuredClone(fieldUnitSelectValues);
+  //   const getUnit = (unitName: string) => {
+  //     return visualUnitSpecs.find(spec => spec.name === unitName) || audioUnitSpecs.find(spec => spec.name === unitName);
+  //   }
+  //   fields.forEach(field => {
+  //     if (!nextUnitSelect[field.name] ||
+  //         (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any) !== visualUnitSpecs.map(unit => unit.name).includes(nextUnitSelect[field.name])) ||
+  //         getUnit(nextUnitSelect[field.name])?.encoding[fieldEncodingSelectValues[field.name]]?.field === field.name) {
+  //       if (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
+  //         nextUnitSelect[field.name] = visualUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
+  //       }
+  //       else if (audioPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
+  //         nextUnitSelect[field.name] = audioUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
+  //       }
+  //     }
+  //   });
+  //   setFieldUnitSelectValues(nextUnitSelect);
+  // }, [fieldEncodingSelectValues]);
 
   const onSelectType = (fieldDef, type) => {
     const newFields = fields.map(f => {
@@ -201,18 +212,92 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     setFields(newFields);
   }
 
-  const onSelectEncoding = (fieldName, propName) => {
-    setFieldEncodingSelectValues({
-      ...fieldEncodingSelectValues,
-      [fieldName]: propName
+  const onSelectEncoding = (fieldName, encodingRefIdx, propName) => {
+    const fieldDef = structuredClone(fields.find(field => field.name === fieldName));
+    const encodingRef = fieldDef.encodings[encodingRefIdx];
+    const oldPropName = encodingRef.property;
+    fieldDef.encodings[encodingRefIdx].property = propName;
+    if ((visualPropNames.includes(propName) && !visualUnitSpecs.find(spec => spec.name === encodingRef.unit)) ||
+        (audioPropNames.includes(propName) && !audioUnitSpecs.find(spec => spec.name === encodingRef.unit))) {
+      fieldDef.encodings[encodingRefIdx].unit = assignableUnitsForFieldAndProperty(fieldName, propName)[0];
+      onSelectUnit(fieldName, encodingRefIdx, fieldDef.encodings[encodingRefIdx].unit);
+    }
+    const newFields = fields.map(f => {
+      if (f.name === fieldName) {
+        return fieldDef;
+      }
+      return f;
     });
+    setFields(newFields);
+
+    if (visualPropNames.includes(propName)) {
+      const unit = visualUnitSpecs.find(spec => spec.name === fieldDef.encodings[encodingRefIdx].unit)
+      unit.encoding[propName] = structuredClone(unit.encoding[oldPropName]);
+      delete unit.encoding[oldPropName];
+      setVisualUnitSpecs(visualUnitSpecs.map(spec => {
+        if (spec.name === unit.name) {
+          return unit;
+        }
+        return spec;
+      }));
+    }
+    else if (audioPropNames.includes(propName)) {
+      const unit = audioUnitSpecs.find(spec => spec.name === fieldDef.encodings[encodingRefIdx].unit)
+      unit.encoding[propName] = structuredClone(unit.encoding[oldPropName]);
+      delete unit.encoding[oldPropName];
+
+      const newTraversal = structuredClone(unit.traversal).filter(traversal => traversal.field !== fieldName);
+      fields.forEach(fieldDef => {
+        if (!Object.values(unit.encoding).find((def: any) => def.field === fieldDef.name) && !newTraversal.find(traversal => traversal.field === fieldDef.name)) {
+          newTraversal.push({
+            field: fieldDef.name,
+          });
+        }
+      });
+      unit.traversal = newTraversal;
+
+      setAudioUnitSpecs(audioUnitSpecs.map(spec => {
+        if (spec.name === unit.name) {
+          return unit;
+        }
+        return spec;
+      }));
+    }
   }
 
-  const onSelectUnit = (fieldName, unitName) => {
-    setFieldUnitSelectValues({
-      ...fieldUnitSelectValues,
-      [fieldName]: unitName
+  const onSelectUnit = (fieldName, encodingRefIdx, unitName) => {
+    const fieldDef = structuredClone(fields.find(field => field.name === fieldName));
+    const oldUnitName = fieldDef.encodings[encodingRefIdx].unit;
+    fieldDef.encodings[encodingRefIdx].unit = unitName;
+    const newFields = fields.map(f => {
+      if (f.name === fieldName) {
+        return fieldDef;
+      }
+      return f;
     });
+    setFields(newFields);
+
+    const oldUnit = visualUnitSpecs.find(spec => spec.name === oldUnitName) || audioUnitSpecs.find(spec => spec.name === oldUnitName);
+    const newUnit = visualUnitSpecs.find(spec => spec.name === unitName) || audioUnitSpecs.find(spec => spec.name === unitName);
+    const propName = fieldDef.encodings[encodingRefIdx].property;
+    newUnit.encoding[propName] = structuredClone(oldUnit.encoding[propName]);
+    delete oldUnit.encoding[propName];
+    if ('mark' in newUnit) {
+      setVisualUnitSpecs(visualUnitSpecs.map(spec => {
+        if (spec.name === newUnit.name) {
+          return newUnit;
+        }
+        return spec;
+      }));
+    }
+    else if ('traversal' in newUnit) {
+      setAudioUnitSpecs(audioUnitSpecs.map(spec => {
+        if (spec.name === newUnit.name) {
+          return newUnit;
+        }
+        return spec;
+      }));
+    }
   }
 
   const onSelectTraversal = (unitName, fieldName) => {
@@ -311,8 +396,18 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   }
 
   const addEncoding = (field: FieldDef) => {
-    const propName = fieldEncodingSelectValues[field.name];
-    const unitName = fieldUnitSelectValues[field.name];
+    const validPropNames = assignablePropertyNames();
+    let propName: string;
+    if (field.type === 'quantitative') {
+      propName = ['y', 'x', 'pitch', 'opacity', 'size', 'duration', 'volume'].find(propName => validPropNames.includes(propName)) || validPropNames[0];
+    }
+    else if (field.type === 'temporal') {
+      propName = ['x', 'y', 'pitch', 'opacity', 'size', 'duration', 'volume'].find(propName => validPropNames.includes(propName)) || validPropNames[0];
+    }
+    else if (field.type === 'nominal' || field.type === 'ordinal') {
+      propName = ['color', 'shape'].find(propName => validPropNames.includes(propName)) || validPropNames[0];
+    }
+    const unitName: string = assignableUnitsForFieldAndProperty(field.name, propName)[0];
     const newFields = fields.map(f => {
       if (f.name === field.name) {
         f.encodings.push({
@@ -325,7 +420,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     setFields(newFields);
 
     if (visualPropNames.includes(propName as VisualPropName)) {
-      const unit = visualUnitSpecs.length === 1 ? visualUnitSpecs[0] : visualUnitSpecs.find(spec => spec.name === unitName);
+      const unit = visualUnitSpecs.find(spec => spec.name === unitName);
       const newEncoding = structuredClone(unit.encoding);
       if (newEncoding[propName] && newEncoding[propName].field !== field.name) {
         const newFields = fields.map(f => {
@@ -348,9 +443,8 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       setVisualUnitSpecs(newVisualUnitSpecs);
     }
     else if (audioPropNames.includes(propName as AudioPropName)) {
-      const unit = audioUnitSpecs.length === 1 ? audioUnitSpecs[0] : audioUnitSpecs.find(spec => spec.name === unitName);
+      const unit = audioUnitSpecs.find(spec => spec.name === unitName);
       const newEncoding = structuredClone(unit.encoding);
-      const newTraversal = structuredClone(unit.traversal).filter(traversal => traversal.field !== field.name);
 
       if (newEncoding[propName] && newEncoding[propName].field !== field.name) {
         removeEncodingReference(propName, newEncoding[propName].field);
@@ -359,6 +453,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         field: field.name,
       };
 
+      const newTraversal = structuredClone(unit.traversal).filter(traversal => traversal.field !== field.name);
       fields.forEach(fieldDef => {
         if (!Object.values(newEncoding).find((def: any) => def.field === fieldDef.name) && !newTraversal.find(traversal => traversal.field === fieldDef.name)) {
           newTraversal.push({
@@ -576,7 +671,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                 <div className='def-property'>
                   <div className='def-property-label'>Encodings:</div>
                   <div className='def-property-col'>
-                    {
+                    {/* {
                       field.encodings?.map(encodingRef => {
                         return (
                           <div className='field-def-encoding-ref' key={`${encodingRef.property}-${encodingRef.unit}`}>
@@ -592,58 +687,44 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           </div>
                         )
                       })
-                    }
+                    } */}
                     {
                       field.encodings.length < propertyNames.length ?
                       (
-                        <div>
-                          <div className='def-property-add'>Add encoding:</div>
-                          <select value={fieldEncodingSelectValues[field.name]} onChange={(e) => onSelectEncoding(field.name, e.target.value)}>
-                            {
-                              propertyNames.filter(propName => {
-                                if (visualPropNames.includes(propName as VisualPropName)) {
-                                  return visualUnitSpecs.some(spec => !spec.encoding[propName]);
-                                }
-                                else if (audioPropNames.includes(propName as AudioPropName)) {
-                                  return audioUnitSpecs.some(spec => !spec.encoding[propName]);
-                                }
-                                return false;
-                              }).map(propName => {
-                                return (
-                                  <option key={propName} value={propName}>{propName}</option>
-                                )
-                              })
-                            }
-                          </select>
-                          {
-                            visualUnitSpecs.length > 1 && visualPropNames.includes(fieldEncodingSelectValues[field.name] as VisualPropName) ? (
-                              <select value={fieldUnitSelectValues[field.name]} onChange={(e) => onSelectUnit(field.name, e.target.value)}>
-                                {
-                                  visualUnitSpecs.filter(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).map(visualUnitSpec => {
-                                    return (
-                                      <option key={visualUnitSpec.name} value={visualUnitSpec.name}>{visualUnitSpec.name}</option>
-                                    )
-                                  })
-                                }
-                              </select>
-                            ) : null
-                          }
-                          {
-                            audioUnitSpecs.length > 1 && audioPropNames.includes(fieldEncodingSelectValues[field.name] as AudioPropName) ? (
-                              <select value={fieldUnitSelectValues[field.name]} onChange={(e) => onSelectUnit(field.name, e.target.value)}>
-                                {
-                                  audioUnitSpecs.filter(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).map(audioUnitSpec => {
-                                    return (
-                                      <option key={audioUnitSpec.name} value={audioUnitSpec.name}>{audioUnitSpec.name}</option>
-                                    )
-                                  })
-                                }
-                              </select>
-                            ) : null
-                          }
-                          <button onClick={() => addEncoding(field)}>Add</button>
-                        </div>
+                        <button onClick={() => addEncoding(field)}>Add encoding</button>
                       ) : null
+                    }
+                    {
+                      field.encodings.map((encodingRef, idx) => {
+                        return (
+                          <div key={`${encodingRef.property}-${encodingRef.unit}`}>
+                            <select value={encodingRef.property} onChange={(e) => onSelectEncoding(field.name, idx, e.target.value)}>
+                              {
+                                [encodingRef.property, ...assignablePropertyNames()].map(propName => {
+                                  return (
+                                    <option key={propName} value={propName}>{propName}</option>
+                                  )
+                                })
+                              }
+                            </select>
+                            {
+                              assignableUnitsForFieldAndProperty(field.name, encodingRef.property).length ? (
+                                <select value={encodingRef.unit} onChange={(e) => onSelectUnit(field.name, idx, e.target.value)}>
+                                  {
+                                    [encodingRef.unit, ...assignableUnitsForFieldAndProperty(field.name, encodingRef.property)].map(unitName => {
+                                      return (
+                                        <option key={unitName} value={unitName}>{unitName}</option>
+                                      )
+                                    })
+                                  }
+                                </select>
+                              ) : null
+                            }
+                            <button id={`field-${field.name}-${encodingRef.property}`} onClick={() => jumpToEncodingRef(encodingRef)}>Go to full definition</button>
+                            <button onClick={() => removeEncodingFromField(field.name, encodingRef)}>Remove encoding</button>
+                          </div>
+                        )
+                      })
                     }
                   </div>
                 </div>
