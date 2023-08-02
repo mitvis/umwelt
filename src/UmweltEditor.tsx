@@ -3,7 +3,6 @@ import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFiel
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
 import { elaborateFields } from './utils/inference';
-import { UrlData } from 'vega-lite/src/data';
 
 import './UmweltEditor.css'
 
@@ -15,7 +14,8 @@ interface EditorProps {
 const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   const [tab, setTab] = useState<'data' | 'fields' | 'visual' | 'audio'>('data');
-  const [dataUrl, setDataUrl] = useState<string>((initialSpec?.data as UrlData)?.url);
+  const [dataUrlInput, setDataUrlInput] = useState<string>(`stocks.csv`);
+  const [dataUrl, setDataUrl] = useState<string>();
   const [data, setData] = useState<OlliDataset>([]);
   const [fields, _setFields] = useState<FieldDef[]>([]);
   const setFields = (fields) => {
@@ -47,6 +47,8 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const markTypes = ['point', 'line', 'bar'];
   const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
   const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
+  const vegaDatasets = ['stocks.csv', 'cars.json', 'weather.csv', 'seattle-weather.csv', 'penguins.json', 'driving.json', 'barley.json'];
+  const umweltDatasets = ['phoenix_chicago_temp.json'];
 
   useEffect(() => {
     if (data && data.length > 0) {
@@ -68,14 +70,28 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }
   }, [data, fields, visualUnitSpecs, audioUnitSpecs, onSpec, dataUrl, visualComposition, audioComposition]);
 
-  const onData = () => {
+  const onDataUrlInput = () => {
     const value = (document.querySelector('.input-data') as HTMLInputElement).value;
-    setDataUrl(value);
+    setDataUrlInput(value);
   };
 
   useEffect(() => {
-    const filePathRegex = /^(\/[\w-.]+|(?:(?:https?|http):\/\/)[^\s/$.?#].[^\s]*\.(?:json|csv))$/;
-    if (dataUrl && filePathRegex.test(dataUrl)) {
+    const filePathRegex = /^(?:(?:https?|http):\/\/[^\s/$.?#].[^\s]*\.(?:json|csv)|[\w-.]+(?:\.(?:json|csv))?)$/;
+    if (filePathRegex.test(dataUrlInput)) {
+      if (vegaDatasets.includes(dataUrlInput)) {
+        setDataUrl(`https://raw.githubusercontent.com/vega/vega-datasets/master/data/${dataUrlInput}`);
+      }
+      else if (umweltDatasets.includes(dataUrlInput)) {
+        setDataUrl(`https://mitvis.github.io/umwelt/${dataUrlInput}`);
+      }
+      else {
+        setDataUrl(dataUrlInput);
+      }
+    }
+  }, [dataUrlInput]);
+
+  useEffect(() => {
+    if (dataUrl) {
       getData({url: dataUrl}).then(data => {
         if (data && data.length) {
           setData(data);
@@ -514,7 +530,23 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
       <div role='tabpanel' id='tabpanel-data' aria-labelledby='tab-data' hidden={tab !== 'data'}>
         <h3 id="uw-data">Data</h3>
-        <input aria-labelledby='uw-data' type="url" className="input-data" value={dataUrl} onChange={onData} required></input>
+        <input aria-labelledby='uw-data' list='vega-datasets-list' type="text" className="input-data" value={dataUrlInput} onChange={onDataUrlInput} required></input>
+        <datalist id="vega-datasets-list">
+          {
+            vegaDatasets.map(url => {
+              return (
+                <option key={url} value={url}>{url}</option>
+              )
+            })
+          }
+          {
+            umweltDatasets.map(url => {
+              return (
+                <option key={url} value={url}>{url}</option>
+              )
+            })
+          }
+        </datalist>
       </div>
 
       <div role='tabpanel' id='tabpanel-fields' aria-labelledby='tab-fields' hidden={tab !== 'fields'}>
