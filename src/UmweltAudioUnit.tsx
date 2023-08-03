@@ -77,6 +77,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       Tone.Transport.schedule(() => {
         if (audioCtrl.current === 'sequence') {
           if (note.speakBefore) {
+            setSpecIndices(note.indices);
             const utterance = new SpeechSynthesisUtterance(note.speakBefore);
             // utterance.rate = 2;
             // console.log(note.speakBefore);
