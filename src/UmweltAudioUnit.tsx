@@ -5,7 +5,7 @@ import { AudioUnitSpec, FieldDef, UmweltPredicate } from './grammar';
 import { getDomain, getFieldDef } from './utils/data';
 import { SelectionCtrl } from './Umwelt';
 import { Sonifier, SonifierNote } from './utils/sonifier';
-import { assignNoteTimings, audioStateToPredicate, generateSequence } from './utils/audioState';
+import { assignNoteSpeakBefore, assignNoteTimings, audioStateToPredicate, generateSequence } from './utils/audioState';
 import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
@@ -76,13 +76,32 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     notes.forEach((note, idx) => {
       Tone.Transport.schedule(() => {
         if (audioCtrl.current === 'sequence') {
-          // play note
-          Sonifier.noteToState(note);
-          Sonifier.triggerSynth(note);
-
-          setSpecIndices(note.indices);
+          if (note.speakBefore) {
+            const utterance = new SpeechSynthesisUtterance(note.speakBefore);
+            // utterance.rate = 2;
+            // console.log(note.speakBefore);
+            // speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
+          }
+          else {
+            // play note
+            Sonifier.noteToState(note);
+            Sonifier.triggerSynth(note);
+            setSpecIndices(note.indices);
+          }
         }
       }, note.elapsed)
+
+      if (note.speakBefore) {
+        Tone.Transport.schedule(() => {
+          if (audioCtrl.current === 'sequence') {
+            // play note
+            Sonifier.noteToState(note);
+            Sonifier.triggerSynth(note);
+            setSpecIndices(note.indices);
+          }
+        }, note.elapsed + Sonifier.speakBeforeDuration);
+      }
 
       if (note.pauseAfter) {
         Tone.Transport.schedule(() => {
@@ -158,6 +177,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           note.duration = Math.min(0.5, Sonifier.defaultSequenceDuration / predNotes.length);
         })
       }
+      assignNoteSpeakBefore(predNotes, specDomains, fields);
       assignNoteTimings(predNotes);
       // temporarily populate transport with predicate notes
       notesToTransport(predNotes);

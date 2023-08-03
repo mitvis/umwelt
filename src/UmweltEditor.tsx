@@ -399,10 +399,10 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     const validPropNames = assignablePropertyNames();
     let propName: string;
     if (field.type === 'quantitative') {
-      propName = ['y', 'x', 'pitch', 'opacity', 'size', 'duration', 'volume'].find(propName => validPropNames.includes(propName)) || validPropNames[0];
+      propName = ['y', 'x', 'pitch', 'volume', 'opacity', 'size', 'duration'].find(propName => validPropNames.includes(propName)) || validPropNames[0];
     }
     else if (field.type === 'temporal') {
-      propName = ['x', 'y', 'pitch', 'opacity', 'size', 'duration', 'volume'].find(propName => validPropNames.includes(propName)) || validPropNames[0];
+      propName = ['x', 'y', 'pitch', 'volume', 'opacity', 'size', 'duration'].find(propName => validPropNames.includes(propName)) || validPropNames[0];
     }
     else if (field.type === 'nominal' || field.type === 'ordinal') {
       propName = ['color', 'shape'].find(propName => validPropNames.includes(propName)) || validPropNames[0];

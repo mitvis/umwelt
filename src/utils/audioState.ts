@@ -9,6 +9,7 @@ import { Sonifier } from './sonifier';
 import fastCartesian from 'fast-cartesian';
 import { AudioUnitFieldDomains, AudioUnitFieldSelectedIndices } from '../UmweltAudioUnit';
 import { getFieldDef } from './data';
+import { fmtValue } from './values';
 
 export function audioStateToPredicate(indices: AudioUnitFieldSelectedIndices, domains: AudioUnitFieldDomains): UmweltPredicate {
   return {
@@ -46,6 +47,7 @@ export function generateSequence(audioSpec: AudioUnitSpec, specDomains: AudioUni
     };
   });
 
+  assignNoteSpeakBefore(notes, specDomains, fields);
   assignNoteTimings(notes);
 
   return notes;
@@ -58,6 +60,25 @@ export function assignNoteTimings(notes: SonifierNote[]) {
       notes[i].elapsed = notes[i - 1].elapsed + notes[i - 1].duration + (notes[i - 1].pauseAfter || 0);
     }
   }
+}
+
+export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioUnitFieldDomains, fields: FieldDef[]) {
+  notes.forEach((note, idx) => {
+    const sequenceFields = Object.keys(note.indices);
+    const announcement = [];
+    sequenceFields.forEach((field) => {
+      const fieldDef = getFieldDef(field, fields);
+      if (fieldDef.type === 'nominal' || fieldDef.type === 'ordinal') {
+        if (idx === 0 || note.indices[field] !== notes[idx - 1].indices[field]) {
+          announcement.push(fmtValue(specDomains[field][note.indices[field]], fieldDef));
+        }
+      }
+    });
+    if (announcement.length) {
+      note.speakBefore = announcement.join(', ');
+      note.duration += Sonifier.speakBeforeDuration;
+    }
+  });
 }
 
 export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUnitFieldSelectedIndices, specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset): SonifierNote {

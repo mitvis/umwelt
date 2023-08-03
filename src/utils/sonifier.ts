@@ -4,6 +4,7 @@ import { AudioUnitFieldSelectedIndices } from '../UmweltAudioUnit';
 export type SonifierNote = {
   duration: number; // duration in seconds
   elapsed: number; // elapsed time when should play in transport, in seconds
+  speakBefore?: string; // text to speak before playing
   pauseAfter?: number; // how long in seconds to pause after playing
   noise?: boolean; // does this note represent noise
   pitch?: number;
@@ -20,6 +21,7 @@ class UmweltSonifier {
   pauseDuration = 0.25; // in seconds
   private rampDuration = 0.001; // in seconds
   defaultSequenceDuration = 5;
+  speakBeforeDuration = 2;
 
   private synthIsPlaying = false;
   private noiseIsPlaying = false;
