@@ -1,6 +1,7 @@
 export const nodeIsTextInput = (activeElement: Element | null): boolean => {
   switch (activeElement?.nodeName) {
     case 'INPUT':
+      return !['range', 'button'].includes(activeElement.getAttribute('type') || '');
     case 'TEXTAREA':
     case 'SELECT':
     case 'OPTION':
@@ -8,4 +9,4 @@ export const nodeIsTextInput = (activeElement: Element | null): boolean => {
   }
   if (typeof activeElement?.getAttribute('contenteditable') === 'string') return true;
   return false;
-}
+};
