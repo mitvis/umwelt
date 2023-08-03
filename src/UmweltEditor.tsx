@@ -154,6 +154,20 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   useEffect(() => {
     const niceData = typeCoerceData(data, fields);
     setData(niceData);
+
+    visualUnitSpecs.forEach(spec => {
+      const encMap = fields.map(field => {
+        return Object.fromEntries(field.encodings.filter(enc => enc.unit === spec.name).map(enc => {
+          return [enc.property, field.type]
+        }))
+      }).reduce((acc, cur) => {
+        return {...acc, ...cur}
+      }, {});
+
+      if (encMap['x'] === 'temporal' && encMap['y'] === 'quantitative' && encMap['color'] === 'nominal') {
+        spec.mark = 'line';
+      }
+    });
   }, [fields]);
 
   // useEffect(() => {
