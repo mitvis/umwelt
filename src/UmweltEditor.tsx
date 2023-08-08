@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
-import { elaborateFields } from './utils/inference';
+import { elaborateFields, inferKey } from './utils/inference';
 
 import './UmweltEditor.css'
 
@@ -26,6 +26,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       return field;
     }));
   }
+  const [key, setKey] = useState<string[]>([]);
   const [visualUnitSpecs, setVisualUnitSpecs] = useState<VisualUnitSpec[]>([]);
   const [audioUnitSpecs, setAudioUnitSpecs] = useState<AudioUnitSpec[]>([]);
   const [visualComposition, setVisualComposition] = useState<ViewComposition>('layer');
@@ -101,7 +102,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         setDataUrl(`https://raw.githubusercontent.com/vega/vega-datasets/master/data/${dataUrlInput}`);
       }
       else if (umweltDatasets.includes(dataUrlInput)) {
-        setDataUrl(`https://mitvis.github.io/umwelt/${dataUrlInput}`);
+        setDataUrl(`https://mitvis.github.io/umwelt/data/${dataUrlInput}`);
       }
       else {
         setDataUrl(dataUrlInput);
@@ -168,53 +169,14 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         spec.mark = 'line';
       }
     });
+
+    const key = inferKey(fields, data);
+    setKey(key);
   }, [fields]);
 
   // useEffect(() => {
-  //   const validPropNames = assignablePropertyNames();
-  //   fields.forEach(field => {
-  //     if (validPropNames.length) {
-  //       if (field.type === 'quantitative' || field.type === 'temporal') {
-  //         nextEncodingSelect[field.name] = validPropNames.find(propName => ['x', 'y', 'opacity', 'size', 'pitch', 'duration', 'volume'].includes(propName)) || validPropNames[0];
-  //       }
-  //       else if (field.type === 'nominal' || field.type === 'ordinal') {
-  //         nextEncodingSelect[field.name] = validPropNames.find(propName => ['color', 'shape'].includes(propName)) || validPropNames[0];
-  //       }
-  //     }
-  //   });
-  //   setFieldEncodingSelectValues(nextEncodingSelect);
 
-  //   const nextTraversalSelect = structuredClone(unitTraversalSelectValues);
-  //   audioUnitSpecs.forEach(spec => {
-  //     const validFields = fields.filter(field => {
-  //       return !spec.traversal.find(traversal => traversal.field === field.name) && !Object.values(spec.encoding).find((def: AudioEncodingFieldDef) => def.field === field.name);
-  //     });
-  //     if (validFields.length) {
-  //       nextTraversalSelect[spec.name] = validFields[0].name;
-  //     }
-  //   });
-  //   setUnitTraversalSelectValues(nextTraversalSelect);
-  // }, [fields, visualUnitSpecs, audioUnitSpecs]);
-
-  // useEffect(() => {
-  //   const nextUnitSelect = structuredClone(fieldUnitSelectValues);
-  //   const getUnit = (unitName: string) => {
-  //     return visualUnitSpecs.find(spec => spec.name === unitName) || audioUnitSpecs.find(spec => spec.name === unitName);
-  //   }
-  //   fields.forEach(field => {
-  //     if (!nextUnitSelect[field.name] ||
-  //         (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any) !== visualUnitSpecs.map(unit => unit.name).includes(nextUnitSelect[field.name])) ||
-  //         getUnit(nextUnitSelect[field.name])?.encoding[fieldEncodingSelectValues[field.name]]?.field === field.name) {
-  //       if (visualPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
-  //         nextUnitSelect[field.name] = visualUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
-  //       }
-  //       else if (audioPropNames.includes(fieldEncodingSelectValues[field.name] as any)) {
-  //         nextUnitSelect[field.name] = audioUnitSpecs.find(spec => spec.encoding[fieldEncodingSelectValues[field.name]]?.field !== field.name).name
-  //       }
-  //     }
-  //   });
-  //   setFieldUnitSelectValues(nextUnitSelect);
-  // }, [fieldEncodingSelectValues]);
+  // }, [key]);
 
   const onSelectType = (fieldDef, type) => {
     const newFields = fields.map(f => {
@@ -407,6 +369,23 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       }
       return spec;
     }));
+  }
+
+  const addKey = () => {
+    const nextField = fields.find(field => !key.includes(field.name)).name;
+    const newKey = [...key, nextField];
+    setKey(newKey);
+  }
+
+  const changeKey = (fieldName, idx) => {
+    const newKey = [...key];
+    newKey[idx] = fieldName;
+    setKey(newKey);
+  }
+
+  const removeKey = (fieldName: string) => {
+    const newKey = key.filter(field => field !== fieldName);
+    setKey(newKey);
   }
 
   const addEncoding = (field: FieldDef) => {
@@ -660,6 +639,39 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
       <div role='tabpanel' id='tabpanel-fields' aria-labelledby='tab-fields' hidden={tab !== 'fields'}>
         <h3>Fields</h3>
+
+        <div className='def-property'>
+          <div className='def-property-label'>Key:</div>
+          <div className='def-property-col' aria-live="polite">
+            {
+              key?.length < fields?.length - 1 ?
+              (
+                <button onClick={() => addKey()}>Add field to key</button>
+              ) : null
+            }
+            {
+              key?.length ? (
+                [...key].reverse().map((fieldName, idx) => {
+                  return (
+                    <div key={`key-${idx}`}>
+                      <select value={fieldName} onChange={(e) => changeKey(e.target.value, idx)}>
+                        <option key={fieldName} value={fieldName}>{fieldName}</option>
+                        {
+                          fields.filter(field => !key.includes(field.name)).map(field => {
+                            return (
+                              <option key={field.name} value={field.name}>{field.name}</option>
+                            )
+                          })
+                        }
+                      </select>
+                      <button onClick={() => removeKey(fieldName)}>Remove field from key</button>
+                    </div>
+                  )
+                })
+              ) : null
+            }
+          </div>
+        </div>
         {
           fields.map(field => {
             return (

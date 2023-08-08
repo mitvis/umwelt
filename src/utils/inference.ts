@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { OlliDataset } from 'olli';
 import { FieldDef, MeasureType } from '../grammar/Types';
+import { getDomain } from './data';
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): FieldDef[] {
   return fields.map((fieldDef) => {
@@ -82,3 +83,49 @@ export function typeInference(data: OlliDataset, field: string): MeasureType {
       return 'temporal';
   }
 }
+
+export const inferKey = (fields: FieldDef[], data: OlliDataset): string[] => {
+  var combine = function (a, min) {
+    var fn = function (n, src, got, all) {
+      if (n == 0) {
+        if (got.length > 0) {
+          all[all.length] = got;
+        }
+        return;
+      }
+      for (var j = 0; j < src.length; j++) {
+        fn(n - 1, src.slice(j + 1), got.concat([src[j]]), all);
+      }
+      return;
+    };
+    var all = [];
+    for (var i = min; i < a.length; i++) {
+      fn(i, a, [], all);
+    }
+    all.push(a);
+    return all;
+  };
+
+  const nonQuantFields = fields.filter((fieldDef) => fieldDef.type !== 'quantitative');
+  const keyCandidates: FieldDef[][] = combine(nonQuantFields, 1);
+
+  const possibleKeys = keyCandidates.filter((keyCandidate) => {
+    const keyValues = data.map((datum) => {
+      return keyCandidate.map((key) => datum[key.name]).join(',');
+    });
+    const uniqueKeyValues = new Set(keyValues);
+    return uniqueKeyValues.size === data.length;
+  });
+
+  const lengthOfShortestPossibleKey = Math.min(...possibleKeys.map((keyCandidate) => keyCandidate.length));
+  const shortestPossibleKeys = possibleKeys.filter((keyCandidate) => {
+    return keyCandidate.length === lengthOfShortestPossibleKey;
+  });
+  if (shortestPossibleKeys.length === 0) {
+    return [];
+  }
+  if (shortestPossibleKeys.length === 1) {
+    return shortestPossibleKeys[0].map((fieldDef) => fieldDef.name);
+  }
+  return [];
+};
