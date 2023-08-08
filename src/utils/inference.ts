@@ -108,19 +108,22 @@ export const inferKey = (fields: FieldDef[], data: OlliDataset): string[] => {
 
   const nonQuantFields = fields.filter((fieldDef) => fieldDef.type !== 'quantitative');
   const keyCandidates: FieldDef[][] = combine(nonQuantFields, 1);
+  const shortestPossibleKeys = [];
 
-  const possibleKeys = keyCandidates.filter((keyCandidate) => {
+  for (let i = 0; i < keyCandidates.length; i++) {
+    const keyCandidate = keyCandidates[i];
+    if (shortestPossibleKeys.length && keyCandidate.length > shortestPossibleKeys[0].length) {
+      break;
+    }
     const keyValues = data.map((datum) => {
       return keyCandidate.map((key) => datum[key.name]).join(',');
     });
     const uniqueKeyValues = new Set(keyValues);
-    return uniqueKeyValues.size === data.length;
-  });
+    if (uniqueKeyValues.size === data.length) {
+      shortestPossibleKeys.push(keyCandidate);
+    }
+  }
 
-  const lengthOfShortestPossibleKey = Math.min(...possibleKeys.map((keyCandidate) => keyCandidate.length));
-  const shortestPossibleKeys = possibleKeys.filter((keyCandidate) => {
-    return keyCandidate.length === lengthOfShortestPossibleKey;
-  });
   if (shortestPossibleKeys.length === 0) {
     return [];
   }
