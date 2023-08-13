@@ -149,8 +149,8 @@ export interface AudioSpec {
 export interface UmweltSpec {
   data: UmweltDataSource;
   fields: FieldDef[];
+  key: FieldName[];
   visual: VisualSpec | false;
   audio: AudioSpec | false;
   text: OlliNode | OlliNode[] | boolean;
-  selection?: SelectionSpec;
 }

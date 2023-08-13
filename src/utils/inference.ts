@@ -68,6 +68,7 @@ export function typeInference(data: OlliDataset, field: string): MeasureType {
     case 'string':
       return 'nominal';
     case 'integer':
+      if (field === 'year') return 'temporal';
       // this logic is from compass
       const numberNominalProportion = 0.05;
       const numberNominalLimit = 40;

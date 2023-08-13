@@ -76,6 +76,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         data: {
           url: dataUrl,
         },
+        key,
         fields,
         visual: {
           units: visualUnitSpecs,
@@ -165,9 +166,24 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         return {...acc, ...cur}
       }, {});
 
-      if (encMap['x'] === 'temporal' && encMap['y'] === 'quantitative' && encMap['color'] === 'nominal') {
-        spec.mark = 'line';
+      if (encMap['x'] === 'temporal') {
+        switch (encMap['y']) {
+          case 'quantitative':
+            spec.mark = 'line';
+            break;
+          case 'ordinal':
+          case 'nominal':
+            spec.mark = 'point';
+            break;
+        }
       }
+      if (((encMap['x'] === 'ordinal' || encMap['x'] === 'nominal') && encMap['y'] === 'quantitative') ||
+          ((encMap['y'] === 'ordinal' || encMap['y'] === 'nominal') && encMap['x'] === 'quantitative')) {
+        spec.mark = 'bar';
+      }
+      // if (encMap['x'] === 'quantitative' && encMap['y'] === 'quantitative') {
+      //   spec.mark = 'point';
+      // }
     });
 
     const key = inferKey(fields, data);
