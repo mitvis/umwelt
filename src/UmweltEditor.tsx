@@ -208,11 +208,14 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     const keyFieldDefs = fields.filter(field => key.includes(field.name));
     const valueFieldDefs = fields.filter(field => !key.includes(field.name));
     const inference = inferUnitsFromKeys(keyFieldDefs, valueFieldDefs, data);
+    console.log(inference)
     if (inference && inference.visual) {
-      setVisualUnitSpecs([inference.visual]);
+      setVisualUnitSpecs(inference.visual.units);
+      setVisualComposition(inference.visual.composition);
     }
     if (inference && inference.audio) {
-      setAudioUnitSpecs([inference.audio]);
+      setAudioUnitSpecs(inference.audio.units);
+      setAudioComposition(inference.audio.composition);
     }
   }, [key]);
 

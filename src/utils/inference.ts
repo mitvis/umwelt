@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { OlliDataset } from 'olli';
-import { AudioUnitSpec, FieldDef, MeasureType, VisualUnitSpec } from '../grammar/Types';
+import { AudioSpec, AudioUnitSpec, FieldDef, MeasureType, VisualSpec, VisualUnitSpec } from '../grammar/Types';
 import { getDomain } from './data';
 import { dateToTimeUnit } from './values';
 
@@ -69,11 +69,16 @@ export function typeInference(data: OlliDataset, field: string): MeasureType {
     case 'string':
       return 'nominal';
     case 'integer':
-      if (field.toLowerCase() === 'year') return 'temporal';
+      const distinct = new Set(values).size;
+      if (field.toLowerCase() === 'year') {
+        if (distinct <= 5) {
+          return 'ordinal';
+        }
+        return 'temporal';
+      }
       // this logic is from compass
       const numberNominalProportion = 0.05;
       const numberNominalLimit = 40;
-      const distinct = new Set(values).size;
       if (distinct < numberNominalLimit && distinct / values.length < numberNominalProportion) {
         return 'nominal';
       } else {
@@ -150,26 +155,37 @@ export const inferUnitsFromKeys = (
   values: FieldDef[],
   data: OlliDataset
 ): {
-  visual: VisualUnitSpec;
-  audio: AudioUnitSpec;
+  visual: VisualSpec;
+  audio: AudioSpec;
 } => {
   if (values.length === 1 && values[0].type === 'quantitative') {
     if (keys.length === 1) {
+      // line and bar charts
       return {
         visual: {
-          name: 'visual_unit_0',
-          mark: keys[0].type === 'quantitative' ? 'point' : keys[0].type === 'temporal' ? 'line' : 'bar',
-          encoding: {
-            x: { field: keys[0].name },
-            y: { field: values[0].name },
-          },
+          units: [
+            {
+              name: 'visual_unit_0',
+              mark: keys[0].type === 'quantitative' ? 'point' : keys[0].type === 'temporal' ? 'line' : 'bar',
+              encoding: {
+                x: { field: keys[0].name },
+                y: { field: values[0].name },
+              },
+            },
+          ],
+          composition: 'layer',
         },
         audio: {
-          name: 'audio_unit_0',
-          encoding: {
-            pitch: { field: values[0].name },
-          },
-          traversal: [{ field: keys[0].name }],
+          units: [
+            {
+              name: 'audio_unit_0',
+              encoding: {
+                pitch: { field: values[0].name },
+              },
+              traversal: [{ field: keys[0].name }],
+            },
+          ],
+          composition: 'concat',
         },
       };
     }
@@ -178,27 +194,39 @@ export const inferUnitsFromKeys = (
       const categoricalKey = keys.find((key) => key.type === 'nominal' || key.type === 'ordinal');
 
       if (temporalKey && categoricalKey) {
+        // multi-series line
         return {
           visual: {
-            name: 'visual_unit_0',
-            mark: 'line',
-            encoding: {
-              x: { field: temporalKey.name },
-              y: { field: values[0].name },
-              color: { field: categoricalKey.name },
-            },
+            units: [
+              {
+                name: 'visual_unit_0',
+                mark: 'line',
+                encoding: {
+                  x: { field: temporalKey.name },
+                  y: { field: values[0].name },
+                  color: { field: categoricalKey.name },
+                },
+              },
+            ],
+            composition: 'layer',
           },
           audio: {
-            name: 'audio_unit_0',
-            encoding: {
-              pitch: { field: values[0].name },
-            },
-            traversal: [{ field: categoricalKey.name }, { field: temporalKey.name }],
+            units: [
+              {
+                name: 'audio_unit_0',
+                encoding: {
+                  pitch: { field: values[0].name },
+                },
+                traversal: [{ field: categoricalKey.name }, { field: temporalKey.name }],
+              },
+            ],
+            composition: 'concat',
           },
         };
       }
     }
     if (keys.length === 3) {
+      // faceted dotplot
       const sortedKeys = [...keys].sort((a, b) => {
         const aDomainLength = getDomain({ ...a, field: a.name }, data).length;
         const bDomainLength = getDomain({ ...b, field: b.name }, data).length;
@@ -207,23 +235,152 @@ export const inferUnitsFromKeys = (
       });
       return {
         visual: {
-          name: 'visual_unit_0',
-          mark: 'point',
-          encoding: {
-            x: { field: values[0].name },
-            y: { field: sortedKeys[2].name },
-            color: { field: sortedKeys[0].name },
-            facet: { field: sortedKeys[1].name },
-          },
+          units: [
+            {
+              name: 'visual_unit_0',
+              mark: 'point',
+              encoding: {
+                x: { field: values[0].name },
+                y: { field: sortedKeys[2].name },
+                color: { field: sortedKeys[0].name },
+                facet: { field: sortedKeys[1].name },
+              },
+            },
+          ],
+          composition: 'layer',
         },
         audio: {
-          name: 'audio_unit_0',
-          encoding: {
-            pitch: { field: values[0].name },
-          },
-          traversal: [{ field: sortedKeys[1].name }, { field: sortedKeys[2].name }, { field: sortedKeys[0].name }], // TODO double check order?
+          units: [
+            {
+              name: 'audio_unit_0',
+              encoding: {
+                pitch: { field: values[0].name },
+              },
+              traversal: [{ field: sortedKeys[1].name }, { field: sortedKeys[2].name }, { field: sortedKeys[0].name }], // TODO double check order?
+            },
+          ],
+          composition: 'concat',
         },
       };
+    }
+  }
+  const quantValues = values.filter((f) => f.type === 'quantitative');
+  if (quantValues.length === 2) {
+    if (keys.length === 0) {
+      // scatterplot
+      return {
+        visual: {
+          units: [
+            {
+              name: 'visual_unit_0',
+              mark: 'point',
+              encoding: {
+                x: { field: quantValues[0].name },
+                y: { field: quantValues[1].name },
+              },
+            },
+          ],
+          composition: 'layer',
+        },
+        audio: {
+          units: [
+            {
+              name: 'audio_unit_0',
+              encoding: {
+                pitch: { field: quantValues[0].name },
+              },
+              traversal: [{ field: quantValues[1].name }],
+            },
+            {
+              name: 'audio_unit_1',
+              encoding: {
+                pitch: { field: quantValues[1].name },
+              },
+              traversal: [{ field: quantValues[0].name }],
+            },
+          ],
+          composition: 'concat',
+        },
+      };
+    }
+    if (keys.length === 1 && (keys[0].type === 'temporal' || keys[0].type === 'ordinal')) {
+      // connected scatterplot
+      return {
+        visual: {
+          units: [
+            {
+              name: 'visual_unit_0',
+              mark: 'line',
+              encoding: {
+                x: { field: quantValues[0].name },
+                y: { field: quantValues[1].name },
+                order: { field: keys[0].name },
+              },
+            },
+          ],
+          composition: 'layer',
+        },
+        audio: {
+          units: [
+            {
+              name: 'audio_unit_0',
+              encoding: {
+                pitch: { field: quantValues[0].name },
+              },
+              traversal: [{ field: keys[0].name }],
+            },
+            {
+              name: 'audio_unit_1',
+              encoding: {
+                pitch: { field: quantValues[1].name },
+              },
+              traversal: [{ field: keys[0].name }],
+            },
+          ],
+          composition: 'concat',
+        },
+      };
+    }
+    if (values.length === 3) {
+      if (keys.length === 0) {
+        const notQuantValue = values.find((f) => f.type !== 'quantitative');
+        // scatterplot with color
+        return {
+          visual: {
+            units: [
+              {
+                name: 'visual_unit_0',
+                mark: 'point',
+                encoding: {
+                  x: { field: quantValues[0].name },
+                  y: { field: quantValues[1].name },
+                  color: { field: notQuantValue.name },
+                },
+              },
+            ],
+            composition: 'layer',
+          },
+          audio: {
+            units: [
+              {
+                name: 'audio_unit_0',
+                encoding: {
+                  pitch: { field: quantValues[0].name },
+                },
+                traversal: [{ field: quantValues[1].name }],
+              },
+              {
+                name: 'audio_unit_1',
+                encoding: {
+                  pitch: { field: quantValues[1].name },
+                },
+                traversal: [{ field: quantValues[0].name }],
+              },
+            ],
+            composition: 'concat',
+          },
+        };
+      }
     }
   }
 };

@@ -35,6 +35,12 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
           ...fieldDef,
           ...encoding[channel],
         };
+        if (channel === 'facet') {
+          encoding[channel] = {
+            ...encoding[channel],
+            columns: 2,
+          } as any;
+        }
       });
       return {
         mark: unit.mark === 'line' ? { type: 'line', point: true } : unit.mark,

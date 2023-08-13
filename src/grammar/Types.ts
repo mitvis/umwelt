@@ -26,7 +26,7 @@ export type UmweltDataSource = UrlData | InlineData;
 
 export type UmweltPredicate = LogicalComposition<FieldPredicate>;
 
-export type VisualPropName = 'x' | 'y' | 'color' | 'opacity' | 'shape' | 'detail' | 'facet' | 'row' | 'column';
+export type VisualPropName = 'x' | 'y' | 'color' | 'size' | 'opacity' | 'shape' | 'detail' | 'facet' | 'row' | 'column' | 'order';
 export type AudioPropName = 'pitch' | 'duration' | 'volume' | 'pan' | 'waveform';
 export type EncodingPropName = VisualPropName | AudioPropName;
 
