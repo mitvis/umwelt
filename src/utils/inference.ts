@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import { OlliDataset } from 'olli';
-import { FieldDef, MeasureType } from '../grammar/Types';
+import { AudioUnitSpec, FieldDef, MeasureType, VisualUnitSpec } from '../grammar/Types';
 import { getDomain } from './data';
+import { dateToTimeUnit } from './values';
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): FieldDef[] {
   return fields.map((fieldDef) => {
@@ -68,7 +69,7 @@ export function typeInference(data: OlliDataset, field: string): MeasureType {
     case 'string':
       return 'nominal';
     case 'integer':
-      if (field === 'year') return 'temporal';
+      if (field.toLowerCase() === 'year') return 'temporal';
       // this logic is from compass
       const numberNominalProportion = 0.05;
       const numberNominalLimit = 40;
@@ -117,7 +118,17 @@ export const inferKey = (fields: FieldDef[], data: OlliDataset): string[] => {
       break;
     }
     const keyValues = data.map((datum) => {
-      return keyCandidate.map((key) => datum[key.name]).join(',');
+      return keyCandidate
+        .map((key) => {
+          if (key.type === 'temporal' && key.timeUnit) {
+            if (!(datum[key.name] instanceof Date)) {
+              datum[key.name] = new Date(datum[key.name]);
+            }
+            return dateToTimeUnit(datum[key.name], key.timeUnit);
+          }
+          return datum[key.name];
+        })
+        .join(',');
     });
     const uniqueKeyValues = new Set(keyValues);
     if (uniqueKeyValues.size === data.length) {
@@ -132,4 +143,87 @@ export const inferKey = (fields: FieldDef[], data: OlliDataset): string[] => {
     return shortestPossibleKeys[0].map((fieldDef) => fieldDef.name);
   }
   return [];
+};
+
+export const inferUnitsFromKeys = (
+  keys: FieldDef[],
+  values: FieldDef[],
+  data: OlliDataset
+): {
+  visual: VisualUnitSpec;
+  audio: AudioUnitSpec;
+} => {
+  if (values.length === 1 && values[0].type === 'quantitative') {
+    if (keys.length === 1) {
+      return {
+        visual: {
+          name: 'visual_unit_0',
+          mark: keys[0].type === 'quantitative' ? 'point' : keys[0].type === 'temporal' ? 'line' : 'bar',
+          encoding: {
+            x: { field: keys[0].name },
+            y: { field: values[0].name },
+          },
+        },
+        audio: {
+          name: 'audio_unit_0',
+          encoding: {
+            pitch: { field: values[0].name },
+          },
+          traversal: [{ field: keys[0].name }],
+        },
+      };
+    }
+    if (keys.length === 2) {
+      const temporalKey = keys.find((key) => key.type === 'temporal' && !key.timeUnit); // TODO handle timeUnit
+      const categoricalKey = keys.find((key) => key.type === 'nominal' || key.type === 'ordinal');
+
+      if (temporalKey && categoricalKey) {
+        return {
+          visual: {
+            name: 'visual_unit_0',
+            mark: 'line',
+            encoding: {
+              x: { field: temporalKey.name },
+              y: { field: values[0].name },
+              color: { field: categoricalKey.name },
+            },
+          },
+          audio: {
+            name: 'audio_unit_0',
+            encoding: {
+              pitch: { field: values[0].name },
+            },
+            traversal: [{ field: categoricalKey.name }, { field: temporalKey.name }],
+          },
+        };
+      }
+    }
+    if (keys.length === 3) {
+      const sortedKeys = [...keys].sort((a, b) => {
+        const aDomainLength = getDomain({ ...a, field: a.name }, data).length;
+        const bDomainLength = getDomain({ ...b, field: b.name }, data).length;
+        // sort by shortest domain length first
+        return aDomainLength - bDomainLength;
+      });
+      return {
+        visual: {
+          name: 'visual_unit_0',
+          mark: 'point',
+          encoding: {
+            x: { field: values[0].name },
+            y: { field: sortedKeys[2].name },
+            color: { field: sortedKeys[0].name },
+            facet: { field: sortedKeys[1].name },
+          },
+        },
+        audio: {
+          name: 'audio_unit_0',
+          encoding: {
+            pitch: { field: values[0].name },
+          },
+          traversal: [{ field: sortedKeys[1].name }, { field: sortedKeys[2].name }, { field: sortedKeys[0].name }], // TODO double check order?
+        },
+      };
+    }
+  }
 };

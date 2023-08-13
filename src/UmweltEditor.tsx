@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, UmweltSpec, ViewComposition, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
-import { elaborateFields, inferKey } from './utils/inference';
+import { elaborateFields, inferKey, inferUnitsFromKeys } from './utils/inference';
 
 import './UmweltEditor.css'
 
@@ -46,7 +46,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const markTypes = ['point', 'line', 'bar'];
   const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
   const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
-  const vegaDatasets = ['stocks.csv', 'cars.json', 'weather.csv', 'seattle-weather.csv', 'penguins.json', 'driving.json', 'barley.json'];
+  const vegaDatasets = ['stocks.csv', 'cars.json', 'weather.csv', 'seattle-weather.csv', 'penguins.json', 'driving.json', 'barley.json', 'disasters.csv'];
   const umweltDatasets = ['phoenix_chicago_temp.json'];
 
   const assignablePropertyNames = (): string[] => {
@@ -190,9 +190,17 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     setKey(key);
   }, [fields]);
 
-  // useEffect(() => {
-
-  // }, [key]);
+  useEffect(() => {
+    const keyFieldDefs = fields.filter(field => key.includes(field.name));
+    const valueFieldDefs = fields.filter(field => !key.includes(field.name));
+    const inference = inferUnitsFromKeys(keyFieldDefs, valueFieldDefs, data);
+    if (inference && inference.visual) {
+      setVisualUnitSpecs([inference.visual]);
+    }
+    if (inference && inference.audio) {
+      setAudioUnitSpecs([inference.audio]);
+    }
+  }, [key]);
 
   const onSelectType = (fieldDef, type) => {
     const newFields = fields.map(f => {
