@@ -104,19 +104,19 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         }, note.elapsed + Sonifier.speakBeforeDuration);
       }
 
-      if (note.pauseAfter) {
-        Tone.Transport.schedule(() => {
-          // release synth
-          Sonifier.releaseSynth();
-        }, note.elapsed + note.duration)
-      }
-
       if (idx === notes.length - 1) {
         Tone.Transport.schedule(() => {
           Sonifier.releaseSynth();
           Tone.Transport.pause();
-        }, note.elapsed + note.duration)
+        }, note.elapsed + note.duration + (note.speakBefore ? Sonifier.speakBeforeDuration : 0))
       }
+      else if (note.pauseAfter || note.speakBefore) {
+        Tone.Transport.schedule(() => {
+          // release synth
+          Sonifier.releaseSynth();
+        }, note.elapsed + note.duration + (note.speakBefore ? Sonifier.speakBeforeDuration : 0))
+      }
+
     });
   }, [setSpecIndices]);
 
@@ -188,7 +188,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         notesToTransport(notes);
         Tone.Transport.seconds = originalLastNotePosition;
         pause();
-      }, lastNote.elapsed + lastNote.duration);
+      }, lastNote.elapsed + lastNote.duration + (lastNote.speakBefore ? Sonifier.speakBeforeDuration : 0));
       playFromBeginning();
     }
   };

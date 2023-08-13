@@ -57,7 +57,7 @@ export function assignNoteTimings(notes: SonifierNote[]) {
   if (notes.length) {
     notes[0].elapsed = 0;
     for (let i = 1; i < notes.length; i++) {
-      notes[i].elapsed = notes[i - 1].elapsed + notes[i - 1].duration + (notes[i - 1].pauseAfter || 0);
+      notes[i].elapsed = notes[i - 1].elapsed + notes[i - 1].duration + (notes[i - 1].pauseAfter || 0) + (notes[i - 1].speakBefore ? Sonifier.speakBeforeDuration : 0);
     }
   }
 }
@@ -76,7 +76,6 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
     });
     if (announcement.length) {
       note.speakBefore = announcement.join(', ');
-      note.duration += Sonifier.speakBeforeDuration;
     }
   });
 }
