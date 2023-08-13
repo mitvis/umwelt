@@ -124,6 +124,20 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   useEffect(() => {
     if (data && data.length > 0) {
       if (!(fields.length === Object.keys(data[0]).length && fields.every(field => Object.keys(data[0]).includes(field.name)))) {
+        // reset spec for new data
+          setVisualUnitSpecs([{
+            name: 'vis_unit_0',
+            mark: 'point',
+            encoding: {
+            }
+          }]);
+          setAudioUnitSpecs([{
+            name: 'audio_unit_0',
+            encoding: {
+            },
+            traversal: []
+          }]);
+        //
         const allFields = Object.keys(data[0]).map(name => {
           return {
             name

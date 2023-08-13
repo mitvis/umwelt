@@ -277,13 +277,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     }
   }), [specIndices, specDomains]);
 
-  const generateSequenceMemo = useMemo(() => {
-    return generateSequence(audioUnitSpec, specDomains, fields, data);
-  }, [audioUnitSpec, specDomains, fields, data]);
-
   useEffect(() => {
     // generate sequence from domains
-    const notes = generateSequenceMemo;
+    const notes = generateSequence(audioUnitSpec, specDomains, fields, data);
     setNotes(notes);
   }, [specDomains]);
 
