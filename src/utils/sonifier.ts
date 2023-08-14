@@ -21,7 +21,6 @@ class UmweltSonifier {
   pauseDuration = 0.25; // in seconds
   private rampDuration = 0.001; // in seconds
   defaultSequenceDuration = 5;
-  speakBeforeDuration = 2;
 
   private synthIsPlaying = false;
   private noiseIsPlaying = false;

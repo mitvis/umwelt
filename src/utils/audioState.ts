@@ -10,6 +10,7 @@ import fastCartesian from 'fast-cartesian';
 import { AudioUnitFieldDomains, AudioUnitFieldSelectedIndices } from '../UmweltAudioUnit';
 import { getFieldDef } from './data';
 import { fmtValue } from './values';
+import { getBins } from './bin';
 
 export function audioStateToPredicate(indices: AudioUnitFieldSelectedIndices, domains: AudioUnitFieldDomains): UmweltPredicate {
   return {
@@ -47,7 +48,7 @@ export function generateSequence(audioSpec: AudioUnitSpec, specDomains: AudioUni
     };
   });
 
-  assignNoteSpeakBefore(notes, specDomains, fields);
+  assignNoteSpeakBefore(notes, specDomains, fields, data);
   assignNoteTimings(notes);
 
   return notes;
@@ -57,12 +58,12 @@ export function assignNoteTimings(notes: SonifierNote[]) {
   if (notes.length) {
     notes[0].elapsed = 0;
     for (let i = 1; i < notes.length; i++) {
-      notes[i].elapsed = notes[i - 1].elapsed + notes[i - 1].duration + (notes[i - 1].pauseAfter || 0) + (notes[i - 1].speakBefore ? Sonifier.speakBeforeDuration : 0);
+      notes[i].elapsed = notes[i - 1].elapsed + notes[i - 1].duration + (notes[i - 1].pauseAfter || 0);
     }
   }
 }
 
-export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioUnitFieldDomains, fields: FieldDef[]) {
+export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset) {
   notes.forEach((note, idx) => {
     const sequenceFields = Object.keys(note.indices);
     const announcement = [];
@@ -72,6 +73,25 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
         if (idx === 0 || note.indices[field] !== notes[idx - 1].indices[field]) {
           announcement.push(fmtValue(specDomains[field][note.indices[field]], fieldDef));
         }
+      } else {
+        const bins = getBins(field, data, fields);
+        if (idx === 0) {
+          announcement.push(fmtValue(bins[0][0], fieldDef));
+        }
+        if (idx > 0) {
+          const noteValue = specDomains[field][note.indices[field]];
+          const prevNoteValue = specDomains[field][notes[idx - 1].indices[field]];
+          const binIdx = bins.findIndex((b) => {
+            return b[0] <= noteValue && noteValue <= b[1];
+          });
+          const prevBinIdx = bins.findIndex((b) => {
+            return b[0] <= prevNoteValue && prevNoteValue <= b[1];
+          });
+          if (binIdx !== prevBinIdx) {
+            announcement.push(fmtValue(bins[binIdx][0], fieldDef));
+          }
+        }
+        // TODO last value
       }
     });
     if (announcement.length) {

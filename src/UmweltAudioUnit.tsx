@@ -55,7 +55,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       audioUnitSpec.traversal.map((fieldDef) => {
         return [fieldDef.field, (
           fieldDef.bin ?
-          getBins(fieldDef, data, predicate) :
+          getBins(fieldDef.field, data, fields, predicate) :
           getDomain(fieldDef, data, predicate)
         )];
       })
@@ -75,11 +75,21 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       Tone.Transport.schedule(() => {
         if (audioCtrl.current === 'sequence') {
           if (note.speakBefore) {
+            Tone.Transport.pause();
             setSpecIndices(note.indices);
             const utterance = new SpeechSynthesisUtterance(note.speakBefore);
-            // utterance.rate = 2;
+            utterance.rate = 10;
             // console.log(note.speakBefore);
             // speechSynthesis.cancel();
+            utterance.onend = () => {
+              if (audioCtrl.current === 'sequence') {
+                Tone.Transport.start();
+                // play note
+                Sonifier.noteToState(note);
+                Sonifier.triggerSynth(note);
+                setSpecIndices(note.indices);
+              }
+            }
             speechSynthesis.speak(utterance);
           }
           else {
@@ -91,28 +101,17 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         }
       }, note.elapsed)
 
-      if (note.speakBefore) {
-        Tone.Transport.schedule(() => {
-          if (audioCtrl.current === 'sequence') {
-            // play note
-            Sonifier.noteToState(note);
-            Sonifier.triggerSynth(note);
-            setSpecIndices(note.indices);
-          }
-        }, note.elapsed + Sonifier.speakBeforeDuration);
-      }
-
       if (idx === notes.length - 1) {
         Tone.Transport.schedule(() => {
           Sonifier.releaseSynth();
           Tone.Transport.pause();
-        }, note.elapsed + note.duration + (note.speakBefore ? Sonifier.speakBeforeDuration : 0))
+        }, note.elapsed + note.duration)
       }
-      else if (note.pauseAfter || note.speakBefore) {
+      else if (note.pauseAfter) {
         Tone.Transport.schedule(() => {
           // release synth
           Sonifier.releaseSynth();
-        }, note.elapsed + note.duration + (note.speakBefore ? Sonifier.speakBeforeDuration : 0))
+        }, note.elapsed + note.duration)
       }
 
     });
@@ -155,7 +154,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   const playCurrentOnward = useCallback(() => {
     beforePlay();
-    if (notes.length && Tone.Transport.state !== 'started' && Tone.Transport.seconds > notes[notes.length - 1].elapsed) {
+    if (notes.length && !(Tone.Transport.state === 'started' || speechSynthesis.speaking) && Tone.Transport.seconds > notes[notes.length - 1].elapsed) {
       playFromBeginning();
     }
     else {
@@ -176,7 +175,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           note.duration = Math.min(0.5, Sonifier.defaultSequenceDuration / predNotes.length);
         })
       }
-      assignNoteSpeakBefore(predNotes, specDomains, fields);
+      assignNoteSpeakBefore(predNotes, specDomains, fields, data);
       assignNoteTimings(predNotes);
       // temporarily populate transport with predicate notes
       notesToTransport(predNotes);
@@ -186,7 +185,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         notesToTransport(notes);
         Tone.Transport.seconds = originalLastNotePosition;
         pause();
-      }, lastNote.elapsed + lastNote.duration + (lastNote.speakBefore ? Sonifier.speakBeforeDuration : 0));
+      }, lastNote.elapsed + lastNote.duration);
       playFromBeginning();
     }
   };
@@ -207,6 +206,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const pause = useCallback(() => {
     setAudioCtrl('interaction');
     Tone.Transport.pause();
+    speechSynthesis.cancel();
   }, []);
 
   const play = () => {
@@ -306,7 +306,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         // break;
         case 'p':
           if (!e.repeat) {
-            if (Tone.Transport.state === 'started') {
+            if (Tone.Transport.state === 'started' || speechSynthesis.speaking) {
               pause();
             }
             else {
@@ -450,7 +450,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               </select>
             </label>
             {
-              Tone.Transport.state === 'started' ?
+              Tone.Transport.state === 'started' || speechSynthesis.speaking ?
                   <button onClick={pause}>Pause</button> :
                   <button onClick={play}>Play</button>
             }
