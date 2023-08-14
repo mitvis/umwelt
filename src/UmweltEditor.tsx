@@ -659,7 +659,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
       <div role='tabpanel' id='tabpanel-data' aria-labelledby='tab-data' hidden={tab !== 'data'}>
         <h3 id="uw-data">Data</h3>
-        <input aria-labelledby='uw-data' list='vega-datasets-list' type="text" className="input-data" value={dataUrlInput} onChange={onDataUrlInput} required></input>
+        {/* <input aria-labelledby='uw-data' list='vega-datasets-list' type="text" className="input-data" value={dataUrlInput} onChange={onDataUrlInput} required></input>
         <datalist id="vega-datasets-list">
           {
             vegaDatasets.map(url => {
@@ -675,7 +675,23 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
               )
             })
           }
-        </datalist>
+        </datalist> */}
+        <select aria-labelledby='uw-data' value={dataUrlInput} className="input-data" onChange={onDataUrlInput} required>
+          {
+            vegaDatasets.map(url => {
+              return (
+                <option key={url} value={url}>{url}</option>
+              )
+            })
+          }
+          {
+            umweltDatasets.map(url => {
+              return (
+                <option key={url} value={url}>{url}</option>
+              )
+            })
+          }
+        </select>
       </div>
 
       <div role='tabpanel' id='tabpanel-fields' aria-labelledby='tab-fields' hidden={tab !== 'fields'}>

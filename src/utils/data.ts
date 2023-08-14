@@ -55,6 +55,9 @@ function typeCoerceDatum(lookup, datum) {
     Object.entries(datum).map(([field, value]: [string, OlliValue]) => {
       switch (lookup[field]) {
         case 'temporal':
+          if (field.toLowerCase() === 'year') {
+            return [field, new Date(value, 0, 1)];
+          }
           return [field, new Date(value)];
         case 'quantitative':
           if (isString(value) && isNumeric(String(value))) {

@@ -6,11 +6,15 @@ import { dateToTimeUnit } from './values';
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): FieldDef[] {
   return fields.map((fieldDef) => {
-    return {
+    const spec: FieldDef = {
       name: fieldDef.name,
       type: fieldDef.type || typeInference(data, fieldDef.name),
       scale: fieldDef.scale,
     };
+    if (spec.type === 'temporal' && spec.name.toLowerCase() === 'year') {
+      spec.timeUnit = 'year';
+    }
+    return spec;
   });
 }
 
@@ -125,10 +129,7 @@ export const inferKey = (fields: FieldDef[], data: OlliDataset): string[] => {
     const keyValues = data.map((datum) => {
       return keyCandidate
         .map((key) => {
-          if (key.type === 'temporal' && key.timeUnit) {
-            if (!(datum[key.name] instanceof Date)) {
-              datum[key.name] = new Date(datum[key.name]);
-            }
+          if (key.type === 'temporal' && key.timeUnit && datum[key.name] instanceof Date) {
             return dateToTimeUnit(datum[key.name], key.timeUnit);
           }
           return datum[key.name];
@@ -190,23 +191,24 @@ export const inferUnitsFromKeys = (
       };
     }
     if (keys.length === 2) {
-      const temporalKey = keys.find((key) => key.type === 'temporal' && !key.timeUnit); // TODO handle timeUnit
+      const temporalKey = keys.find((key) => key.type === 'temporal'); // TODO handle timeUnit
       const categoricalKey = keys.find((key) => key.type === 'nominal' || key.type === 'ordinal');
 
       if (temporalKey && categoricalKey) {
         const categoricalDomainLength = getDomain({ ...categoricalKey, field: categoricalKey.name }, data).length;
-        if (categoricalDomainLength <= 5) {
-          // multi-series line
+        if (categoricalDomainLength > 5 || temporalKey.timeUnit) {
+          // bubble plot
           return {
             visual: {
               units: [
                 {
                   name: 'visual_unit_0',
-                  mark: 'line',
+                  mark: 'point',
                   encoding: {
                     x: { field: temporalKey.name },
-                    y: { field: values[0].name },
+                    y: { field: categoricalKey.name },
                     color: { field: categoricalKey.name },
+                    size: { field: values[0].name },
                   },
                 },
               ],
@@ -226,18 +228,17 @@ export const inferUnitsFromKeys = (
             },
           };
         } else {
-          // bubble plot
+          // multi-series line
           return {
             visual: {
               units: [
                 {
                   name: 'visual_unit_0',
-                  mark: 'point',
+                  mark: 'line',
                   encoding: {
                     x: { field: temporalKey.name },
-                    y: { field: categoricalKey.name },
+                    y: { field: values[0].name },
                     color: { field: categoricalKey.name },
-                    size: { field: values[0].name },
                   },
                 },
               ],
