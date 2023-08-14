@@ -1,5 +1,5 @@
 import { OlliDataset, OlliValue } from 'olli';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import useState from 'react-usestateref';
 import { AudioUnitSpec, FieldDef, UmweltPredicate } from './grammar';
 import { getDomain, getFieldDef } from './utils/data';
@@ -10,9 +10,7 @@ import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
-import { fmtValue, serializeValue } from './utils/values';
-import { FieldEqualPredicate, FieldRangePredicate } from 'vega-lite/src/predicate';
-import { set } from 'vega-lite/src/log';
+import { fmtValue } from './utils/values';
 import { selectionTest } from './utils/selection';
 import { DEFAULT_RANGES, scale } from './utils/scales';
 
@@ -46,13 +44,13 @@ export type AudioPlaybackMode = 'current' | 'onward' | 'beginning' | 'count' | s
 
 const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted, activeUnitRef, setActiveUnit}: AudioUnitProps) => {
 
-  const getFieldSelectedIndices = useCallback((audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices => {
+  const getFieldSelectedIndices = (audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices => {
     return Object.fromEntries(audioUnitSpec.traversal.map(({field}) => {
       return [field, 0];
     }))
-  }, []);
+  }
 
-  const getFieldDomains = useCallback((audioUnitSpec: AudioUnitSpec, predicate?: UmweltPredicate): AudioUnitFieldDomains => {
+  const getFieldDomains = (audioUnitSpec: AudioUnitSpec, predicate?: UmweltPredicate): AudioUnitFieldDomains => {
     return Object.fromEntries(
       audioUnitSpec.traversal.map((fieldDef) => {
         return [fieldDef.field, (
@@ -62,7 +60,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         )];
       })
     )
-  }, [data]);
+  }
 
   const [domainFilter, setDomainFilter] = useState<UmweltPredicate>();
   const [specIndices, setSpecIndices] = useState<AudioUnitFieldSelectedIndices>(getFieldSelectedIndices(audioUnitSpec));
@@ -233,10 +231,10 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   useEffect(() => {
     // re-initialize when spec changes
-    setAudioCtrl('umwelt');
-    setDomainFilter(null);
     setSpecIndices(getFieldSelectedIndices(audioUnitSpec));
     setSpecDomains(getFieldDomains(audioUnitSpec));
+    setDomainFilter(null);
+    setAudioCtrl('umwelt');
   }, [audioUnitSpec])
 
   useEffect(() => {
@@ -339,11 +337,14 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     };
   });
 
-  function audioStateFieldsAreCurrent() {
-    return Object.keys(specIndices).every(field => getFieldDef(field, fields));
+  function audioStateIsCurrent() {
+    return Object.keys(specIndices).every(field => getFieldDef(field, fields)) &&
+      Object.keys(specDomains).every(field => getFieldDef(field, fields)) &&
+      Object.values(audioUnitSpec.encoding).every(f => getFieldDef(f.field, fields) && specIndices[f.field] && specDomains[f.field]) &&
+      audioUnitSpec.traversal.every(f => getFieldDef(f.field, fields) && specIndices[f.field] && specDomains[f.field]);
   }
 
-  if (!audioStateFieldsAreCurrent()) {
+  if (!audioStateIsCurrent()) {
     return <div className="audio-spec"></div>;
   }
 
@@ -354,6 +355,8 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           const field = traversalFieldDef.field;
           const fieldDef = getFieldDef(field, fields);
           const domain = specDomains[field];
+
+          console.log(audioUnitSpec, specDomains);
 
           if (domain.length === 1) {
             const id = `${field}-value`;
