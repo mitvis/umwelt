@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, NONE, UmweltSpec, ViewComposition, VisualEncoding, VisualPropName, VisualUnitSpec } from './grammar';
+import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, NONE, UmweltSpec, ViewComposition, VisualEncoding, VisualEncodingFieldDef, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
 import { elaborateFields, inferKey, inferUnitsFromKeys } from './utils/inference';
@@ -17,14 +17,17 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const [dataUrlInput, setDataUrlInput] = useState<string>(`stocks.csv`);
   const [dataUrl, setDataUrl] = useState<string>();
   const [data, setData] = useState<OlliDataset>([]);
-  const [fields, _setFields] = useState<FieldDef[]>([]);
-  const setFields = (fields) => {
-    _setFields(fields.map(field => {
+  const [fields, setFields] = useState<FieldDef[]>([]);
+  const [allFields, _setAllFields] = useState<FieldDef[]>([]);
+  const setAllFields = (fields) => {
+    const initFields = fields.map(field => {
       if (!field.encodings) {
         field.encodings = [];
       }
       return field;
-    }));
+    });
+    _setAllFields(initFields);
+    setFields(initFields);
   }
   const [key, setKey] = useState<string[]>([]);
   const [visualUnitSpecs, setVisualUnitSpecs] = useState<VisualUnitSpec[]>([]);
@@ -144,7 +147,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           }
         })
         const elaboratedFields = elaborateFields(allFields, data);
-        setFields(elaboratedFields);
+        setAllFields(elaboratedFields);
       }
 
       if (visualUnitSpecs.length === 0) {
@@ -226,7 +229,28 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     if (didEditFields) {
       setFields(nextFields);
     }
-  }, [key]);
+  }, [key, fields.length]);
+
+  const toggleField = (fieldName: string, shouldUse: boolean) => {
+    if (shouldUse && !fields.find(field => field.name === fieldName)) {
+      setFields([...fields, {...allFields.find(field => field.name === fieldName), encodings: []}]);
+    }
+    else if (!shouldUse && fields.find(field => field.name === fieldName)) {
+      setFields(fields.filter(field => field.name !== fieldName));
+      // remove the field from all encodings and traversals
+      const nextVisualUnitSpecs = structuredClone(visualUnitSpecs);
+      const nextAudioUnitSpecs = structuredClone(audioUnitSpecs);
+      nextVisualUnitSpecs.forEach(spec => {
+        spec.encoding = Object.fromEntries(Object.entries(spec.encoding).filter(([_, encFieldDef]) => (encFieldDef as VisualEncodingFieldDef).field !== fieldName));
+      });
+      nextAudioUnitSpecs.forEach(spec => {
+        spec.encoding = Object.fromEntries(Object.entries(spec.encoding).filter(([_, encFieldDef]) => (encFieldDef as AudioEncodingFieldDef).field !== fieldName));
+        spec.traversal = spec.traversal.filter(traversal => traversal.field !== fieldName);
+      });
+      setVisualUnitSpecs(nextVisualUnitSpecs);
+      setAudioUnitSpecs(nextAudioUnitSpecs);
+    }
+  }
 
   const onSelectType = (fieldDef, type) => {
     const newFields = fields.map(f => {
@@ -731,6 +755,23 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
       <div role='tabpanel' id='tabpanel-fields' aria-labelledby='tab-fields' hidden={tab !== 'fields'}>
         <h3>Fields</h3>
+
+        <div className='unit-spec'>
+          <div className='def-property-label'>Select fields:</div>
+          <div className='def-property-col'>
+            {
+              allFields.map((field) => {
+                return (
+                  <div key={field.name}>
+                    <label>
+                      <input type='checkbox' checked={fields.find(f => f.name === field.name) !== undefined} onChange={(e) => toggleField(field.name, e.target.checked)}/> {field.name}
+                    </label>
+                  </div>
+                )
+              })
+            }
+          </div>
+        </div>
 
         <div className='def-property'>
           <div className='def-property-label'>Key:</div>

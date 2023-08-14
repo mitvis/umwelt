@@ -159,6 +159,7 @@ export const inferUnitsFromKeys = (
   visual: VisualSpec;
   audio: AudioSpec;
 } => {
+  console.log(keys, values);
   if (values.length === 1 && values[0].type === 'quantitative') {
     if (keys.length === 1) {
       // line and bar charts
@@ -300,43 +301,87 @@ export const inferUnitsFromKeys = (
     }
   }
   const quantValues = values.filter((f) => f.type === 'quantitative');
+  console.log('quant', quantValues);
   if (quantValues.length === 2) {
     if (keys.length === 0) {
-      // scatterplot
-      return {
-        visual: {
-          units: [
-            {
-              name: 'vis_unit_0',
-              mark: 'point',
-              encoding: {
-                x: { field: quantValues[0].name },
-                y: { field: quantValues[1].name },
+      if (values.length === 2) {
+        // scatterplot
+        return {
+          visual: {
+            units: [
+              {
+                name: 'vis_unit_0',
+                mark: 'point',
+                encoding: {
+                  x: { field: quantValues[0].name },
+                  y: { field: quantValues[1].name },
+                },
               },
-            },
-          ],
-          composition: 'layer',
-        },
-        audio: {
-          units: [
-            {
-              name: 'audio_unit_0',
-              encoding: {
-                pitch: { field: quantValues[0].name },
+            ],
+            composition: 'layer',
+          },
+          audio: {
+            units: [
+              {
+                name: 'audio_unit_0',
+                encoding: {
+                  pitch: { field: quantValues[0].name },
+                },
+                traversal: [{ field: quantValues[1].name }],
               },
-              traversal: [{ field: quantValues[1].name }],
-            },
-            {
-              name: 'audio_unit_1',
-              encoding: {
-                pitch: { field: quantValues[1].name },
+              {
+                name: 'audio_unit_1',
+                encoding: {
+                  pitch: { field: quantValues[1].name },
+                },
+                traversal: [{ field: quantValues[0].name }],
               },
-              traversal: [{ field: quantValues[0].name }],
+            ],
+            composition: 'concat',
+          },
+        };
+      }
+      if (values.length === 3) {
+        if (keys.length === 0) {
+          const notQuantValue = values.find((f) => f.type !== 'quantitative');
+          // scatterplot with color
+          return {
+            visual: {
+              units: [
+                {
+                  name: 'vis_unit_0',
+                  mark: 'point',
+                  encoding: {
+                    x: { field: quantValues[0].name },
+                    y: { field: quantValues[1].name },
+                    color: { field: notQuantValue.name },
+                  },
+                },
+              ],
+              composition: 'layer',
             },
-          ],
-          composition: 'concat',
-        },
-      };
+            audio: {
+              units: [
+                {
+                  name: 'audio_unit_0',
+                  encoding: {
+                    pitch: { field: quantValues[0].name },
+                  },
+                  traversal: [{ field: quantValues[1].name }],
+                },
+                {
+                  name: 'audio_unit_1',
+                  encoding: {
+                    pitch: { field: quantValues[1].name },
+                  },
+                  traversal: [{ field: quantValues[0].name }],
+                },
+              ],
+              composition: 'concat',
+            },
+          };
+        }
+      }
     }
     if (keys.length === 1 && (keys[0].type === 'temporal' || keys[0].type === 'ordinal')) {
       // connected scatterplot
@@ -375,47 +420,6 @@ export const inferUnitsFromKeys = (
           composition: 'concat',
         },
       };
-    }
-    if (values.length === 3) {
-      if (keys.length === 0) {
-        const notQuantValue = values.find((f) => f.type !== 'quantitative');
-        // scatterplot with color
-        return {
-          visual: {
-            units: [
-              {
-                name: 'vis_unit_0',
-                mark: 'point',
-                encoding: {
-                  x: { field: quantValues[0].name },
-                  y: { field: quantValues[1].name },
-                  color: { field: notQuantValue.name },
-                },
-              },
-            ],
-            composition: 'layer',
-          },
-          audio: {
-            units: [
-              {
-                name: 'audio_unit_0',
-                encoding: {
-                  pitch: { field: quantValues[0].name },
-                },
-                traversal: [{ field: quantValues[1].name }],
-              },
-              {
-                name: 'audio_unit_1',
-                encoding: {
-                  pitch: { field: quantValues[1].name },
-                },
-                traversal: [{ field: quantValues[0].name }],
-              },
-            ],
-            composition: 'concat',
-          },
-        };
-      }
     }
   }
 };
