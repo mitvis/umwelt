@@ -960,7 +960,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           <div className='enc-def' key={`${propName}-${visualUnitSpec.name}`}>
                             <h6 className='encoding-name'>{propName}</h6>
                             <div className='unit-encoding-def'>
-                              <span>{(propValue.bin ?? fieldDef.bin) ? `binned ` : null}{(propValue.aggregate ?? fieldDef.aggregate) && propValue.aggregate as any !== NONE ? `${propValue.aggregate} ` : null}{propValue.field}{(propValue.timeUnit ?? fieldDef.timeUnit) && propValue.timeUnit !== NONE ? ` (${propValue.timeUnit})` : null}</span>
+                              <span>{(propValue.bin ?? fieldDef.bin) ? `binned ` : null}{(propValue.aggregate ?? fieldDef.aggregate) && propValue.aggregate as any !== NONE ? `${propValue.aggregate ?? fieldDef.aggregate} ` : null}{propValue.field}{(propValue.timeUnit ?? fieldDef.timeUnit) && propValue.timeUnit !== NONE ? ` (${propValue.timeUnit ?? fieldDef.timeUnit})` : null}</span>
                               <button id={`encoding-${visualUnitSpec.name}-${propName}`} onClick={() => jumpToField(propValue.field, propName)}>Go to field</button>
                               <button onClick={() => removeEncoding(visualUnitSpec, propName)}>Remove encoding</button>
                             </div>
@@ -1081,7 +1081,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           <div key={`${propName}-${audioUnitSpec.name}`}>
                             <h6 className='encoding-name'>{propName}</h6>
                             <div className='unit-encoding-def'>
-                              <span>{(propValue.aggregate ?? fieldDef.aggregate) && propValue.aggregate as any !== NONE ? `${propValue.aggregate} ` : null}{propValue.field}{(propValue.timeUnit ?? fieldDef.timeUnit) && propValue.timeUnit !== NONE ? ` (${propValue.timeUnit})` : null}</span>
+                            <span>{(propValue.aggregate ?? fieldDef.aggregate) && propValue.aggregate as any !== NONE ? `${propValue.aggregate ?? fieldDef.aggregate} ` : null}{propValue.field}{(propValue.timeUnit ?? fieldDef.timeUnit) && propValue.timeUnit !== NONE ? ` (${propValue.timeUnit ?? fieldDef.timeUnit})` : null}</span>
                               <button id={`encoding-${audioUnitSpec.name}-${propName}`} onClick={() => jumpToField(propValue.field, propName)}>Go to field</button>
                               <button onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button>
                             </div>
@@ -1151,7 +1151,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         return (
                           <div className='enc-def' key={`${traversal.field}-${audioUnitSpec.name}`}>
                             <div className='unit-encoding-def'>
-                              <span>{(traversal.bin ?? fieldDef.bin) ? `binned ` : null}{traversal.field}{(traversal.timeUnit ?? fieldDef.timeUnit) && traversal.timeUnit !== NONE ? ` (${traversal.timeUnit})` : null}</span>
+                            <span>{(traversal.bin ?? fieldDef.bin) ? `binned ` : null}{traversal.field}{(traversal.timeUnit ?? fieldDef.timeUnit) && traversal.timeUnit !== NONE ? ` (${traversal.timeUnit ?? fieldDef.timeUnit})` : null}</span>
                               <button>Go to field</button>
                               <button onClick={() => removeTraversal(audioUnitSpec, traversal.field)}>Remove traversal</button>
                             </div>

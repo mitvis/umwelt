@@ -1,10 +1,8 @@
-import { UmweltSpec, VlSpec } from './Types';
+import { NONE, UmweltSpec, VlSpec } from './Types';
 import { VegaLiteAdapter } from 'olli-adapters';
 import { OlliSpec, OlliDataset } from 'olli';
 
 export * from './Types';
-
-export const NONE = 'NONE';
 
 export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpec {
   if (spec.visual === false || spec.visual.units.length === 0) {

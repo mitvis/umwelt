@@ -32,6 +32,8 @@ export type EncodingPropName = VisualPropName | AudioPropName;
 
 export type AudioAggregateOp = 'count' | 'mean'; // | "median" | "min" | "max"; //
 
+export const NONE = 'NONE';
+
 type FieldName = string;
 
 export interface FieldRef {
@@ -64,7 +66,7 @@ export interface VisualEncodingFieldDef {
   //
   scale?: ScaleDomain & ScaleRange;
   timeUnit?: string;
-  aggregate?: NonArgAggregateOp;
+  aggregate?: NonArgAggregateOp | typeof NONE;
   bin?: boolean;
   sort?: Sort<any>;
 }
@@ -74,7 +76,7 @@ export interface AudioEncodingFieldDef {
   //
   scale?: ScaleDomain & ScaleRange;
   timeUnit?: string;
-  aggregate?: NonArgAggregateOp;
+  aggregate?: NonArgAggregateOp | typeof NONE;
   sort?: Sort<any>;
   // bin: undefined;
 }
@@ -111,28 +113,6 @@ export type AudioUnitSpec = {
   encoding: AudioEncoding;
   traversal: AudioTraversal;
 };
-
-export interface AudioEncodingSelectionTarget {
-  property: AudioPropName;
-  aggregate?: AudioAggregateOp;
-}
-
-export interface VisualEncodingSelectionTarget {
-  property: VisualPropName;
-  selected: FieldRef | ValueRef;
-  unselected: ValueRef;
-}
-
-export interface DomainSelectionTarget {
-  target: 'text-domain' | 'visual-domain';
-  rescale?: boolean;
-}
-
-export type SelectionTarget = AudioEncodingSelectionTarget | VisualEncodingSelectionTarget | DomainSelectionTarget;
-
-export interface SelectionSpec {
-  targets: SelectionTarget[];
-}
 
 export type ViewComposition = 'layer' | 'concat';
 

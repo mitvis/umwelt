@@ -1,7 +1,7 @@
 import { OlliDataset, OlliValue } from 'olli';
 import { isString } from 'vega';
 import { compile } from 'vega-lite';
-import { EncodingFieldDef, FieldDef, SelectionSpec, UmweltDataSource, UmweltPredicate } from '../grammar/Types';
+import { EncodingFieldDef, FieldDef, UmweltDataSource, UmweltPredicate } from '../grammar/Types';
 import { selectionTest } from './selection';
 import { dateToTimeUnit, isNumeric } from './values';
 import { getVegaScene } from './vega';
