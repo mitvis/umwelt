@@ -24,6 +24,7 @@ interface AudioUnitProps {
   muted: boolean;
   setMuted: any;
   readAudioAxis: boolean;
+  speechRate: number;
   activeUnitRef: any;
   setActiveUnit: any;
 }
@@ -43,7 +44,7 @@ export type SonifierNoteMap = {
 export type AudioCtrl = 'interaction' | 'sequence' | 'umwelt';
 export type AudioPlaybackMode = 'current' | 'onward' | 'beginning' | 'count' | string;
 
-const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted, readAudioAxis, activeUnitRef, setActiveUnit}: AudioUnitProps) => {
+const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted, readAudioAxis, speechRate, activeUnitRef, setActiveUnit}: AudioUnitProps) => {
 
   const getFieldSelectedIndices = (audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices => {
     return Object.fromEntries(audioUnitSpec.traversal.map(({field}) => {
@@ -70,17 +71,16 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const [notes, setNotes] = useState<SonifierNote[]>([]);
   const [playbackMode, setPlaybackMode] = useState<AudioPlaybackMode>('current');
 
-  const notesToTransport = useCallback((notes: SonifierNote[]) => {
+  const notesToTransport = (notes: SonifierNote[]) => {
     Sonifier.resetTransport();
     notes.forEach((note, idx) => {
       Tone.Transport.schedule(() => {
         if (audioCtrl.current === 'sequence') {
-          console.log(note.speakBefore, readAudioAxis, muted);
           if (note.speakBefore && readAudioAxis && !muted) {
             Tone.Transport.pause();
             setSpecIndices(note.indices);
             const utterance = new SpeechSynthesisUtterance(note.speakBefore);
-            utterance.rate = 10;
+            utterance.rate = speechRate;
             // console.log(note.speakBefore);
             // speechSynthesis.cancel();
             utterance.onend = () => {
@@ -117,7 +117,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       }
 
     });
-  }, [setSpecIndices, readAudioAxis, muted]);
+  };
 
   const beforePlay = () => {
     if (activeUnitRef.current !== audioUnitSpec.name) {
@@ -286,7 +286,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   useEffect(() => {
     // schedule notes in transport
     notesToTransport(notes);
-  }, [notes, notesToTransport]);
+  }, [notes, speechRate, readAudioAxis, muted]);
 
   useEffect(() => {
     if (audioCtrl.current === 'interaction') {

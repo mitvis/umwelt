@@ -19,6 +19,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
 
   const [muted, setMuted] = useState(false);
   const [readAudioAxis, setReadAudioAxis] = useState(true);
+  const [speechRate, setSpeechRate] = useState(1);
   const [_, setActiveUnit, activeUnitRef] = useState<string>();
 
   useEffect(() => {
@@ -42,6 +43,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
           muted={muted}
           setMuted={setMuted}
           readAudioAxis={readAudioAxis}
+          speechRate={speechRate}
           activeUnitRef={activeUnitRef}
           setActiveUnit={setActiveUnit}
         />
@@ -85,6 +87,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
                 muted={muted}
                 setMuted={setMuted}
                 readAudioAxis={readAudioAxis}
+                speechRate={speechRate}
                 activeUnitRef={activeUnitRef}
                 setActiveUnit={setActiveUnit}
               />
@@ -108,6 +111,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
         audioSpec?.units.length && !(audioSpec.units.length === 1 && !Object.keys(audioSpec.units[0].encoding).length) ? (
           <div>
             <label><input type="checkbox" className="uv_audio_axis" checked={readAudioAxis} onChange={(e) => setReadAudioAxis(e.target.checked)} /> Speak audio axis ticks</label> <br/>
+            <label>Audio axis speech rate <input type="number" min="0.1" max="10" value={speechRate} step={0.1} id="rate" onChange={(e) => setSpeechRate(Number(e.target.value))} />x</label> <br/><br/>
             <label><input type="checkbox" className="uv_mute" checked={muted} onChange={(e) => setMuted(e.target.checked)} /> Mute</label>
           </div>
         ) : null
