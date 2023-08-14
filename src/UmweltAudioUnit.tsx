@@ -23,6 +23,7 @@ interface AudioUnitProps {
   selectionCtrl: SelectionCtrl;
   muted: boolean;
   setMuted: any;
+  readAudioAxis: boolean;
   activeUnitRef: any;
   setActiveUnit: any;
 }
@@ -42,7 +43,7 @@ export type SonifierNoteMap = {
 export type AudioCtrl = 'interaction' | 'sequence' | 'umwelt';
 export type AudioPlaybackMode = 'current' | 'onward' | 'beginning' | 'count' | string;
 
-const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted, activeUnitRef, setActiveUnit}: AudioUnitProps) => {
+const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, selectionCtrl, muted, setMuted, readAudioAxis, activeUnitRef, setActiveUnit}: AudioUnitProps) => {
 
   const getFieldSelectedIndices = (audioUnitSpec: AudioUnitSpec): AudioUnitFieldSelectedIndices => {
     return Object.fromEntries(audioUnitSpec.traversal.map(({field}) => {
@@ -74,7 +75,8 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     notes.forEach((note, idx) => {
       Tone.Transport.schedule(() => {
         if (audioCtrl.current === 'sequence') {
-          if (note.speakBefore) {
+          console.log(note.speakBefore, readAudioAxis, muted);
+          if (note.speakBefore && readAudioAxis && !muted) {
             Tone.Transport.pause();
             setSpecIndices(note.indices);
             const utterance = new SpeechSynthesisUtterance(note.speakBefore);
@@ -115,7 +117,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       }
 
     });
-  }, [setSpecIndices]);
+  }, [setSpecIndices, readAudioAxis, muted]);
 
   const beforePlay = () => {
     if (activeUnitRef.current !== audioUnitSpec.name) {
