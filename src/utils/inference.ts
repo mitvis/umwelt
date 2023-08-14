@@ -194,35 +194,69 @@ export const inferUnitsFromKeys = (
       const categoricalKey = keys.find((key) => key.type === 'nominal' || key.type === 'ordinal');
 
       if (temporalKey && categoricalKey) {
-        // multi-series line
-        return {
-          visual: {
-            units: [
-              {
-                name: 'visual_unit_0',
-                mark: 'line',
-                encoding: {
-                  x: { field: temporalKey.name },
-                  y: { field: values[0].name },
-                  color: { field: categoricalKey.name },
+        const categoricalDomainLength = getDomain({ ...categoricalKey, field: categoricalKey.name }, data).length;
+        if (categoricalDomainLength <= 5) {
+          // multi-series line
+          return {
+            visual: {
+              units: [
+                {
+                  name: 'visual_unit_0',
+                  mark: 'line',
+                  encoding: {
+                    x: { field: temporalKey.name },
+                    y: { field: values[0].name },
+                    color: { field: categoricalKey.name },
+                  },
                 },
-              },
-            ],
-            composition: 'layer',
-          },
-          audio: {
-            units: [
-              {
-                name: 'audio_unit_0',
-                encoding: {
-                  pitch: { field: values[0].name },
+              ],
+              composition: 'layer',
+            },
+            audio: {
+              units: [
+                {
+                  name: 'audio_unit_0',
+                  encoding: {
+                    pitch: { field: values[0].name },
+                  },
+                  traversal: [{ field: categoricalKey.name }, { field: temporalKey.name }],
                 },
-                traversal: [{ field: categoricalKey.name }, { field: temporalKey.name }],
-              },
-            ],
-            composition: 'concat',
-          },
-        };
+              ],
+              composition: 'concat',
+            },
+          };
+        } else {
+          // bubble plot
+          return {
+            visual: {
+              units: [
+                {
+                  name: 'visual_unit_0',
+                  mark: 'point',
+                  encoding: {
+                    x: { field: temporalKey.name },
+                    y: { field: categoricalKey.name },
+                    color: { field: categoricalKey.name },
+                    size: { field: values[0].name },
+                  },
+                },
+              ],
+              composition: 'layer',
+            },
+            audio: {
+              units: [
+                {
+                  name: 'audio_unit_0',
+                  encoding: {
+                    pitch: { field: values[0].name },
+                  },
+                  traversal: [{ field: categoricalKey.name }, { field: temporalKey.name }],
+                },
+              ],
+              composition: 'concat',
+            },
+          };
+        }
       }
     }
     if (keys.length === 3) {
