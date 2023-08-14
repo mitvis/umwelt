@@ -4,6 +4,8 @@ import { OlliSpec, OlliDataset } from 'olli';
 
 export * from './Types';
 
+export const NONE = 'NONE';
+
 export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpec {
   if (spec.visual === false || spec.visual.units.length === 0) {
     return null;
@@ -35,6 +37,7 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
           ...fieldDef,
           ...encoding[channel],
         };
+        encoding[channel] = Object.fromEntries(Object.entries(encoding[channel]).filter(([k, v]) => v !== NONE));
         if (channel === 'facet') {
           encoding[channel] = {
             ...encoding[channel],
