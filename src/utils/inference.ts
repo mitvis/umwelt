@@ -166,7 +166,7 @@ export const inferUnitsFromKeys = (
         visual: {
           units: [
             {
-              name: 'visual_unit_0',
+              name: 'vis_unit_0',
               mark: keys[0].type === 'quantitative' ? 'point' : keys[0].type === 'temporal' ? 'line' : 'bar',
               encoding: {
                 x: { field: keys[0].name },
@@ -202,7 +202,7 @@ export const inferUnitsFromKeys = (
             visual: {
               units: [
                 {
-                  name: 'visual_unit_0',
+                  name: 'vis_unit_0',
                   mark: 'point',
                   encoding: {
                     x: { field: temporalKey.name },
@@ -233,7 +233,7 @@ export const inferUnitsFromKeys = (
             visual: {
               units: [
                 {
-                  name: 'visual_unit_0',
+                  name: 'vis_unit_0',
                   mark: 'line',
                   encoding: {
                     x: { field: temporalKey.name },
@@ -272,7 +272,7 @@ export const inferUnitsFromKeys = (
         visual: {
           units: [
             {
-              name: 'visual_unit_0',
+              name: 'vis_unit_0',
               mark: 'point',
               encoding: {
                 x: { field: values[0].name },
@@ -307,7 +307,7 @@ export const inferUnitsFromKeys = (
         visual: {
           units: [
             {
-              name: 'visual_unit_0',
+              name: 'vis_unit_0',
               mark: 'point',
               encoding: {
                 x: { field: quantValues[0].name },
@@ -344,7 +344,7 @@ export const inferUnitsFromKeys = (
         visual: {
           units: [
             {
-              name: 'visual_unit_0',
+              name: 'vis_unit_0',
               mark: 'line',
               encoding: {
                 x: { field: quantValues[0].name },
@@ -384,7 +384,7 @@ export const inferUnitsFromKeys = (
           visual: {
             units: [
               {
-                name: 'visual_unit_0',
+                name: 'vis_unit_0',
                 mark: 'point',
                 encoding: {
                   x: { field: quantValues[0].name },
