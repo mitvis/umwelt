@@ -47,7 +47,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
   const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
   const vegaDatasets = ['stocks.csv', 'cars.json', 'weather.csv', 'seattle-weather.csv', 'penguins.json', 'driving.json', 'barley.json', 'disasters.csv'];
-  const umweltDatasets = ['phoenix_chicago_temp.json'];
+  const umweltDatasets = ['phoenix_chicago_temp.csv'];
 
   const assignablePropertyNames = (): string[] => {
     return propertyNames.filter(propName => {

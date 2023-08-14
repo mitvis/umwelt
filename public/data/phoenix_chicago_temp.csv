@@ -1,4 +1,4 @@
-mean_temp,month_date,city
+mean_temp,date,city
 96.74193548387096,2014-07-01T04:00Z,Phoenix
 91.80645161290323,2014-08-01T04:00Z,Phoenix
 89.26666666666667,2014-09-01T04:00Z,Phoenix
