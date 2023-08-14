@@ -35,7 +35,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
 
   const mtypes = ['quantitative', 'nominal', 'ordinal', 'temporal'];
-  const visualPropNames: VisualPropName[] = ['x', 'y', 'color', 'shape', 'opacity'];
+  const visualPropNames: VisualPropName[] = ['x', 'y', 'color', 'shape', 'size', 'opacity', 'order', 'facet'];
   const audioPropNames: AudioPropName[] = ['pitch', 'duration', 'volume'];
   const commonPropNames = ['x', 'y', 'color', 'pitch'].reverse();
   const propertyNames: EncodingPropName[] = (visualPropNames as EncodingPropName[]).concat(audioPropNames).sort((a, b) => {
@@ -171,50 +171,61 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     const niceData = typeCoerceData(data, fields);
     setData(niceData);
 
-    visualUnitSpecs.forEach(spec => {
-      const encMap = fields.map(field => {
-        return Object.fromEntries(field.encodings.filter(enc => enc.unit === spec.name).map(enc => {
-          return [enc.property, field.type]
-        }))
-      }).reduce((acc, cur) => {
-        return {...acc, ...cur}
-      }, {});
-
-      if (encMap['x'] === 'temporal') {
-        switch (encMap['y']) {
-          case 'quantitative':
-            spec.mark = 'line';
-            break;
-          case 'ordinal':
-          case 'nominal':
-            spec.mark = 'point';
-            break;
-        }
-      }
-      if (((encMap['x'] === 'ordinal' || encMap['x'] === 'nominal') && encMap['y'] === 'quantitative') ||
-          ((encMap['y'] === 'ordinal' || encMap['y'] === 'nominal') && encMap['x'] === 'quantitative')) {
-        spec.mark = 'bar';
-      }
-      // if (encMap['x'] === 'quantitative' && encMap['y'] === 'quantitative') {
-      //   spec.mark = 'point';
-      // }
-    });
-
-    const key = inferKey(fields, data);
-    setKey(key);
+    const nextKey = inferKey(fields, data);
+    if (!(key.length === nextKey.length && key.every((k) => nextKey.includes(k)))) {
+      setKey(nextKey);
+    }
   }, [fields]);
 
   useEffect(() => {
     const keyFieldDefs = fields.filter(field => key.includes(field.name));
     const valueFieldDefs = fields.filter(field => !key.includes(field.name));
     const inference = inferUnitsFromKeys(keyFieldDefs, valueFieldDefs, data);
+    const nextFields = structuredClone(fields);
+    let didEditFields = false;
     if (inference && inference.visual) {
+      console.log(inference.visual)
       setVisualUnitSpecs(inference.visual.units);
       setVisualComposition(inference.visual.composition);
+      inference.visual.units.forEach(unit => {
+        Object.entries(unit.encoding).forEach(([propName, encFieldDef]) => {
+          const field = encFieldDef.field;
+          const encodingRef: EncodingRef = {property: propName as any, unit: unit.name};
+          const fieldDef = nextFields.find(f => f.name === field);
+          if (fieldDef) {
+            if (!fieldDef.encodings) {
+              fieldDef.encodings = [];
+            }
+            if (!fieldDef.encodings.find(enc => enc.property === propName && enc.unit === unit.name)) {
+              fieldDef.encodings.push(encodingRef);
+              didEditFields = true;
+            }
+          }
+        });
+      });
     }
     if (inference && inference.audio) {
       setAudioUnitSpecs(inference.audio.units);
       setAudioComposition(inference.audio.composition);
+      inference.audio.units.forEach(unit => {
+        Object.entries(unit.encoding).forEach(([propName, encFieldDef]) => {
+          const field = encFieldDef.field;
+          const encodingRef: EncodingRef = {property: propName as any, unit: unit.name};
+          const fieldDef = nextFields.find(f => f.name === field);
+          if (fieldDef) {
+            if (!fieldDef.encodings) {
+              fieldDef.encodings = [];
+            }
+            if (!fieldDef.encodings.find(enc => enc.property === propName && enc.unit === unit.name)) {
+              fieldDef.encodings.push(encodingRef);
+              didEditFields = true;
+            }
+          }
+        });
+      });
+    }
+    if (didEditFields) {
+      setFields(nextFields);
     }
   }, [key]);
 

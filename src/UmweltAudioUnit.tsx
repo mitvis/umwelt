@@ -338,7 +338,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   });
 
   function audioStateIsCurrent() {
-    console.log(audioUnitSpec.traversal, specIndices, specDomains);
     return Object.keys(specIndices).every(field => getFieldDef(field, fields)) &&
       Object.keys(specDomains).every(field => getFieldDef(field, fields)) &&
       audioUnitSpec.traversal.every(f => getFieldDef(f.field, fields) && specIndices[f.field] !== undefined && specDomains[f.field] !== undefined);
