@@ -338,10 +338,10 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   });
 
   function audioStateIsCurrent() {
+    console.log(audioUnitSpec.traversal, specIndices, specDomains);
     return Object.keys(specIndices).every(field => getFieldDef(field, fields)) &&
       Object.keys(specDomains).every(field => getFieldDef(field, fields)) &&
-      Object.values(audioUnitSpec.encoding).every(f => getFieldDef(f.field, fields) && specIndices[f.field] && specDomains[f.field]) &&
-      audioUnitSpec.traversal.every(f => getFieldDef(f.field, fields) && specIndices[f.field] && specDomains[f.field]);
+      audioUnitSpec.traversal.every(f => getFieldDef(f.field, fields) && specIndices[f.field] !== undefined && specDomains[f.field] !== undefined);
   }
 
   if (!audioStateIsCurrent()) {
@@ -355,8 +355,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           const field = traversalFieldDef.field;
           const fieldDef = getFieldDef(field, fields);
           const domain = specDomains[field];
-
-          console.log(audioUnitSpec, specDomains);
 
           if (domain.length === 1) {
             const id = `${field}-value`;
