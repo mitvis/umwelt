@@ -1,7 +1,7 @@
 import { OlliDataset, OlliValue } from 'olli';
 import { useCallback, useEffect } from 'react';
 import useState from 'react-usestateref';
-import { AudioUnitSpec, FieldDef, UmweltPredicate } from './grammar';
+import { AudioUnitSpec, FieldDef, NONE, UmweltPredicate } from './grammar';
 import { getDomain, getFieldDef } from './utils/data';
 import { SelectionCtrl } from './Umwelt';
 import { Sonifier, SonifierNote } from './utils/sonifier';
@@ -416,7 +416,17 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         })
       }
       <div>
-        {Object.entries(audioUnitSpec.encoding).map(([field, encFieldDef]) => { return (<div key={field}>{`${field}: ${encFieldDef.aggregate ? encFieldDef.aggregate + ' ' : ''}${encFieldDef.field}`}</div>) })}
+        {Object.entries(audioUnitSpec.encoding).map(([propName, encFieldDef]) => {
+          const fieldDef = getFieldDef(encFieldDef.field, fields);
+          if (fieldDef) {
+            return (
+              <div key={propName}>
+                {propName}: <span>{(encFieldDef.aggregate ?? fieldDef.aggregate) && encFieldDef.aggregate as any !== NONE ? `${encFieldDef.aggregate ?? fieldDef.aggregate} ` : null}{encFieldDef.field}{(encFieldDef.timeUnit ?? fieldDef.timeUnit) && encFieldDef.timeUnit !== NONE ? ` (${encFieldDef.timeUnit ?? fieldDef.timeUnit})` : null}</span>
+              </div>
+            )
+          }
+          return null;
+        })}
       </div>
 
           <div>
