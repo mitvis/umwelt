@@ -383,7 +383,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             return (
               <div key={field}>
                 <label>
-                  {field}
+                <span>{(traversalFieldDef.bin ?? fieldDef.bin) ? `binned ` : null}{traversalFieldDef.field}{(traversalFieldDef.timeUnit ?? fieldDef.timeUnit) && traversalFieldDef.timeUnit !== NONE ? ` (${traversalFieldDef.timeUnit ?? fieldDef.timeUnit})` : null}</span>
                   <input aria-valuetext={fmtValue(domain[specIndices?.[field]], traversalFieldDef)} onChange={onchange} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
                 </label>
                 {/* <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button> */}
@@ -404,7 +404,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             return (
               <div key={field}>
                 <label>
-                  {field}
+                <span>{(traversalFieldDef.bin ?? fieldDef.bin) ? `binned ` : null}{traversalFieldDef.field}{(traversalFieldDef.timeUnit ?? fieldDef.timeUnit) && traversalFieldDef.timeUnit !== NONE ? ` (${traversalFieldDef.timeUnit ?? fieldDef.timeUnit})` : null}</span>
                   <select onChange={onchange} value={String(domain[specIndices?.[field]])}>
                     {domain.map(val => {
                       return <option key={String(val)} value={String(val)}>{String(val)}</option>
