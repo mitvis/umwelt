@@ -363,16 +363,16 @@ export const inferUnitsFromKeys = (
                 {
                   name: 'audio_unit_0',
                   encoding: {
-                    pitch: { field: quantValues[0].name },
+                    pitch: { field: quantValues[0].name, aggregate: 'mean' },
                   },
-                  traversal: [{ field: quantValues[1].name }],
+                  traversal: [{ field: quantValues[1].name, bin: true }],
                 },
                 {
                   name: 'audio_unit_1',
                   encoding: {
-                    pitch: { field: quantValues[1].name },
+                    pitch: { field: quantValues[1].name, aggregate: 'mean' },
                   },
-                  traversal: [{ field: quantValues[0].name }],
+                  traversal: [{ field: quantValues[0].name, bin: true }],
                 },
               ],
               composition: 'concat',
