@@ -64,9 +64,9 @@ const UmweltVegaLite = React.memo(({ vlSpec, selectionCtrl, selection, fields, o
     }
   }, [selection, fields, view, vlSpec, selectionCtrl])
 
-  return (
+  return vlSpec ? (
     <div id="vl-container" />
-  );
+  ) : null;
 }, (prevProps, nextProps) => {
   return prevProps.vlSpec === nextProps.vlSpec && prevProps.selection === nextProps.selection;
 });

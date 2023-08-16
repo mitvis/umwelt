@@ -159,7 +159,6 @@ export const inferUnitsFromKeys = (
   visual: VisualSpec;
   audio: AudioSpec;
 } => {
-  console.log(keys, values);
   if (values.length === 1 && values[0].type === 'quantitative') {
     if (keys.length === 1) {
       // line and bar charts
@@ -301,7 +300,6 @@ export const inferUnitsFromKeys = (
     }
   }
   const quantValues = values.filter((f) => f.type === 'quantitative');
-  console.log('quant', quantValues);
   if (quantValues.length === 2) {
     if (keys.length === 0) {
       if (values.length === 2) {

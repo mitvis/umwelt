@@ -9,6 +9,14 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
     return null;
   }
 
+  const countEncodings = spec.visual.units
+    .map((unit) => {
+      return Object.values(unit.encoding).length;
+    })
+    .reduce((a, b) => a + b, 0);
+
+  if (countEncodings === 0) return null;
+
   const params: any = [
     {
       name: 'brush',
@@ -112,5 +120,35 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
 export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec): Promise<OlliSpec> {
   if (spec.text === false) return null;
   const olliSpec: OlliSpec = await VegaLiteAdapter(vlSpec as any);
+  if (olliSpec.fields.length === 0) {
+    delete olliSpec.mark;
+    delete olliSpec.axes;
+    delete olliSpec.legends;
+  }
+  if (spec.audio) {
+    spec.audio.units.forEach((unit) => {
+      Object.values(unit.encoding).forEach((encoding) => {
+        // if olliSpec does not have field, add it
+        if (!olliSpec.fields.find((field) => field.name === encoding.field)) {
+          const fieldDef = spec.fields.find((field) => field.name === encoding.field);
+          olliSpec.fields.push({
+            field: encoding.field,
+            type: fieldDef.type,
+            timeUnit: encoding.timeUnit ?? fieldDef.timeUnit,
+          });
+        }
+      });
+      unit.traversal.forEach((traversal) => {
+        if (!olliSpec.fields.find((field) => field.name === traversal.field)) {
+          const fieldDef = spec.fields.find((field) => field.name === traversal.field);
+          olliSpec.fields.push({
+            field: traversal.field,
+            type: fieldDef.type,
+            timeUnit: traversal.timeUnit ?? fieldDef.timeUnit,
+          });
+        }
+      });
+    });
+  }
   return olliSpec;
 }
