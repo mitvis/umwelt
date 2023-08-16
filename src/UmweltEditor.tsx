@@ -126,7 +126,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   useEffect(() => {
     if (data && data.length > 0) {
-      if (!(fields.length === Object.keys(data[0]).length && fields.every(field => Object.keys(data[0]).includes(field.name)))) {
+      if (!(allFields.length === Object.keys(data[0]).length && allFields.every(field => Object.keys(data[0]).includes(field.name)))) {
         // reset spec for new data
           setVisualUnitSpecs([{
             name: 'vis_unit_0',
@@ -141,12 +141,12 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
             traversal: []
           }]);
         //
-        const allFields = Object.keys(data[0]).map(name => {
+        const nextAllFields = Object.keys(data[0]).map(name => {
           return {
             name
           }
         })
-        const elaboratedFields = elaborateFields(allFields, data);
+        const elaboratedFields = elaborateFields(nextAllFields, data);
         setAllFields(elaboratedFields);
       }
 

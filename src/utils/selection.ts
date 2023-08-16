@@ -18,24 +18,27 @@ const TYPE_ENUM = 'E',
   UNIT_INDEX = 'index:unit';
 
 export const predicateToTupleType = (predicate: FieldPredicate) => {
-  if ((predicate as FieldEqualPredicate).equal) {
+  if ('equal' in predicate) {
     return TYPE_ENUM;
-  } else if ((predicate as FieldLTPredicate).lt) {
+  } else if ('lt' in predicate) {
     return TYPE_PRED_LT;
-  } else if ((predicate as FieldGTPredicate).gt) {
+  } else if ('gt' in predicate) {
     return TYPE_PRED_GT;
-  } else if ((predicate as FieldLTEPredicate).lte) {
+  } else if ('lte' in predicate) {
     return TYPE_PRED_LTE;
-  } else if ((predicate as FieldGTEPredicate).gte) {
+  } else if ('gte' in predicate) {
     return TYPE_PRED_GTE;
-  } else if ((predicate as FieldRangePredicate).range) {
-    return TYPE_RANGE_INC;
-  } else if ((predicate as FieldOneOfPredicate).oneOf) {
+  } else if ('range' in predicate) {
+    if ((predicate as any).inclusive) {
+      return TYPE_RANGE_INC;
+    }
+    return TYPE_RANGE_RE;
+  } else if ('oneOf' in predicate) {
     return TYPE_PRED_ONE_OF;
-  } else if ((predicate as FieldValidPredicate).valid) {
+  } else if ('valid' in predicate) {
     return TYPE_PRED_VALID;
   }
-  return 'E'; // shrug
+  return 'E';
 };
 
 export const tupleTypeToPredicate = (type: string) => {
