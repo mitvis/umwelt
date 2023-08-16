@@ -304,6 +304,7 @@ export const inferUnitsFromKeys = (
     if (keys.length === 0) {
       if (values.length === 2) {
         // scatterplot
+        const encodeValues = quantValues.filter((f) => !f.bin).length === 1 ? quantValues.filter((f) => !f.bin) : quantValues;
         return {
           visual: {
             units: [
@@ -319,22 +320,19 @@ export const inferUnitsFromKeys = (
             composition: 'layer',
           },
           audio: {
-            units: [
-              {
-                name: 'audio_unit_0',
+            units: encodeValues.map((f, i) => {
+              return {
+                name: `audio_unit_${i}`,
                 encoding: {
-                  pitch: { field: quantValues[0].name, aggregate: 'mean' },
+                  pitch: { field: f.name, aggregate: 'mean' },
                 },
-                traversal: [{ field: quantValues[1].name, bin: true }],
-              },
-              {
-                name: 'audio_unit_1',
-                encoding: {
-                  pitch: { field: quantValues[1].name, aggregate: 'mean' },
-                },
-                traversal: [{ field: quantValues[0].name, bin: true }],
-              },
-            ],
+                traversal: quantValues
+                  .filter((field) => field.name !== f.name)
+                  .map((f) => {
+                    return { field: f.name, bin: true };
+                  }),
+              };
+            }),
             composition: 'concat',
           },
         };
@@ -343,6 +341,7 @@ export const inferUnitsFromKeys = (
         if (keys.length === 0) {
           const notQuantValue = values.find((f) => f.type !== 'quantitative');
           // scatterplot with color
+          const encodeValues = quantValues.filter((f) => !f.bin).length === 1 ? quantValues.filter((f) => !f.bin) : quantValues;
           return {
             visual: {
               units: [
@@ -359,22 +358,19 @@ export const inferUnitsFromKeys = (
               composition: 'layer',
             },
             audio: {
-              units: [
-                {
-                  name: 'audio_unit_0',
+              units: encodeValues.map((f, i) => {
+                return {
+                  name: `audio_unit_${i}`,
                   encoding: {
-                    pitch: { field: quantValues[0].name, aggregate: 'mean' },
+                    pitch: { field: f.name, aggregate: 'mean' },
                   },
-                  traversal: [{ field: quantValues[1].name, bin: true }],
-                },
-                {
-                  name: 'audio_unit_1',
-                  encoding: {
-                    pitch: { field: quantValues[1].name, aggregate: 'mean' },
-                  },
-                  traversal: [{ field: quantValues[0].name, bin: true }],
-                },
-              ],
+                  traversal: quantValues
+                    .filter((field) => field.name !== f.name)
+                    .map((f) => {
+                      return { field: f.name, bin: true };
+                    }),
+                };
+              }),
               composition: 'concat',
             },
           };

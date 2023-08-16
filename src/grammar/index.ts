@@ -166,6 +166,5 @@ export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: O
       };
     });
   }
-  console.log('olliSpec', olliSpec);
   return olliSpec;
 }
