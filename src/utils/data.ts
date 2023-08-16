@@ -1,5 +1,5 @@
 import { OlliDataset, OlliValue } from 'olli';
-import { isString } from 'vega';
+import { isNumber, isString } from 'vega';
 import { compile } from 'vega-lite';
 import { EncodingFieldDef, FieldDef, UmweltDataSource, UmweltPredicate } from '../grammar/Types';
 import { selectionTest } from './selection';
@@ -56,7 +56,11 @@ function typeCoerceDatum(lookup, datum) {
       switch (lookup[field]) {
         case 'temporal':
           if (field.toLowerCase() === 'year') {
-            return [field, new Date(value, 0, 1)];
+            if (isNumber(value) || (isString(value) && isNumeric(String(value)))) {
+              return [field, new Date(Number(value), 0, 1)];
+            } else if (isString(value)) {
+              return [field, new Date(value)];
+            }
           }
           return [field, new Date(value)];
         case 'quantitative':
@@ -102,7 +106,6 @@ export function getDomain(fieldDef: EncodingFieldDef, data: OlliDataset, predica
         }
       });
   }
-  // if (fieldDef.field === 'date') debugger;
   return [...unique_vals].filter((x) => x !== null && x !== undefined).sort((a: any, b: any) => a - b);
 }
 

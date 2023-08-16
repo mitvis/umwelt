@@ -117,9 +117,17 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
   }
 }
 
-export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec): Promise<OlliSpec> {
+export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: OlliDataset): Promise<OlliSpec> {
   if (spec.text === false) return null;
-  const olliSpec: OlliSpec = await VegaLiteAdapter(vlSpec as any);
+  let olliSpec: OlliSpec;
+  if (vlSpec) {
+    olliSpec = await VegaLiteAdapter(vlSpec as any);
+  } else {
+    olliSpec = {
+      data,
+      fields: [],
+    };
+  }
   if (olliSpec.fields.length === 0) {
     delete olliSpec.mark;
     delete olliSpec.axes;
@@ -150,5 +158,14 @@ export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec): Promis
       });
     });
   }
+  if (olliSpec.fields.length === 0) {
+    olliSpec.fields = spec.fields.map((field) => {
+      return {
+        ...field,
+        field: field.name,
+      };
+    });
+  }
+  console.log('olliSpec', olliSpec);
   return olliSpec;
 }

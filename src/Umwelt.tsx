@@ -35,7 +35,7 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
     setVlSpec(vlSpec);
 
     async function generateOlli() {
-      const olliSpec = await umweltToOlliSpec(spec, vlSpec);
+      const olliSpec = await umweltToOlliSpec(spec, vlSpec, data);
       setOlliSpec(olliSpec);
     }
     generateOlli();
