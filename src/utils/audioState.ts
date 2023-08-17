@@ -74,16 +74,37 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
       const domain = specDomains[field];
       if (domain.length) {
         if (Array.isArray(domain[0])) {
+          // domain is already binned
           if (idx === 0) {
             announcement.push(fmtValue(domain[note.indices[field]][0], fieldDef));
           } else if (idx > 0) {
             const noteValue = domain[note.indices[field]];
             const prevNoteValue = domain[notes[idx - 1].indices[field]];
+            console.log(noteValue, prevNoteValue);
             if (noteValue[0] !== prevNoteValue[0]) {
               announcement.push(fmtValue(noteValue[0], fieldDef));
             }
           }
+        } else if (fieldDef.type === 'temporal' || fieldDef.type === 'quantitative') {
+          // domain is continuous and should be binned
+          const noteValue = domain[note.indices[field]];
+          if (idx === 0) {
+            announcement.push(fmtValue(noteValue, fieldDef));
+          } else if (idx > 0) {
+            const prevNoteValue = domain[notes[idx - 1].indices[field]];
+            const bins = getBins(fieldDef.name, data, fields);
+            const binIdx = bins.findIndex((b) => {
+              return b[0] <= noteValue && noteValue <= b[1];
+            });
+            const prevBinIdx = bins.findIndex((b) => {
+              return b[0] <= prevNoteValue && prevNoteValue <= b[1];
+            });
+            if (binIdx !== prevBinIdx) {
+              announcement.push(fmtValue(bins[binIdx][0], fieldDef));
+            }
+          }
         } else {
+          // domain is discrete
           if (idx === 0 || note.indices[field] !== notes[idx - 1].indices[field]) {
             announcement.push(fmtValue(domain[note.indices[field]], fieldDef));
           }
