@@ -16,10 +16,12 @@ export function audioStateToPredicate(indices: AudioUnitFieldSelectedIndices, do
   return {
     and: Object.entries(indices).map(([field, idx]) => {
       const value = domains[field][idx];
+      const lastIndex = domains[field].length - 1;
       if (Array.isArray(value)) {
         return {
           field,
           range: value,
+          inclusive: idx === lastIndex,
         } as FieldRangePredicate;
       } else {
         return {
