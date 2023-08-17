@@ -444,11 +444,17 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                 {
                   audioUnitSpec.traversal.map((traversalFieldDef) => {
                     const field = traversalFieldDef.field;
-                    const otherFields = audioUnitSpec.traversal.filter(traversalFieldDef => traversalFieldDef.field !== field).map(traversalFieldDef => traversalFieldDef.field);
                     const domain = specDomains[field];
+                    const value = domain[specIndices?.[field]];
+                    const otherFields = audioUnitSpec.traversal.filter(def => {
+                      const selection = selectionTest(data, {and: [domainFilter, {field, equal: value}]});
+                      const uniqueValues = new Set(selection.map(d => d[def.field]));
+                      return def.field !== field && uniqueValues.size > 1;
+                    }).map(traversalFieldDef => traversalFieldDef.field);
+
                     if (otherFields.length) {
                       return (
-                        <option key={field} value={field}>{fmtValue(domain[specIndices?.[field]], traversalFieldDef)} by {otherFields.join(', ')}</option>
+                        <option key={field} value={field}>{fmtValue(value, traversalFieldDef)} by {otherFields.join(', ')}</option>
                       );
                     }
                   })

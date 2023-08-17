@@ -99,7 +99,7 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
             const prevBinIdx = bins.findIndex((b) => {
               return b[0] <= prevNoteValue && prevNoteValue <= b[1];
             });
-            if (binIdx !== prevBinIdx) {
+            if (binIdx !== prevBinIdx && !(idx === 1 && fmtValue(bins[binIdx][0], fieldDef) === fmtValue(prevNoteValue, fieldDef))) {
               announcement.push(fmtValue(bins[binIdx][0], fieldDef));
             }
           }
