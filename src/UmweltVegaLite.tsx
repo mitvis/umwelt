@@ -5,6 +5,7 @@ import { renderVegaLite } from './utils/render';
 import { predicateToSelectionStore } from './utils/selection';
 import { SelectionCtrl } from './Umwelt';
 import { View, debounce } from 'vega';
+import { getVegaAxisTicks } from './utils/vega';
 
 interface UmweltVegaLiteProps {
   vlSpec: VlSpec,

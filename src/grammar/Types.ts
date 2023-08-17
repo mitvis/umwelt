@@ -30,7 +30,7 @@ export type VisualPropName = 'x' | 'y' | 'color' | 'size' | 'opacity' | 'shape' 
 export type AudioPropName = 'pitch' | 'duration' | 'volume' | 'pan' | 'waveform';
 export type EncodingPropName = VisualPropName | AudioPropName;
 
-export type AudioAggregateOp = 'count' | 'mean'; // | "median" | "min" | "max"; //
+export type AudioAggregateOp = 'count' | 'mean' | 'median' | 'min' | 'max' | 'sum';
 
 export const NONE = 'NONE';
 

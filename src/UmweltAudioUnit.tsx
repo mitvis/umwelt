@@ -55,12 +55,15 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const getFieldDomains = (audioUnitSpec: AudioUnitSpec, predicate?: UmweltPredicate): AudioUnitFieldDomains => {
     return Object.fromEntries(
       audioUnitSpec.traversal.map((fieldDef) => {
-        return [fieldDef.field, (
-          fieldDef.bin ?
-          getBins(fieldDef.field, data, fields, predicate) :
-          getDomain(fieldDef, data, predicate)
-        )];
-      })
+        if (getFieldDef(fieldDef.field, fields)) {
+          return [fieldDef.field, (
+            fieldDef.bin ?
+            getBins(fieldDef.field, data, fields, predicate) :
+            getDomain(fieldDef, data, predicate)
+          )];
+        }
+        return null;
+      }).filter(x => x)
     )
   }
 
@@ -87,7 +90,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               if (audioCtrl.current === 'sequence') {
                 Tone.Transport.start();
                 // play note
-                Sonifier.noteToState(note);
                 Sonifier.triggerSynth(note);
                 setSpecIndices(note.indices);
               }
@@ -96,7 +98,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           }
           else {
             // play note
-            Sonifier.noteToState(note);
             Sonifier.triggerSynth(note);
             setSpecIndices(note.indices);
           }
@@ -121,16 +122,16 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   const beforePlay = () => {
     if (activeUnitRef.current !== audioUnitSpec.name) {
-      notesToTransport(notes);
-      const note = notes.find(note => {
-        return Object.keys(note.indices).every((field) => {
-          return note.indices[field] === specIndices[field]
-        });
-      });
-      if (note) {
-        Tone.Transport.seconds = note.elapsed;
-      }
       setActiveUnit(audioUnitSpec.name);
+    }
+    notesToTransport(notes);
+    const note = notes.find(note => {
+      return Object.keys(note.indices).every((field) => {
+        return note.indices[field] === specIndices[field]
+      });
+    });
+    if (note) {
+      Tone.Transport.seconds = note.elapsed;
     }
   }
 
@@ -237,7 +238,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     setSpecDomains(getFieldDomains(audioUnitSpec));
     setDomainFilter(null);
     setAudioCtrl('umwelt');
-  }, [audioUnitSpec])
+  }, [audioUnitSpec, data, fields])
 
   useEffect(() => {
     // update domain filter on external selection change

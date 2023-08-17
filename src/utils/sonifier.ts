@@ -7,8 +7,8 @@ export type SonifierNote = {
   speakBefore?: string; // text to speak before playing
   pauseAfter?: number; // how long in seconds to pause after playing
   noise?: boolean; // does this note represent noise
-  pitch?: number;
-  volume?: number;
+  pitch?: number; // midi
+  volume?: number; // decibels
   ramp?: boolean; // should we ramp from this note
   indices: AudioUnitFieldSelectedIndices; // corresponding spec state
 };
@@ -70,7 +70,7 @@ class UmweltSonifier {
     return Tone.Frequency(Math.round(midi), 'midi').toFrequency();
   }
 
-  noteToState(note: SonifierNote) {
+  private noteToState(note: SonifierNote) {
     if (note) {
       if (note.ramp) {
         if (note.volume) {
@@ -93,7 +93,8 @@ class UmweltSonifier {
   }
 
   triggerSynth(note: SonifierNote, withRelease?: boolean) {
-    if (note.pitch) {
+    this.noteToState(note);
+    if (!note.noise) {
       this.noise.triggerRelease();
       this.noiseIsPlaying = false;
       if (!this.synthIsPlaying) {
@@ -105,7 +106,7 @@ class UmweltSonifier {
           this.synth.triggerAttackRelease(freq, note.duration);
         }
       }
-    } else if (note.noise) {
+    } else {
       this.synth.triggerRelease();
       this.synthIsPlaying = false;
       if (!this.noiseIsPlaying) {

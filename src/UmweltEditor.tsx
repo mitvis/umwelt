@@ -817,9 +817,10 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
             {
               key?.length ? (
                 [...key].reverse().map((fieldName, idx) => {
+                  const reversedIdx = key.length - idx - 1;
                   return (
-                    <div key={`key-${idx}`}>
-                      <select value={fieldName} onChange={(e) => changeKey(e.target.value, idx)}>
+                    <div key={`key-${reversedIdx}`}>
+                      <select value={fieldName} onChange={(e) => changeKey(e.target.value, reversedIdx)}>
                         <option key={fieldName} value={fieldName}>{fieldName}</option>
                         {
                           fields.filter(field => !key.includes(field.name)).map(field => {
@@ -887,9 +888,10 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     }
                     {
                       [...field.encodings].reverse().map((encodingRef, idx) => {
+                        const reversedIdx = field.encodings.length - idx - 1;
                         return (
                           <div key={`${encodingRef.property}-${encodingRef.unit}`}>
-                            <select value={encodingRef.property} onChange={(e) => onSelectEncoding(field.name, idx, e.target.value)}>
+                            <select value={encodingRef.property} onChange={(e) => onSelectEncoding(field.name, reversedIdx, e.target.value)}>
                               {
                                 !assignablePropertyNames().includes(encodingRef.property) ? (
                                   <option value={encodingRef.property}>{encodingRef.property}</option>
@@ -906,7 +908,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             {
                               ((visualPropNames.includes(encodingRef.property as any) && visualUnitSpecs.length > 1) ||
                                (audioPropNames.includes(encodingRef.property as any) && audioUnitSpecs.length > 1)) ? (
-                                <select value={encodingRef.unit} onChange={(e) => onSelectUnit(field.name, idx, e.target.value)}>
+                                <select value={encodingRef.unit} onChange={(e) => onSelectUnit(field.name, reversedIdx, e.target.value)}>
                                   {
                                     !assignableUnitsForFieldAndProperty(field.name, encodingRef.property).includes(encodingRef.unit) ? (
                                       <option value={encodingRef.unit}>{encodingRef.unit}</option>

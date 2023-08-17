@@ -3,7 +3,7 @@ import { FieldEqualPredicate, FieldRangePredicate } from 'vega-lite/src/predicat
 import { AudioEncoding, AudioPropName, AudioUnitSpec, FieldDef, UmweltPredicate } from '../grammar';
 import { SonifierNote } from './sonifier';
 import { aggregate } from './aggregate';
-import { getScaleFunction } from './scales';
+import { DEFAULT_RANGES, getScaleFunction, scale } from './scales';
 import { selectionTest } from './selection';
 import { Sonifier } from './sonifier';
 import fastCartesian from 'fast-cartesian';
@@ -75,20 +75,28 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
         }
       } else {
         const bins = getBins(field, data, fields);
-        if (idx === 0) {
+        console.log(bins);
+        if (idx === 0 && bins.length && bins[0].length) {
           announcement.push(fmtValue(bins[0][0], fieldDef));
         }
         if (idx > 0) {
           const noteValue = specDomains[field][note.indices[field]];
           const prevNoteValue = specDomains[field][notes[idx - 1].indices[field]];
-          const binIdx = bins.findIndex((b) => {
-            return b[0] <= noteValue && noteValue <= b[1];
-          });
-          const prevBinIdx = bins.findIndex((b) => {
-            return b[0] <= prevNoteValue && prevNoteValue <= b[1];
-          });
-          if (binIdx !== prevBinIdx) {
-            announcement.push(fmtValue(bins[binIdx][0], fieldDef));
+          if (Array.isArray(noteValue) && Array.isArray(prevNoteValue)) {
+            console.log(noteValue, prevNoteValue);
+            if (noteValue[0] !== prevNoteValue[0]) {
+              announcement.push(fmtValue(noteValue[0], fieldDef));
+            }
+          } else {
+            const binIdx = bins.findIndex((b) => {
+              return b[0] <= noteValue && noteValue <= b[1];
+            });
+            const prevBinIdx = bins.findIndex((b) => {
+              return b[0] <= prevNoteValue && prevNoteValue <= b[1];
+            });
+            if (binIdx !== prevBinIdx) {
+              announcement.push(fmtValue(bins[binIdx][0], fieldDef));
+            }
           }
         }
         // TODO last value
@@ -108,18 +116,24 @@ export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUni
     return Object.entries(audioEncoding)
       .map(([prop, encodingFieldDef]) => {
         if (encodingFieldDef?.field) {
-          const scale = getScaleFunction(prop as AudioPropName, encodingFieldDef, fields, data);
-          if (selection.length > 1 && encodingFieldDef.aggregate) {
-            const aggregatedValue = aggregate(encodingFieldDef, selection);
+          if (encodingFieldDef.aggregate === 'count') {
+            return {
+              [prop]: scale(selection.length, [0, data.length / 2], DEFAULT_RANGES[prop]),
+            };
+          } else {
+            const scaleFunc = getScaleFunction(prop as AudioPropName, encodingFieldDef, fields, data);
+            if (selection.length && encodingFieldDef.aggregate) {
+              const aggregatedValue = aggregate(encodingFieldDef, selection);
 
-            return {
-              [prop]: scale(aggregatedValue),
-            };
-          } else if (selection.length === 1) {
-            // val is a value
-            return {
-              [prop]: scale(selection[0][encodingFieldDef.field]),
-            };
+              return {
+                [prop]: scaleFunc(aggregatedValue),
+              };
+            } else if (selection.length === 1) {
+              // val is a value
+              return {
+                [prop]: scaleFunc(selection[0][encodingFieldDef.field]),
+              };
+            }
           }
         }
         return {};
@@ -146,6 +160,12 @@ export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUni
           .map((d) => d.length)
           .reduce((acc, v) => acc + v)
     );
+  }
+  if (!note.pitch) {
+    note.pitch = 60;
+  }
+  if (note.volume === undefined) {
+    note.volume = 0;
   }
 
   // add pauses for the end values
