@@ -75,7 +75,6 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
         }
       } else {
         const bins = getBins(field, data, fields);
-        console.log(bins);
         if (idx === 0 && bins.length && bins[0].length) {
           announcement.push(fmtValue(bins[0][0], fieldDef));
         }
@@ -83,7 +82,6 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
           const noteValue = specDomains[field][note.indices[field]];
           const prevNoteValue = specDomains[field][notes[idx - 1].indices[field]];
           if (Array.isArray(noteValue) && Array.isArray(prevNoteValue)) {
-            console.log(noteValue, prevNoteValue);
             if (noteValue[0] !== prevNoteValue[0]) {
               announcement.push(fmtValue(noteValue[0], fieldDef));
             }
