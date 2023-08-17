@@ -469,8 +469,8 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       </pre>
       <pre>
         {JSON.stringify(audioUnitSpec, null, 2)}
-      </pre>
-      <pre>
+      </pre> */}
+      {/* <pre>
         {JSON.stringify(specDomains, null, 2)}
       </pre> */}
       {/* <pre>

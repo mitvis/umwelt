@@ -185,7 +185,9 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const doInference = (keyFieldDefs, valueFieldDefs) => {
     const inference = inferUnitsFromKeys(keyFieldDefs, valueFieldDefs, data);
     const nextFields = structuredClone(fields);
-    let didEditFields = false;
+    nextFields.forEach(fieldDef => {
+      fieldDef.encodings = [];
+    })
     if (inference && inference.visual) {
       setVisualUnitSpecs(inference.visual.units);
       setVisualComposition(inference.visual.composition);
@@ -194,21 +196,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           const field = encFieldDef.field;
           const encodingRef: EncodingRef = {property: propName as any, unit: unit.name};
           const fieldDef = nextFields.find(f => f.name === field);
-          if (fieldDef) {
-            if (!fieldDef.encodings) {
-              fieldDef.encodings = [];
-            }
-            fieldDef.encodings = fieldDef.encodings.filter(enc => {
-              if (enc.unit === unit.name) {
-                return unit.encoding[enc.property];
-              }
-              return true;
-            });
-            if (!fieldDef.encodings.find(enc => enc.property === propName && enc.unit === unit.name)) {
-              fieldDef.encodings.push(encodingRef);
-              didEditFields = true;
-            }
-          }
+          fieldDef.encodings.push(encodingRef);
         });
       });
     }
@@ -220,27 +208,11 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           const field = encFieldDef.field;
           const encodingRef: EncodingRef = {property: propName as any, unit: unit.name};
           const fieldDef = nextFields.find(f => f.name === field);
-          if (fieldDef) {
-            if (!fieldDef.encodings) {
-              fieldDef.encodings = [];
-            }
-            fieldDef.encodings = fieldDef.encodings.filter(enc => {
-              if (enc.unit === unit.name) {
-                return unit.encoding[enc.property];
-              }
-              return true;
-            });
-            if (!fieldDef.encodings.find(enc => enc.property === propName && enc.unit === unit.name)) {
-              fieldDef.encodings.push(encodingRef);
-              didEditFields = true;
-            }
-          }
+          fieldDef.encodings.push(encodingRef);
         });
       });
     }
-    if (didEditFields) {
-      setFields(nextFields);
-    }
+    setFields(nextFields);
   }
 
   useEffect(() => {
@@ -553,11 +525,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
       setAudioUnitSpecs(newAudioUnitSpecs);
     }
-
-    const usedFields = fields.filter(f => f.encodings.length > 0 || audioUnitSpecs.some(spec => spec.traversal.some(t => t.field === f.name)));
-    const keyFieldDefs = usedFields.filter(field => key.includes(field.name));
-    const valueFieldDefs = usedFields.filter(field => !key.includes(field.name));
-    doInference(keyFieldDefs, valueFieldDefs);
   }
 
   const removeEncodingReference = (propName: string, fieldName: string) => {
