@@ -71,35 +71,23 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
     const announcement = [];
     sequenceFields.forEach((field) => {
       const fieldDef = getFieldDef(field, fields);
-      if (fieldDef.type === 'nominal' || fieldDef.type === 'ordinal') {
-        if (idx === 0 || note.indices[field] !== notes[idx - 1].indices[field]) {
-          announcement.push(fmtValue(specDomains[field][note.indices[field]], fieldDef));
-        }
-      } else {
-        const bins = getBins(field, data, fields);
-        if (idx === 0 && bins.length && bins[0].length) {
-          announcement.push(fmtValue(bins[0][0], fieldDef));
-        }
-        if (idx > 0) {
-          const noteValue = specDomains[field][note.indices[field]];
-          const prevNoteValue = specDomains[field][notes[idx - 1].indices[field]];
-          if (Array.isArray(noteValue) && Array.isArray(prevNoteValue)) {
+      const domain = specDomains[field];
+      if (domain.length) {
+        if (Array.isArray(domain[0])) {
+          if (idx === 0) {
+            announcement.push(fmtValue(domain[note.indices[field]][0], fieldDef));
+          } else if (idx > 0) {
+            const noteValue = domain[note.indices[field]];
+            const prevNoteValue = domain[notes[idx - 1].indices[field]];
             if (noteValue[0] !== prevNoteValue[0]) {
               announcement.push(fmtValue(noteValue[0], fieldDef));
             }
-          } else {
-            const binIdx = bins.findIndex((b) => {
-              return b[0] <= noteValue && noteValue <= b[1];
-            });
-            const prevBinIdx = bins.findIndex((b) => {
-              return b[0] <= prevNoteValue && prevNoteValue <= b[1];
-            });
-            if (binIdx !== prevBinIdx) {
-              announcement.push(fmtValue(bins[binIdx][0], fieldDef));
-            }
+          }
+        } else {
+          if (idx === 0 || note.indices[field] !== notes[idx - 1].indices[field]) {
+            announcement.push(fmtValue(domain[note.indices[field]], fieldDef));
           }
         }
-        // TODO last value
       }
     });
     if (announcement.length) {

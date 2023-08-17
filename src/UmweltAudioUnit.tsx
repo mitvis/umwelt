@@ -173,7 +173,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     const predNotes = structuredClone(notes.filter(note => {
       return note.indices[field] === specIndices[field];
     }));
-    console.log(predNotes);
     const originalLastNotePosition = predNotes[predNotes.length - 1].elapsed;
     if (predNotes.length) {
       if (!audioUnitSpec.encoding.duration) {
@@ -466,7 +465,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             <button onClick={play}>Play</button>
             <button onClick={playFromBeginning}>Play from beginning</button> */}
           </div>
-      <pre>
+      {/* <pre>
         Transport: {Tone.Transport.state} {Tone.Transport.seconds}
       </pre>
       <pre>
@@ -474,7 +473,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       </pre>
       <pre>
         {JSON.stringify(notes, null, 2)}
-      </pre>
+      </pre> */}
       {/*
       <pre>
         {JSON.stringify(audioUnitSpec, null, 2)}
