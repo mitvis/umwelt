@@ -160,6 +160,35 @@ export const inferUnitsFromKeys = (
   audio: AudioSpec;
 } => {
   if (values.length === 1 && values[0].type === 'quantitative') {
+    if (keys.length === 0) {
+      // 1d dot plot
+      return {
+        visual: {
+          units: [
+            {
+              name: 'vis_unit_0',
+              mark: 'point',
+              encoding: {
+                x: { field: values[0].name },
+              },
+            },
+          ],
+          composition: 'layer',
+        },
+        audio: {
+          units: [
+            {
+              name: 'audio_unit_0',
+              encoding: {
+                volume: { field: values[0].name, aggregate: 'count' },
+              },
+              traversal: [{ field: values[0].name, bin: true }],
+            },
+          ],
+          composition: 'concat',
+        },
+      };
+    }
     if (keys.length === 1) {
       // line and bar charts
       return {

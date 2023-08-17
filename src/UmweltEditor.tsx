@@ -182,9 +182,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }
   }, [fields]);
 
-  useEffect(() => {
-    const keyFieldDefs = fields.filter(field => key.includes(field.name));
-    const valueFieldDefs = fields.filter(field => !key.includes(field.name));
+  const doInference = (keyFieldDefs, valueFieldDefs) => {
     const inference = inferUnitsFromKeys(keyFieldDefs, valueFieldDefs, data);
     const nextFields = structuredClone(fields);
     let didEditFields = false;
@@ -200,6 +198,12 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
             if (!fieldDef.encodings) {
               fieldDef.encodings = [];
             }
+            fieldDef.encodings = fieldDef.encodings.filter(enc => {
+              if (enc.unit === unit.name) {
+                return unit.encoding[enc.property];
+              }
+              return true;
+            });
             if (!fieldDef.encodings.find(enc => enc.property === propName && enc.unit === unit.name)) {
               fieldDef.encodings.push(encodingRef);
               didEditFields = true;
@@ -220,6 +224,12 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
             if (!fieldDef.encodings) {
               fieldDef.encodings = [];
             }
+            fieldDef.encodings = fieldDef.encodings.filter(enc => {
+              if (enc.unit === unit.name) {
+                return unit.encoding[enc.property];
+              }
+              return true;
+            });
             if (!fieldDef.encodings.find(enc => enc.property === propName && enc.unit === unit.name)) {
               fieldDef.encodings.push(encodingRef);
               didEditFields = true;
@@ -231,6 +241,12 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     if (didEditFields) {
       setFields(nextFields);
     }
+  }
+
+  useEffect(() => {
+    const keyFieldDefs = fields.filter(field => key.includes(field.name));
+    const valueFieldDefs = fields.filter(field => !key.includes(field.name));
+    doInference(keyFieldDefs, valueFieldDefs);
   }, [key, fields.length]);
 
   const toggleField = (fieldName: string, shouldUse: boolean) => {
@@ -298,15 +314,15 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       unit.encoding[propName] = structuredClone(unit.encoding[oldPropName]);
       delete unit.encoding[oldPropName];
 
-      const newTraversal = structuredClone(unit.traversal).filter(traversal => traversal.field !== fieldName);
-      fields.forEach(fieldDef => {
-        if (!Object.values(unit.encoding).find((def: any) => def.field === fieldDef.name) && !newTraversal.find(traversal => traversal.field === fieldDef.name)) {
-          newTraversal.push({
-            field: fieldDef.name,
-          });
-        }
-      });
-      unit.traversal = newTraversal;
+      // const newTraversal = structuredClone(unit.traversal).filter(traversal => traversal.field !== fieldName);
+      // fields.slice().forEach(fieldDef => {
+      //   if (!Object.values(unit.encoding).find((def: any) => def.field === fieldDef.name) && !newTraversal.find(traversal => traversal.field === fieldDef.name)) {
+      //     newTraversal.push({
+      //       field: fieldDef.name,
+      //     });
+      //   }
+      // });
+      // unit.traversal = newTraversal;
 
       setAudioUnitSpecs(audioUnitSpecs.map(spec => {
         if (spec.name === unit.name) {
@@ -537,6 +553,11 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
       setAudioUnitSpecs(newAudioUnitSpecs);
     }
+
+    const usedFields = fields.filter(f => f.encodings.length > 0 || audioUnitSpecs.some(spec => spec.traversal.some(t => t.field === f.name)));
+    const keyFieldDefs = usedFields.filter(field => key.includes(field.name));
+    const valueFieldDefs = usedFields.filter(field => !key.includes(field.name));
+    doInference(keyFieldDefs, valueFieldDefs);
   }
 
   const removeEncodingReference = (propName: string, fieldName: string) => {
@@ -591,11 +612,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           spec.encoding = newEncoding as AudioEncoding;
           if (Object.keys(newEncoding).length === 0) {
             spec.traversal = [];
-          }
-          else {
-            spec.traversal.push({
-              field: encodingFieldDef.field,
-            })
           }
         }
         return spec;

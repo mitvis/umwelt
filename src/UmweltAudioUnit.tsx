@@ -443,9 +443,11 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                     const field = traversalFieldDef.field;
                     const otherFields = audioUnitSpec.traversal.filter(traversalFieldDef => traversalFieldDef.field !== field).map(traversalFieldDef => traversalFieldDef.field);
                     const domain = specDomains[field];
-                    return (
-                      <option key={field} value={field}>{fmtValue(domain[specIndices?.[field]], traversalFieldDef)} by {otherFields.join(', ')}</option>
-                    );
+                    if (otherFields.length) {
+                      return (
+                        <option key={field} value={field}>{fmtValue(domain[specIndices?.[field]], traversalFieldDef)} by {otherFields.join(', ')}</option>
+                      );
+                    }
                   })
                 }
                 <option value="count">Count of selected</option>
