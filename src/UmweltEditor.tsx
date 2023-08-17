@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, NONE, UmweltSpec, ViewComposition, VisualEncoding, VisualEncodingFieldDef, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
 import { getData, typeCoerceData } from './utils/data';
@@ -35,6 +35,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const [visualComposition, setVisualComposition] = useState<ViewComposition>('layer');
   const [audioComposition, setAudioComposition] = useState<ViewComposition>('concat');
   const [unitTraversalSelectValues, setUnitTraversalSelectValues] = useState<{[unitName: string]: string}>({});
+  const lastFocused = useRef<HTMLElement>();
 
 
   const mtypes = ['quantitative', 'nominal', 'ordinal', 'temporal'];
@@ -707,8 +708,20 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }, 100);
   }
 
+  const onFocus = (e) => {
+    lastFocused.current = e.target;
+  }
+
+  useEffect(() => {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'e') {
+        lastFocused.current?.focus();
+      }
+    });
+  }, []);
+
   return (
-    <div className='uw-structured-editor'>
+    <div className='uw-structured-editor' onFocus={(e) => onFocus(e)} role="region" aria-labelledby='header-editor'>
       <div role='tablist'>
         <button role='tab' id='tab-data' aria-controls='tabpanel-data' aria-selected={tab === 'data'} onClick={() => setTab('data')}>Data</button>
         <button role='tab' id='tab-fields' aria-controls='tabpanel-fields' aria-selected={tab === 'fields'} onClick={() => setTab('fields')} disabled={!(data && fields.length)}>Fields</button>

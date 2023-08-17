@@ -67,9 +67,9 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
 
     return (
       <div>
-        {
+        {/* {
           JSON.stringify(commonTraversals)
-        }
+        } */}
         {
           audioSpecClone?.units.map((audioUnitSpec, i) => {
             if (Object.keys(audioUnitSpec.encoding).length === 0) {
@@ -99,7 +99,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
   }
 
   return (
-    <div id="audio-container">
+    <div id="audio-container" role="group" aria-label='Sonification'>
       {
         audioSpec?.composition === 'layer' ? (
           layerSpec(audioSpec)

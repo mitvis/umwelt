@@ -27,6 +27,7 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
   const [vlSpec, setVlSpec] = useState<VlSpec>();
   const [olliSpec, setOlliSpec] = useState<OlliSpec>();
   const [audioSpec, setAudioSpec] = useState<AudioSpec>();
+  const lastFocused = React.useRef<HTMLElement>();
 
   /* ********************** initialize state *********************** */
 
@@ -91,8 +92,20 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
     return copy;
   }
 
+  const onFocus = (e) => {
+    lastFocused.current = e.target;
+  }
+
+  useEffect(() => {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'v') {
+        lastFocused.current?.focus();
+      }
+    });
+  }, []);
+
   return (
-    <div className='umwelt'>
+    <div className='umwelt' role="region" aria-labelledby='header-viewer' onFocus={(e) => onFocus(e)}>
       <UmweltVegaLite vlSpec={vlSpec} onVegaLiteSelection={onVegaLiteSelection} selectionCtrl={selectionCtrl} selection={selection} fields={spec.fields} ></UmweltVegaLite>
 
       <br/>

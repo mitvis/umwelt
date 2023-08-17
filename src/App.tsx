@@ -50,11 +50,13 @@ function App() {
             }
           </select>
         </div> */}
+        <h1 id="header-editor">Editor</h1>
         <UmweltEditor initialSpec={specs[selectedSpec]} onSpec={onSpec} />
 
 
       </div>
       <div className='column'>
+      <h1 id="header-viewer">Viewer</h1>
         <Debounce ms={250}>
           {/* {
             props ? (
