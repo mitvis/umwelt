@@ -70,7 +70,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const [domainFilter, setDomainFilter] = useState<UmweltPredicate>();
   const [specIndices, setSpecIndices] = useState<AudioUnitFieldSelectedIndices>(getFieldSelectedIndices(audioUnitSpec));
   const [specDomains, setSpecDomains] = useState<AudioUnitFieldDomains>(getFieldDomains(audioUnitSpec));
-  const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('umwelt');
+  const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('interaction');
   const [notes, setNotes] = useState<SonifierNote[]>([]);
   const [playbackMode, setPlaybackMode] = useState<AudioPlaybackMode>('current');
 
@@ -148,14 +148,16 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     }
   }, [notes, specIndices, activeUnitRef.current]);
 
-  const playFromBeginning = useCallback(() => {
-    beforePlay();
+  const playFromBeginning = (doNotReset?: boolean) => {
+    if (!doNotReset) {
+      beforePlay();
+    }
     setAudioCtrl('sequence');
     Tone.Transport.seconds = 0;
     Tone.Transport.start();
-  }, [activeUnitRef.current]);
+  }
 
-  const playCurrentOnward = useCallback(() => {
+  const playCurrentOnward = () => {
     beforePlay();
     if (notes.length && !(Tone.Transport.state === 'started' || speechSynthesis.speaking) && Tone.Transport.seconds > notes[notes.length - 1].elapsed) {
       playFromBeginning();
@@ -164,13 +166,14 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       setAudioCtrl('sequence');
       Tone.Transport.start();
     }
-  }, [notes, playFromBeginning, activeUnitRef.current]);
+  }
 
   const playPredicate = (field) => {
     beforePlay();
     const predNotes = structuredClone(notes.filter(note => {
       return note.indices[field] === specIndices[field];
     }));
+    console.log(predNotes);
     const originalLastNotePosition = predNotes[predNotes.length - 1].elapsed;
     if (predNotes.length) {
       if (!audioUnitSpec.encoding.duration) {
@@ -189,7 +192,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         Tone.Transport.seconds = originalLastNotePosition;
         pause();
       }, lastNote.elapsed + lastNote.duration);
-      playFromBeginning();
+      playFromBeginning(true);
     }
   };
 
@@ -237,7 +240,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     setSpecIndices(getFieldSelectedIndices(audioUnitSpec));
     setSpecDomains(getFieldDomains(audioUnitSpec));
     setDomainFilter(null);
-    setAudioCtrl('umwelt');
+    setAudioCtrl('interaction');
   }, [audioUnitSpec, data, fields])
 
   useEffect(() => {
@@ -463,10 +466,16 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             <button onClick={play}>Play</button>
             <button onClick={playFromBeginning}>Play from beginning</button> */}
           </div>
-      {/*
       <pre>
         Transport: {Tone.Transport.state} {Tone.Transport.seconds}
       </pre>
+      <pre>
+        {audioCtrl.current}
+      </pre>
+      <pre>
+        {JSON.stringify(notes, null, 2)}
+      </pre>
+      {/*
       <pre>
         {JSON.stringify(audioUnitSpec, null, 2)}
       </pre> */}
