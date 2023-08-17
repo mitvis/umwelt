@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, NONE, UmweltSpec, ViewComposition, VisualEncoding, VisualEncodingFieldDef, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
-import { getData, typeCoerceData } from './utils/data';
+import { cleanData, getData, typeCoerceData } from './utils/data';
 import { elaborateFields, inferKey, inferUnitsFromKeys } from './utils/inference';
 
 import './UmweltEditor.css'
@@ -173,7 +173,8 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   }, [data]);
 
   useEffect(() => {
-    const niceData = typeCoerceData(data, fields);
+    const typedData = typeCoerceData(data, fields);
+    const niceData = cleanData(typedData, fields);
     setData(niceData);
 
     const nextKey = inferKey(fields, data);
