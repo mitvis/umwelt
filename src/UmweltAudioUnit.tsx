@@ -296,7 +296,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
-    if (document.activeElement?.closest(".audio-container") || !nodeIsTextInput(document.activeElement) || document.activeElement.className === 'uv_mute') {
+    if (document.activeElement?.closest(".audio-container") || !nodeIsTextInput(document.activeElement)) {
       switch (e.key) {
         // case 'P':
         //   if (Tone.Transport.state === 'started') {

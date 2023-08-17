@@ -3,8 +3,9 @@ import useState from 'react-usestateref';
 import { AudioSpec, FieldDef, UmweltPredicate } from './grammar';
 import { SelectionCtrl } from './Umwelt';
 import UmweltAudioUnit from './UmweltAudioUnit';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Sonifier } from './utils/sonifier';
+import { nodeIsTextInput } from './utils/events';
 
 interface AudioProps {
   audioSpec: AudioSpec,
@@ -21,6 +22,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
   const [readAudioAxis, setReadAudioAxis] = useState(true);
   const [speechRate, setSpeechRate] = useState(1);
   const [_, setActiveUnit, activeUnitRef] = useState<string>();
+  const lastFocused = useRef<HTMLElement>();
 
   useEffect(() => {
     Sonifier.mute(muted)
@@ -98,8 +100,22 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
     )
   }
 
+  const onFocus = (e) => {
+    lastFocused.current = e.target;
+  }
+
+  useEffect(() => {
+    window.addEventListener('keydown', (e) => {
+      if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
+        if (e.key === 'a') {
+          lastFocused.current?.focus();
+        }
+      }
+    });
+  }, []);
+
   return (
-    <div id="audio-container" role="group" aria-label='Sonification'>
+    <div id="audio-container" role="group" aria-label='Sonification' onFocus={(e) => onFocus(e)}>
       {
         audioSpec?.composition === 'layer' ? (
           layerSpec(audioSpec)

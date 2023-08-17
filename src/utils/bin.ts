@@ -14,6 +14,12 @@ export function getBins(field: string, data: OlliDataset, fields: FieldDef[], do
       .scaleTime()
       .domain([domain[0], domain[domain.length - 1]])
       .ticks(6);
+  } else if (fieldDef.bin && field.startsWith('bin_')) {
+    // field is pre-binned from vega-lite
+    return domain.map((v) => {
+      const v2 = data.find((d) => d[field] === v)[field + '_end'];
+      return [Number(v), Number(v2)];
+    });
   } else {
     const binResult = bin({ maxbins: 10, extent: [domain[0], domain[domain.length - 1]] });
 

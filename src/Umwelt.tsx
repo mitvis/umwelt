@@ -10,6 +10,7 @@ import { LogicalAnd } from 'vega-lite/src/logical';
 import { FieldPredicate } from 'vega-lite/src/predicate';
 import UmweltOlli from './UmweltOlli';
 import { OlliDataset, OlliSpec } from 'olli';
+import { nodeIsTextInput } from './utils/events';
 
 export type SelectionCtrl = 'vl' | 'audio' | 'olli-nav' | 'olli-int' | 'spec';
 
@@ -98,8 +99,10 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'v') {
-        lastFocused.current?.focus();
+      if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
+        if (e.key === 'v') {
+          lastFocused.current?.focus();
+        }
       }
     });
   }, []);

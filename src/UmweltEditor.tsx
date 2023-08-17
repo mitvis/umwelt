@@ -5,6 +5,7 @@ import { getData, typeCoerceData } from './utils/data';
 import { elaborateFields, inferKey, inferUnitsFromKeys } from './utils/inference';
 
 import './UmweltEditor.css'
+import { nodeIsTextInput } from './utils/events';
 
 interface EditorProps {
   initialSpec: UmweltSpec;
@@ -714,8 +715,10 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'e') {
-        lastFocused.current?.focus();
+      if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
+        if (e.key === 'e') {
+          lastFocused.current?.focus();
+        }
       }
     });
   }, []);

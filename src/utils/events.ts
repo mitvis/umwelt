@@ -1,7 +1,7 @@
 export const nodeIsTextInput = (activeElement: Element | null): boolean => {
   switch (activeElement?.nodeName) {
     case 'INPUT':
-      return !['range', 'button'].includes(activeElement.getAttribute('type') || '');
+      return !['range', 'button', 'checkbox', 'number'].includes(activeElement.getAttribute('type') || '');
     case 'TEXTAREA':
     case 'SELECT':
     case 'OPTION':
