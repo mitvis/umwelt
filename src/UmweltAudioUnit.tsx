@@ -282,7 +282,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     // generate sequence from domains
     const notes = generateSequence(audioUnitSpec, specDomains, fields, data);
     setNotes(notes);
-  }, [specDomains]);
+  }, [specDomains, audioUnitSpec]);
 
   useEffect(() => {
     // schedule notes in transport

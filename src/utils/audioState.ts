@@ -120,6 +120,14 @@ export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUni
             return {
               [prop]: scale(selection.length, [0, data.length / 2], DEFAULT_RANGES[prop]),
             };
+          } else if (encodingFieldDef.aggregate === 'sum') {
+            const allValues = data.map((d) => d[encodingFieldDef.field]);
+            const sumAll = allValues.reduce((acc, v) => acc + v, 0);
+            const selectedValues = selection.map((d) => d[encodingFieldDef.field]);
+            const sumSelection = selectedValues.reduce((acc, v) => acc + v, 0);
+            return {
+              [prop]: scale(sumSelection, [0, sumAll / 2], DEFAULT_RANGES[prop]),
+            };
           } else {
             const scaleFunc = getScaleFunction(prop as AudioPropName, encodingFieldDef, fields, data);
             if (selection.length && encodingFieldDef.aggregate) {

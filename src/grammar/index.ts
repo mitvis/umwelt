@@ -137,8 +137,8 @@ export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: O
     spec.audio.units.forEach((unit) => {
       Object.values(unit.encoding).forEach((encoding) => {
         // if olliSpec does not have field, add it
-        if (!olliSpec.fields.find((field) => field.name === encoding.field)) {
-          const fieldDef = spec.fields.find((field) => field.name === encoding.field);
+        if (!olliSpec.fields.find((f) => f.field === encoding.field)) {
+          const fieldDef = spec.fields.find((f) => f.name === encoding.field);
           olliSpec.fields.push({
             field: encoding.field,
             type: fieldDef.type,
@@ -147,8 +147,8 @@ export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: O
         }
       });
       unit.traversal.forEach((traversal) => {
-        if (!olliSpec.fields.find((field) => field.name === traversal.field)) {
-          const fieldDef = spec.fields.find((field) => field.name === traversal.field);
+        if (!olliSpec.fields.find((f) => f.field === traversal.field)) {
+          const fieldDef = spec.fields.find((f) => f.name === traversal.field);
           olliSpec.fields.push({
             field: traversal.field,
             type: fieldDef.type,
@@ -166,5 +166,6 @@ export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: O
       };
     });
   }
+  console.log(olliSpec);
   return olliSpec;
 }
