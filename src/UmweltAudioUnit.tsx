@@ -209,11 +209,11 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     Sonifier.triggerSynth(countNote, true);
   }, [data, domainFilter]);
 
-  const pause = useCallback(() => {
-    setAudioCtrl('interaction');
+  const pause = () => {
     Tone.Transport.pause();
     speechSynthesis.cancel();
-  }, []);
+    setAudioCtrl('interaction');
+  }
 
   const play = () => {
     switch (playbackMode) {
@@ -296,7 +296,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     if (audioCtrl.current === 'interaction') {
       playCurrentValue();
     }
-  }, [notes, specIndices]);
+  }, [notes, specIndices, audioCtrl.current]);
 
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
