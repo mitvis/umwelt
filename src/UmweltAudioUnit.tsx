@@ -196,13 +196,14 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   };
 
   const playCount = useCallback(() => {
+    // TODO can we accompish this with encodings?
     beforePlay();
     const count = selectionTest(data, domainFilter).length;
-    const countPitch = scale(count, [0, data.length], DEFAULT_RANGES['pitch']); // TODO change this to volume
+    const countVolume = scale(count, [0, data.length / 2], DEFAULT_RANGES.volume);
     const countNote = {
       elapsed: 0,
       duration: 0.5,
-      pitch: countPitch,
+      volume: countVolume,
       indices: specIndices,
     };
     Sonifier.triggerSynth(countNote, true);

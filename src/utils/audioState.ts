@@ -187,7 +187,7 @@ export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUni
     note.pitch = 60;
   }
   if (note.volume === undefined) {
-    note.volume = 0;
+    note.volume = DEFAULT_RANGES.volume[1];
   }
 
   // add pauses for the end values
