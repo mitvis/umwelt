@@ -73,18 +73,18 @@ class UmweltSonifier {
   private noteToState(note: SonifierNote) {
     if (note) {
       if (note.ramp) {
-        if (note.volume) {
+        if (note.volume !== undefined) {
           this.synth.volume.rampTo(note.volume, this.rampDuration);
         }
-        if (note.pitch) {
+        if (note.pitch !== undefined) {
           const freq = this.midiToFreq(note.pitch);
           this.synth.frequency.rampTo(freq, this.rampDuration);
         }
       } else {
-        if (note.volume) {
+        if (note.volume !== undefined) {
           this.synth.volume.value = note.volume;
         }
-        if (note.pitch) {
+        if (note.pitch !== undefined) {
           const freq = this.midiToFreq(note.pitch);
           this.synth.frequency.value = freq;
         }
@@ -126,72 +126,6 @@ class UmweltSonifier {
     this.noise.triggerRelease();
     this.noiseIsPlaying = false;
   }
-
-  playCurrent() {}
-
-  stopSequence() {}
-
-  // play(note: SonifiedNote) {
-
-  //   if (note?.pauseBefore) {
-  //     this.synth.triggerRelease();
-  //     this.isPlaying = false;
-  //   }
-
-  //   Tone.Transport.schedule((time) => {
-  //     if (note) {
-  //       if (!this.isPlaying) {
-  //         this.isPlaying = true;
-  //         this.synth.triggerAttack(Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency()); // TODO set default pitch
-  //       }
-  //     }
-  //     else {
-  //       this.synth.triggerRelease();
-  //       this.isPlaying = false;
-  //       this.noise.triggerAttackRelease(this.noiseDuration);
-  //     }
-
-  //   }, note?.pauseBefore ? this.pauseDuration : 0);
-
-  //   Tone.Transport.start();
-  // }
-
-  // pause() {
-  //   window.requestAnimationFrame(() => {
-  //     Tone.Transport.cancel();
-  //     if (this.isPlaying) {
-  //       this.synth.triggerRelease();
-  //       this.isPlaying = false;
-  //     }
-  //   })
-  // }
-
-  // ping(note: SonifiedNote) {
-  //   console.log('ping')
-  //   window.requestAnimationFrame(() => {
-  //     if (note) {
-  //       // if (note.ramp) {
-  //       //   if (note.volume) {
-  //       //     this.synth.volume.rampTo(note.volume, this.rampDuration);
-  //       //   }
-  //       //   if (note.pitch) {
-  //       //     const freq = this.midiToFreq(note.pitch);
-  //       //     this.synth.frequency.rampTo(freq, this.rampDuration);
-  //       //   }
-  //       // }
-  //       // else {
-  //         if (note.volume) {
-  //           this.synth.volume.value = note.volume;
-  //         }
-  //       // }
-  //       this.synth.triggerAttackRelease(Tone.Frequency(Math.floor(note.pitch), "midi").toFrequency(), note.duration || this.defaultDuration); // TODO set default pitch
-  //     }
-  //     else {
-  //       this.noise.triggerAttackRelease(this.noiseDuration);
-  //     }
-
-  //   })
-  // }
 }
 
 if (!(window as any)._uw_sonifier) {

@@ -5,7 +5,7 @@ import { getDomain, getFieldDef } from './data';
 export type ScaleFunction = (value: any) => any;
 
 export const DEFAULT_RANGES: { [prop: string]: [number, number] } = {
-  volume: [-30, 0], // in decibels
+  volume: [-15, 0], // in decibels
   pitch: [36, 76], // in MIDI
   duration: [0.25, 1], // in seconds
 };

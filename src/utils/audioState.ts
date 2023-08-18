@@ -80,7 +80,6 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
           } else if (idx > 0) {
             const noteValue = domain[note.indices[field]];
             const prevNoteValue = domain[notes[idx - 1].indices[field]];
-            console.log(noteValue, prevNoteValue);
             if (noteValue[0] !== prevNoteValue[0]) {
               announcement.push(fmtValue(noteValue[0], fieldDef));
             }
@@ -93,11 +92,17 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
           } else if (idx > 0) {
             const prevNoteValue = domain[notes[idx - 1].indices[field]];
             const bins = getBins(fieldDef.name, data, fields);
-            const binIdx = bins.findIndex((b) => {
-              return b[0] <= noteValue && noteValue <= b[1];
+            const binIdx = bins.findIndex((b, idx) => {
+              if (idx === bins.length - 1) {
+                return b[0] <= noteValue && noteValue <= b[1];
+              }
+              return b[0] <= noteValue && noteValue < b[1];
             });
-            const prevBinIdx = bins.findIndex((b) => {
-              return b[0] <= prevNoteValue && prevNoteValue <= b[1];
+            const prevBinIdx = bins.findIndex((b, idx) => {
+              if (idx === bins.length - 1) {
+                return b[0] <= prevNoteValue && prevNoteValue <= b[1];
+              }
+              return b[0] <= prevNoteValue && prevNoteValue < b[1];
             });
             if (binIdx !== prevBinIdx && !(idx === 1 && fmtValue(bins[binIdx][0], fieldDef) === fmtValue(prevNoteValue, fieldDef))) {
               announcement.push(fmtValue(bins[binIdx][0], fieldDef));
