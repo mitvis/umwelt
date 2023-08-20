@@ -701,7 +701,15 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     window.addEventListener('keydown', (e) => {
       if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
         if (e.key === 'e') {
-          lastFocused.current?.focus();
+          if (lastFocused.current) {
+            lastFocused.current.focus();
+          }
+          else {
+            const elem = document.getElementById('tab-fields');
+            if (elem) {
+              elem.focus();
+            }
+          }
         }
       }
     });
