@@ -240,7 +240,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     setSpecIndices(getFieldSelectedIndices(audioUnitSpec));
     setSpecDomains(getFieldDomains(audioUnitSpec));
     setDomainFilter(null);
-    setAudioCtrl('interaction');
+    setAudioCtrl('umwelt');
   }, [audioUnitSpec, data, fields])
 
   useEffect(() => {
