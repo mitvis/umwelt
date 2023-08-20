@@ -85,8 +85,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             setSpecIndices(note.indices);
             const utterance = new SpeechSynthesisUtterance(note.speakBefore);
             utterance.rate = speechRate;
-            // console.log(note.speakBefore);
-            // speechSynthesis.cancel();
             utterance.onend = () => {
               if (audioCtrl.current === 'sequence') {
                 Tone.Transport.start();
@@ -316,7 +314,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             }
           }
           break;
-        case 'm': // TODO this should be global probably
+        case 'm':
           setMuted(!muted);
           break;
 

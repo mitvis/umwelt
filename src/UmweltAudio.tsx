@@ -106,7 +106,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
 
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
-      if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
+      if (!nodeIsTextInput((e as any).target)) {
         if (e.key === 'a') {
           if (lastFocused.current) {
             lastFocused.current.focus();

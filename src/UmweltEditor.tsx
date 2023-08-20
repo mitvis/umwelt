@@ -699,7 +699,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
-      if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
+      if (!nodeIsTextInput((e as any).target)) {
         if (e.key === 'e') {
           if (lastFocused.current) {
             lastFocused.current.focus();

@@ -99,7 +99,7 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
 
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
-      if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
+      if (!nodeIsTextInput((e as any).target)) {
         if (e.key === 'v') {
           if (lastFocused.current) {
             lastFocused.current.focus();
