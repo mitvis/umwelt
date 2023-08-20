@@ -5,6 +5,7 @@ import { EncodingFieldDef, FieldDef, UmweltDataSource, UmweltPredicate } from '.
 import { selectionTest } from './selection';
 import { dateToTimeUnit, isNumeric } from './values';
 import { getVegaScene } from './vega';
+import moize from 'moize';
 
 export async function getData(spec: UmweltDataSource): Promise<OlliDataset> {
   const data = structuredClone(spec) as any;
@@ -86,7 +87,7 @@ export function cleanData(data: OlliDataset, fields: FieldDef[]): OlliDataset {
   });
 }
 
-export function getDomain(fieldDef: EncodingFieldDef, data: OlliDataset, predicate?: UmweltPredicate): OlliValue[] {
+export const getDomain = moize((fieldDef: EncodingFieldDef, data: OlliDataset, predicate?: UmweltPredicate): OlliValue[] => {
   const unique_vals = new Set<OlliValue>();
   const dataset = predicate ? selectionTest(data, predicate) : data;
   // TODO account for domain overrides in the field def
@@ -120,7 +121,7 @@ export function getDomain(fieldDef: EncodingFieldDef, data: OlliDataset, predica
       });
   }
   return [...unique_vals].filter((x) => x !== null && x !== undefined).sort((a: any, b: any) => a - b);
-}
+});
 
 export function getFieldDef(field: string, fields: FieldDef[]): FieldDef {
   return fields.find((f) => f.name === field);

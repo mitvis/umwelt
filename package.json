@@ -19,6 +19,7 @@
     "fast-cartesian": "^8.0.0",
     "jsonc-simple-parser": "^3.0.0",
     "lodash.isequal": "^4.5.0",
+    "moize": "^6.1.6",
     "olli": "^1.0.7",
     "olli-adapters": "^1.0.7",
     "openai": "^3.2.1",

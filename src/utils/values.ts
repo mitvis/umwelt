@@ -1,6 +1,7 @@
 import { isNumeric as vlIsNumeric } from 'vega-lite';
 import { isString } from 'vega';
-import { EncodingFieldDef, FieldDef } from '../grammar/Types';
+import { EncodingFieldDef } from '../grammar/Types';
+import moize from 'moize';
 
 // export function traverseStructure(node: ElaboratedStructureNode | ElaboratedStructureNode[], func: (n: ElaboratedStructureNode) => void) {
 //   if (Array.isArray(node)) {
@@ -48,7 +49,7 @@ export function rangesAreEqual(range1: any[], range2: any[], fieldDef: EncodingF
   return false;
 }
 
-export function dateToTimeUnit(date: Date, timeUnit: string): string {
+export const dateToTimeUnit = moize((date: Date, timeUnit: string) => {
   if (!timeUnit) {
     return date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
@@ -78,9 +79,9 @@ export function dateToTimeUnit(date: Date, timeUnit: string): string {
     return date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
   return date.toLocaleString('en-US', opts);
-}
+});
 
-export const fmtValue = (value, fieldDef): string => {
+export const fmtValue = moize((value, fieldDef): string => {
   if (fieldDef.type === 'temporal' && !(value instanceof Date)) {
     value = new Date(value);
   }
@@ -90,4 +91,4 @@ export const fmtValue = (value, fieldDef): string => {
     return Number(value).toFixed(2);
   }
   return String(value);
-};
+});

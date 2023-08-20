@@ -37,7 +37,7 @@ class UmweltSonifier {
     this.vol = new Tone.Volume().toDestination();
     this.vol.mute = false;
 
-    this.synth = new Tone.Synth().connect(this.vol);
+    this.synth = new Tone.Synth({ oscillator: { type: 'square8' } }).connect(this.vol);
 
     this.noise = new Tone.NoiseSynth({
       envelope: {

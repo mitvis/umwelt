@@ -4,8 +4,9 @@ import { FieldDef, UmweltPredicate } from '../grammar';
 import { getDomain, getFieldDef } from './data';
 import * as d3 from 'd3';
 import { getVegaAxisTicks } from './vega';
+import moize from 'moize';
 
-export function getBins(field: string, data: OlliDataset, fields: FieldDef[], domainFilter?: UmweltPredicate): [number, number][] {
+export const getBins = moize((field: string, data: OlliDataset, fields: FieldDef[], domainFilter?: UmweltPredicate): [number, number][] => {
   const fieldDef = getFieldDef(field, fields);
   const domain = getDomain({ ...fieldDef, field: fieldDef.name }, data, domainFilter);
   const bins = [];
@@ -67,7 +68,7 @@ export function getBins(field: string, data: OlliDataset, fields: FieldDef[], do
   }
 
   return bins;
-}
+});
 
 export function getBinPredicates(field: string, data: OlliDataset, fields: FieldDef[], domainFilter?: UmweltPredicate) {
   const bins = getBins(field, data, fields, domainFilter);

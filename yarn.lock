@@ -4959,6 +4959,11 @@ fast-deep-equal@~2.0.1:
   resolved "https://registry.npmjs.org/fast-deep-equal/-/fast-deep-equal-2.0.1.tgz"
   integrity sha512-bCK/2Z4zLidyB4ReuIsvALH6w31YfAQDmXMqMx6FyfHqvBxtjC0eRumeSu4Bs3XtXwpyIywtSTrVT99BxY1f9w==
 
+fast-equals@^3.0.1:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/fast-equals/-/fast-equals-3.0.3.tgz#8e6cb4e51ca1018d87dd41982ef92758b3e4197f"
+  integrity sha512-NCe8qxnZFARSHGztGMZOO/PC1qa5MIFB5Hp66WdzbCRAz8U8US3bx1UTgLS49efBQPcUtO9gf5oVEY8o7y/7Kg==
+
 fast-glob@^3.2.12, fast-glob@^3.2.9:
   version "3.2.12"
   resolved "https://registry.npmjs.org/fast-glob/-/fast-glob-3.2.12.tgz"
@@ -7099,6 +7104,11 @@ methods@~1.1.2:
   resolved "https://registry.npmjs.org/methods/-/methods-1.1.2.tgz"
   integrity sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==
 
+micro-memoize@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/micro-memoize/-/micro-memoize-4.1.2.tgz#ce719c1ba1e41592f1cd91c64c5f41dcbf135f36"
+  integrity sha512-+HzcV2H+rbSJzApgkj0NdTakkC+bnyeiUxgT6/m7mjcz1CmM22KYFKp+EVj1sWe4UYcnriJr5uqHQD/gMHLD+g==
+
 micromatch@^4.0.0, micromatch@^4.0.2, micromatch@^4.0.4, micromatch@^4.0.5:
   version "4.0.5"
   resolved "https://registry.npmjs.org/micromatch/-/micromatch-4.0.5.tgz"
@@ -7171,6 +7181,14 @@ mkdirp@~0.5.1:
   integrity sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==
   dependencies:
     minimist "^1.2.6"
+
+moize@^6.1.6:
+  version "6.1.6"
+  resolved "https://registry.yarnpkg.com/moize/-/moize-6.1.6.tgz#ac2e723e74b951875fe2c0c3433405c2b098c3e6"
+  integrity sha512-vSKdIUO61iCmTqhdoIDrqyrtp87nWZUmBPniNjO0fX49wEYmyDO4lvlnFXiGcaH1JLE/s/9HbiK4LSHsbiUY6Q==
+  dependencies:
+    fast-equals "^3.0.1"
+    micro-memoize "^4.1.2"
 
 ms@2.0.0:
   version "2.0.0"
