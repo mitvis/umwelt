@@ -71,6 +71,17 @@ function App() {
             ) : null
           }
         </Debounce>
+        <div>
+          <h2>Keyboard shortcuts</h2>
+          <ul style={{listStyleType: 'none'}}>
+            <li>e — Jump to editor</li>
+            <li>v — Jump to viewer</li>
+            <li>o — Jump to olli text structure</li>
+            <li>a — Jump to audio controls</li>
+            <li>p — Play audio</li>
+            <li>shift + p — Jump to playback mode control</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
