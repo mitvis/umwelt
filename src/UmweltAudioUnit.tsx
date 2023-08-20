@@ -1,5 +1,5 @@
 import { OlliDataset, OlliValue } from 'olli';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import useState from 'react-usestateref';
 import { AudioUnitSpec, FieldDef, NONE, UmweltPredicate } from './grammar';
 import { getDomain, getFieldDef } from './utils/data';
@@ -73,6 +73,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('interaction');
   const [notes, setNotes] = useState<SonifierNote[]>([]);
   const [playbackMode, setPlaybackMode] = useState<AudioPlaybackMode>('current');
+  const playbackModeElement = useRef<HTMLSelectElement>();
 
   const notesToTransport = (notes: SonifierNote[]) => {
     Sonifier.resetTransport();
@@ -302,14 +303,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     await Tone.start();
     if (document.activeElement?.closest(".audio-container") || !nodeIsTextInput(document.activeElement)) {
       switch (e.key) {
-        // case 'P':
-        //   if (Tone.Transport.state === 'started') {
-        //     pause();
-        //   }
-        //   else {
-        //     playCurrentOnward();
-        //   }
-        // break;
+        case 'P':
+          playbackModeElement.current?.focus();
+          break;
         case 'p':
           if (!e.repeat) {
             if (Tone.Transport.state === 'started' || speechSynthesis.speaking) {
@@ -438,7 +434,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           <div>
             <label>
               Playback mode
-              <select value={playbackMode} onChange={(e) => setPlaybackMode(e.target.value)}>
+              <select ref={playbackModeElement} value={playbackMode} onChange={(e) => setPlaybackMode(e.target.value)}>
                 <option value="current">Current</option>
                 <option value="onward">From current onward</option>
                 <option value="beginning">From beginning</option>
@@ -465,8 +461,8 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             </label>
             {
               Tone.Transport.state === 'started' || speechSynthesis.speaking ?
-                  <button onClick={pause}>Pause</button> :
-                  <button onClick={play}>Play</button>
+                  <button className='uv-audio-play-pause' onClick={pause}>Pause</button> :
+                  <button className='uv-audio-play-pause' onClick={play}>Play</button>
             }
             {/* <button onClick={playCurrentValue}>Current value</button>
             <button onClick={play}>Play</button>

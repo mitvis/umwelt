@@ -101,7 +101,12 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
     window.addEventListener('keydown', (e) => {
       if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
         if (e.key === 'v') {
-          lastFocused.current?.focus();
+          if (lastFocused.current) {
+            lastFocused.current.focus();
+          }
+          else {
+            (window as any)._olli.instancesOnPage[0].setFocusToItem((window as any)._olli.instancesOnPage[0].rootTreeItem);
+          }
         }
       }
     });

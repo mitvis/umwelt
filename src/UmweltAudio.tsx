@@ -108,7 +108,15 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
     window.addEventListener('keydown', (e) => {
       if (e.target instanceof Element && !nodeIsTextInput(e.target)) {
         if (e.key === 'a') {
-          lastFocused.current?.focus();
+          if (lastFocused.current) {
+            lastFocused.current.focus();
+          }
+          else {
+            const elem: HTMLButtonElement = document.querySelector('button.uv-audio-play-pause');
+            if (elem) {
+              elem.focus();
+            }
+          }
         }
       }
     });
