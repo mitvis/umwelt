@@ -212,6 +212,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const pause = () => {
     setAudioCtrl('interaction');
     Tone.Transport.pause();
+    Sonifier.releaseSynth();
     speechSynthesis.cancel();
   }
 
