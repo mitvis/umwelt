@@ -73,6 +73,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('interaction');
   const [notes, setNotes] = useState<SonifierNote[]>([]);
   const [playbackMode, setPlaybackMode] = useState<AudioPlaybackMode>('current');
+  const [playbackRate, setPlaybackRate] = useState<number>(1);
   const playbackModeElement = useRef<HTMLSelectElement>();
 
   const notesToTransport = (notes: SonifierNote[]) => {
@@ -209,9 +210,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   }, [data, domainFilter]);
 
   const pause = () => {
+    setAudioCtrl('interaction');
     Tone.Transport.pause();
     speechSynthesis.cancel();
-    setAudioCtrl('interaction');
   }
 
   const play = () => {
@@ -428,44 +429,48 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           return null;
         })}
       </div>
-
-          <div>
-            <label>
-              Playback mode
-              <select ref={playbackModeElement} value={playbackMode} onChange={(e) => setPlaybackMode(e.target.value)}>
-                <option value="current">Current</option>
-                <option value="onward">From current onward</option>
-                <option value="beginning">From beginning</option>
-                {
-                  audioUnitSpec.traversal.map((traversalFieldDef) => {
-                    const field = traversalFieldDef.field;
-                    const domain = specDomains[field];
-                    const value = domain[specIndices?.[field]];
-                    const otherFields = audioUnitSpec.traversal.filter(def => {
-                      const selection = selectionTest(data, {and: [domainFilter, {field, equal: value}]});
-                      const uniqueValues = new Set(selection.map(d => d[def.field]));
-                      return def.field !== field && uniqueValues.size > 1;
-                    }).map(traversalFieldDef => traversalFieldDef.field);
-
-                    if (otherFields.length) {
-                      return (
-                        <option key={field} value={field}>{fmtValue(value, traversalFieldDef)} by {otherFields.join(', ')}</option>
-                      );
-                    }
-                  })
-                }
-                <option value="count">Count of selected</option>
-              </select>
-            </label>
+      <div>
+        <label>
+          Playback rate <input type="number" min="0.1" max="2" value={playbackRate} step={0.1} id="rate" onChange={(e) => setPlaybackRate(Number(e.target.value))} />x
+        </label>
+      </div>
+      <div>
+        <label>
+          Playback mode
+          <select ref={playbackModeElement} value={playbackMode} onChange={(e) => setPlaybackMode(e.target.value)}>
+            <option value="current">Current</option>
+            <option value="onward">From current onward</option>
+            <option value="beginning">From beginning</option>
             {
-              Tone.Transport.state === 'started' || speechSynthesis.speaking ?
-                  <button className='uv-audio-play-pause' onClick={pause}>Pause</button> :
-                  <button className='uv-audio-play-pause' onClick={play}>Play</button>
+              audioUnitSpec.traversal.map((traversalFieldDef) => {
+                const field = traversalFieldDef.field;
+                const domain = specDomains[field];
+                const value = domain[specIndices?.[field]];
+                const otherFields = audioUnitSpec.traversal.filter(def => {
+                  const selection = selectionTest(data, {and: [domainFilter, {field, equal: value}]});
+                  const uniqueValues = new Set(selection.map(d => d[def.field]));
+                  return def.field !== field && uniqueValues.size > 1;
+                }).map(traversalFieldDef => traversalFieldDef.field);
+
+                if (otherFields.length) {
+                  return (
+                    <option key={field} value={field}>{fmtValue(value, traversalFieldDef)} by {otherFields.join(', ')}</option>
+                  );
+                }
+              })
             }
-            {/* <button onClick={playCurrentValue}>Current value</button>
-            <button onClick={play}>Play</button>
-            <button onClick={playFromBeginning}>Play from beginning</button> */}
-          </div>
+            <option value="count">Count of selected</option>
+          </select>
+        </label>
+        {
+          Tone.Transport.state === 'started' || speechSynthesis.speaking ?
+              <button className='uv-audio-play-pause' onClick={pause}>Pause</button> :
+              <button className='uv-audio-play-pause' onClick={play}>Play</button>
+        }
+        {/* <button onClick={playCurrentValue}>Current value</button>
+        <button onClick={play}>Play</button>
+        <button onClick={playFromBeginning}>Play from beginning</button> */}
+      </div>
       {/* <pre>
         Transport: {Tone.Transport.state} {Tone.Transport.seconds}
       </pre>
