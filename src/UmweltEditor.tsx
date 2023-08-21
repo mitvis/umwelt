@@ -251,6 +251,15 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       return f;
     });
     setFields(newFields);
+    fields.forEach((fieldDef) => {
+      if (fieldDef.type !== 'quantitative' && fieldDef.type !== 'temporal') {
+        fieldDef.encodings.forEach(encRef => {
+          if (['pitch', 'volume', 'duration'].includes(encRef.property)) {
+            removeEncodingFromField(fieldDef.name, encRef);
+          }
+        })
+      }
+    })
   }
 
   const onSelectEncoding = (fieldName, encodingRefIdx, propName) => {
