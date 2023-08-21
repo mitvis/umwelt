@@ -10,7 +10,7 @@ import { getBins } from './utils/bin';
 import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
-import { fmtValue } from './utils/values';
+import { clamp, fmtValue } from './utils/values';
 import { selectionTest } from './utils/selection';
 import { DEFAULT_RANGES, scale } from './utils/scales';
 
@@ -284,9 +284,10 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   useEffect(() => {
     // generate sequence from domains
-    const notes = generateSequence(audioUnitSpec, specDomains, fields, data);
+    const notes = generateSequence(audioUnitSpec, specDomains, fields, data, playbackRate);
+    console.log(notes);
     setNotes(notes);
-  }, [specDomains, audioUnitSpec]);
+  }, [specDomains, audioUnitSpec, playbackRate]);
 
   useEffect(() => {
     // schedule notes in transport
@@ -297,7 +298,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     if (audioCtrl.current === 'interaction') {
       playCurrentValue();
     }
-  }, [notes, specIndices, audioCtrl.current]);
+  }, [specIndices]);
 
   const onKeyDown = useCallback(async (e) => {
     await Tone.start();
@@ -432,7 +433,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       </div>
       <div>
         <label>
-          Playback rate <input type="number" min="0.1" max="2" value={playbackRate} step={0.1} id="rate" onChange={(e) => setPlaybackRate(Number(e.target.value))} />x
+          Playback rate <input type="number" min="0.1" max="2" value={playbackRate} step={0.1} id="rate" onChange={(e) => setPlaybackRate(clamp(Number(e.target.value), 0.1, 2))} />x
         </label>
       </div>
       <div>

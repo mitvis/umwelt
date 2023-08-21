@@ -33,7 +33,7 @@ export function audioStateToPredicate(indices: AudioUnitFieldSelectedIndices, do
   };
 }
 
-export function generateSequence(audioSpec: AudioUnitSpec, specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset): SonifierNote[] {
+export function generateSequence(audioSpec: AudioUnitSpec, specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset, playbackRate: number): SonifierNote[] {
   const sequenceFields = [...audioSpec.traversal.map((f) => f.field)];
   const states: AudioUnitFieldSelectedIndices[] = fastCartesian(sequenceFields.map((field) => (specDomains[field] || []).map((_, idx: number) => idx))).map((s) => {
     return Object.fromEntries(
@@ -45,7 +45,7 @@ export function generateSequence(audioSpec: AudioUnitSpec, specDomains: AudioUni
 
   const notes = states.map((state) => {
     return {
-      ...audioStateToNote(audioSpec, state, specDomains, fields, data),
+      ...audioStateToNote(audioSpec, state, specDomains, fields, data, playbackRate),
       indices: state,
     };
   });
@@ -122,7 +122,7 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
   });
 }
 
-export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUnitFieldSelectedIndices, specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset): SonifierNote {
+export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUnitFieldSelectedIndices, specDomains: AudioUnitFieldDomains, fields: FieldDef[], data: OlliDataset, playbackRate: number): SonifierNote {
   const selectionSpec = audioStateToPredicate(specIndices, specDomains);
   const selection = selectionTest(data, selectionSpec);
 
@@ -183,6 +183,9 @@ export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUni
           .reduce((acc, v) => acc + v)
     );
   }
+
+  note.duration /= playbackRate;
+
   if (!note.pitch) {
     note.pitch = 60;
   }

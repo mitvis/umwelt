@@ -6,6 +6,7 @@ import UmweltAudioUnit from './UmweltAudioUnit';
 import { useEffect, useRef } from 'react';
 import { Sonifier } from './utils/sonifier';
 import { nodeIsTextInput } from './utils/events';
+import { clamp } from './utils/values';
 
 interface AudioProps {
   audioSpec: AudioSpec,
@@ -135,7 +136,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
         audioSpec?.units.length && !(audioSpec.units.length === 1 && !Object.keys(audioSpec.units[0].encoding).length) ? (
           <div>
             <label><input type="checkbox" className="uv_audio_axis" checked={readAudioAxis} onChange={(e) => setReadAudioAxis(e.target.checked)} /> Speak audio axis ticks</label> <br/>
-            <label>Audio axis speech rate <input type="number" min="0.1" max="10" value={speechRate} step={0.1} id="rate" onChange={(e) => setSpeechRate(Number(e.target.value))} />x</label> <br/><br/>
+            <label>Audio axis speech rate <input type="number" min="0.1" max="10" value={speechRate} step={0.1} id="rate" onChange={(e) => setSpeechRate(clamp(Number(e.target.value), 0.1, 10))} />x</label> <br/><br/>
             <label><input type="checkbox" aria-live='polite' className="uv_mute" checked={muted} onChange={(e) => setMuted(e.target.checked)} />{muted ? 'Muted' : 'Unmuted'}</label>
           </div>
         ) : null
