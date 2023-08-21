@@ -285,7 +285,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   useEffect(() => {
     // generate sequence from domains
     const notes = generateSequence(audioUnitSpec, specDomains, fields, data, playbackRate);
-    console.log(notes);
     setNotes(notes);
   }, [specDomains, audioUnitSpec, playbackRate]);
 
