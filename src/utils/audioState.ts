@@ -143,7 +143,7 @@ export function audioStateToNote(audioSpec: AudioUnitSpec, specIndices: AudioUni
               [prop]: scale(sumSelection, [0, sumAll / 2], DEFAULT_RANGES[prop]),
             };
           } else {
-            const scaleFunc = getScaleFunction(prop as AudioPropName, encodingFieldDef, fields, data);
+            const scaleFunc = getScaleFunction(prop as AudioPropName, encodingFieldDef, data);
             if (selection.length && encodingFieldDef.aggregate) {
               const aggregatedValue = aggregate(encodingFieldDef, selection);
 

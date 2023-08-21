@@ -65,6 +65,9 @@ function typeCoerceDatum(lookup, datum) {
           }
           return [field, new Date(value)];
         case 'quantitative':
+          if (value instanceof Date) {
+            return [field, value.getTime()];
+          }
           if (isString(value) && isNumeric(String(value))) {
             return [field, Number(value)];
           }
