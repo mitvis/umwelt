@@ -403,9 +403,6 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         }
         return `${field}`
       }).join(', ')}`;
-      if (domainFilter && 'and' in domainFilter) {
-
-      }
       return label;
     }
   }
