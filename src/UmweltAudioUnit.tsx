@@ -363,21 +363,50 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   function fromBeginningLabel() {
     if (audioUnitSpec.traversal?.length) {
-      if (domainFilter) {
-        return predicateToDescription(domainFilter, fields);
+      const outerMostField = audioUnitSpec.traversal[0].field;
+      const outerDomain = specDomains[outerMostField];
+      let label;
+      if (!outerDomain.length) {
+        if (domainFilter && 'and' in domainFilter) {
+          const predTerm = domainFilter.and.find(pred => 'field' in pred && pred.field === outerMostField);
+          if (predTerm && 'field' in predTerm) {
+            const {field, ...rest} = predTerm;
+            label = Object.values(rest).join(',');
+          }
+          else {
+            label = outerMostField;
+          }
+        }
       }
       else {
-        const outerMostField = audioUnitSpec.traversal[0].field;
-        const outerDomain = specDomains[outerMostField];
-        let outerValues = outerDomain[0];
-        if (outerDomain.length > 1) {
-          outerValues = `${outerDomain[0]} to ${outerDomain[outerDomain.length - 1]}`;
-        }
-        if (audioUnitSpec.traversal.length > 1) {
-          outerValues += ` by ${audioUnitSpec.traversal.filter((_, idx) => idx > 0).map(t => t.field).join(', ')}`;
-        }
-        return outerValues;
+        label = outerDomain[0];
       }
+      if (outerDomain.length > 1) {
+        label = `${outerDomain[0]} to ${outerDomain[outerDomain.length - 1]}`;
+      }
+      const fieldsToAdd = audioUnitSpec.traversal.filter((_, idx) => idx > 0).map(t => t.field);
+      if (domainFilter && 'and' in domainFilter) {
+        domainFilter.and.forEach(pred => {
+          if ('field' in pred) {
+            if (pred.field !== outerMostField && !fieldsToAdd.includes(pred.field)) {
+              fieldsToAdd.push(pred.field);
+            }
+          }
+        });
+      }
+      label += ` by ${fieldsToAdd.map(field => {
+        if (domainFilter && 'and' in domainFilter) {
+          const predTerm = domainFilter.and.find(pred => 'field' in pred && pred.field === field);
+          if (predTerm) {
+            return predicateToDescription(predTerm, fields);
+          }
+        }
+        return `${field}`
+      }).join(', ')}`;
+      if (domainFilter && 'and' in domainFilter) {
+
+      }
+      return label;
     }
   }
 
