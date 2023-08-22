@@ -140,6 +140,7 @@ export function predicateToSelectionStore(predicate: LogicalComposition<FieldPre
 export function selectionTest(data: OlliDataset, predicate: UmweltPredicate): OlliDataset {
   try {
     const store = predicateToSelectionStore(predicate);
+    console.log(predicate, store);
     if (!store) return data;
     return data.filter((datum) => {
       return testPoint(datum, store);

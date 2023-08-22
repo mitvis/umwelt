@@ -479,16 +479,18 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                 const field = traversalFieldDef.field;
                 const domain = specDomains[field];
                 const value = domain[specIndices?.[field]];
-                const otherFields = audioUnitSpec.traversal.filter(def => {
-                  const selection = selectionTest(data, {and: [domainFilter, {field, equal: value}]});
-                  const uniqueValues = new Set(selection.map(d => d[def.field]));
-                  return def.field !== field && uniqueValues.size > 1;
-                }).map(traversalFieldDef => traversalFieldDef.field);
+                if (value !== undefined) {
+                  const otherFields = audioUnitSpec.traversal.filter(def => {
+                    const selection = selectionTest(data, {and: [domainFilter, {field, equal: value}]});
+                    const uniqueValues = new Set(selection.map(d => d[def.field]));
+                    return def.field !== field && uniqueValues.size > 1;
+                  }).map(traversalFieldDef => traversalFieldDef.field);
 
-                if (otherFields.length) {
-                  return (
-                    <option key={field} value={field}>{fmtValue(value, traversalFieldDef)} by {otherFields.join(', ')}</option>
-                  );
+                  if (otherFields.length) {
+                    return (
+                      <option key={field} value={field}>{fmtValue(value, traversalFieldDef)} by {otherFields.join(', ')}</option>
+                    );
+                  }
                 }
               })
             }
