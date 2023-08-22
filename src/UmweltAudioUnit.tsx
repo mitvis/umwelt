@@ -72,7 +72,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   const [specDomains, setSpecDomains] = useState<AudioUnitFieldDomains>(getFieldDomains(audioUnitSpec));
   const [_, setAudioCtrl, audioCtrl] = useState<AudioCtrl>('interaction');
   const [notes, setNotes] = useState<SonifierNote[]>([]);
-  const [playbackMode, setPlaybackMode] = useState<AudioPlaybackMode>('current');
+  const [playbackMode, setPlaybackMode] = useState<AudioPlaybackMode>('beginning');
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const playbackModeElement = useRef<HTMLSelectElement>();
 
@@ -349,6 +349,21 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     return <div className="audio-spec"></div>;
   }
 
+  function fromBeginningLabel() {
+    if (audioUnitSpec.traversal?.length) {
+      const outerMostField = audioUnitSpec.traversal[0].field;
+      const outerDomain = specDomains[outerMostField];
+      let outerValues = outerDomain[0];
+      if (outerDomain.length > 1) {
+        outerValues = `${outerDomain[0]} to ${outerDomain[outerDomain.length - 1]}`;
+      }
+      if (audioUnitSpec.traversal.length > 1) {
+        outerValues += ` by ${audioUnitSpec.traversal.filter((_, idx) => idx > 0).map(t => t.field).join(', ')}`;
+      }
+      return outerValues;
+    }
+  }
+
   return (
     <div className="audio-spec">
       {
@@ -439,9 +454,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         <label>
           Playback mode
           <select ref={playbackModeElement} value={playbackMode} onChange={(e) => setPlaybackMode(e.target.value)}>
-            <option value="current">Current</option>
-            <option value="onward">From current onward</option>
-            <option value="beginning">From beginning</option>
+            {/* <option value="current">Current</option> */}
+            {/* <option value="onward">From current onward</option> */}
+            {audioUnitSpec.traversal.length ? <option value="beginning">{fromBeginningLabel()}</option> : null}
             {
               audioUnitSpec.traversal.map((traversalFieldDef) => {
                 const field = traversalFieldDef.field;
@@ -460,7 +475,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
                 }
               })
             }
-            <option value="count">Count of selected</option>
+            {/* <option value="count">Count of selected</option> */}
           </select>
         </label>
         {
