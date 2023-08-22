@@ -118,7 +118,6 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
 }
 
 export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: OlliDataset): Promise<OlliSpec> {
-  if (spec.text === false) return null;
   let olliSpec: OlliSpec;
   if (vlSpec) {
     olliSpec = await VegaLiteAdapter(vlSpec as any);

@@ -160,9 +160,6 @@ const Umwelt = React.memo(({ spec, data }: RenderProps) => {
       <pre>
         {JSON.stringify(selection, null, 2)}
       </pre> */}
-      {/* <pre id="pred-out">
-        {JSON.stringify(uvSpec.text, null, 2)}
-      </pre> */}
       <br/>
       {/* <pre>
         {data && selectionSpec && uwSpec.fields ? JSON.stringify(selectionTest(data, selectionSpec), null, 2) : null}

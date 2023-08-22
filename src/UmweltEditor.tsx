@@ -90,8 +90,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         audio: {
           units: audioUnitSpecs,
           composition: audioComposition
-        },
-        text: true,
+        }
       }, data);
     }
   }, [data, fields, visualUnitSpecs, audioUnitSpecs, onSpec, dataUrl, visualComposition, audioComposition]);
@@ -784,12 +783,12 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         <div className='def-property'>
           <div className='def-property-label'>Key:</div>
           <div className='def-property-col' aria-live="polite">
-            {
+            {/* {
               key?.length < fields?.length - 1 ?
               (
                 <button onClick={() => addKey()}>Add field to key</button>
               ) : null
-            }
+            } */}
             {
               key?.length ? (
                 [...key].reverse().map((fieldName, idx) => {
@@ -806,11 +805,11 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           })
                         }
                       </select>
-                      <button onClick={() => removeKey(fieldName)}>Remove field from key</button>
+                      {/* <button onClick={() => removeKey(fieldName)}>Remove field from key</button> */}
                     </div>
                   )
                 })
-              ) : null
+              ) : 'None'
             }
           </div>
         </div>
@@ -1203,7 +1202,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                           <div className='enc-def' key={`${traversal.field}-${audioUnitSpec.name}`}>
                             <div className='unit-encoding-def'>
                             <span>{(traversal.bin ?? fieldDef.bin) ? `binned ` : null}{traversal.field}{(traversal.timeUnit ?? fieldDef.timeUnit) && traversal.timeUnit !== NONE ? ` (${traversal.timeUnit ?? fieldDef.timeUnit})` : null}</span>
-                              <button>Go to field</button>
+                              {/* <button onClick={() => jumpToField(traversal.field, propName)}>Go to field</button> */}
                               <button onClick={() => removeTraversal(audioUnitSpec, traversal.field)}>Remove traversal</button>
                             </div>
                             {/* <div className='def-property'>

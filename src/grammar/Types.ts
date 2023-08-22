@@ -132,5 +132,5 @@ export interface UmweltSpec {
   key: FieldName[];
   visual: VisualSpec | false;
   audio: AudioSpec | false;
-  text: OlliNode | OlliNode[] | boolean;
+  // text: OlliNode | OlliNode[] | boolean;
 }
