@@ -11,7 +11,7 @@ import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
 import { clamp, fmtValue } from './utils/values';
-import { selectionTest } from './utils/selection';
+import { predicateToDescription, selectionTest } from './utils/selection';
 import { DEFAULT_RANGES, scale } from './utils/scales';
 
 interface AudioUnitProps {
@@ -78,6 +78,16 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   const notesToTransport = (notes: SonifierNote[]) => {
     Sonifier.resetTransport();
+    if (!notes.length) {
+      Tone.Transport.schedule(() => {
+        if (audioCtrl.current === 'sequence') {
+          Sonifier.triggerSynth({noise: true, duration: 0.5, elapsed: 0, indices: {}}, true);
+        }
+      }, 0);
+      Tone.Transport.schedule(() => {
+        pause();
+      }, 0.5);
+    }
     notes.forEach((note, idx) => {
       Tone.Transport.schedule(() => {
         if (audioCtrl.current === 'sequence') {
@@ -106,8 +116,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
       if (idx === notes.length - 1) {
         Tone.Transport.schedule(() => {
-          Sonifier.releaseSynth();
-          Tone.Transport.pause();
+          pause();
         }, note.elapsed + note.duration)
       }
       else if (note.pauseAfter) {
@@ -132,6 +141,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     });
     if (note) {
       Tone.Transport.seconds = note.elapsed;
+    }
+    else {
+      Tone.Transport.seconds = 0;
     }
   }
 
@@ -351,16 +363,21 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   function fromBeginningLabel() {
     if (audioUnitSpec.traversal?.length) {
-      const outerMostField = audioUnitSpec.traversal[0].field;
-      const outerDomain = specDomains[outerMostField];
-      let outerValues = outerDomain[0];
-      if (outerDomain.length > 1) {
-        outerValues = `${outerDomain[0]} to ${outerDomain[outerDomain.length - 1]}`;
+      if (domainFilter) {
+        return predicateToDescription(domainFilter, fields);
       }
-      if (audioUnitSpec.traversal.length > 1) {
-        outerValues += ` by ${audioUnitSpec.traversal.filter((_, idx) => idx > 0).map(t => t.field).join(', ')}`;
+      else {
+        const outerMostField = audioUnitSpec.traversal[0].field;
+        const outerDomain = specDomains[outerMostField];
+        let outerValues = outerDomain[0];
+        if (outerDomain.length > 1) {
+          outerValues = `${outerDomain[0]} to ${outerDomain[outerDomain.length - 1]}`;
+        }
+        if (audioUnitSpec.traversal.length > 1) {
+          outerValues += ` by ${audioUnitSpec.traversal.filter((_, idx) => idx > 0).map(t => t.field).join(', ')}`;
+        }
+        return outerValues;
       }
-      return outerValues;
     }
   }
 

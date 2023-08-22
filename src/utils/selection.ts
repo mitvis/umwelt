@@ -2,7 +2,9 @@ import { OlliDataset, OlliDatum, OlliValue } from 'olli';
 import { isDate, toNumber, isArray, inrange } from 'vega';
 import { LogicalAnd, LogicalComposition } from 'vega-lite/src/logical';
 import { FieldPredicate, FieldEqualPredicate, FieldLTPredicate, FieldGTPredicate, FieldLTEPredicate, FieldGTEPredicate, FieldRangePredicate, FieldOneOfPredicate, FieldValidPredicate } from 'vega-lite/src/predicate';
-import { UmweltPredicate } from '../grammar/Types';
+import { FieldDef, UmweltPredicate } from '../grammar/Types';
+import { getFieldDef } from './data';
+import { fmtValue } from './values';
 
 const TYPE_ENUM = 'E',
   TYPE_RANGE_INC = 'R',
@@ -200,4 +202,42 @@ export function datumToPredicate(datum: OlliDatum, fields): LogicalAnd<FieldEqua
       };
     }),
   };
+}
+
+export function predicateToDescription(predicate: LogicalComposition<FieldPredicate>, fields: FieldDef[]) {
+  if ('and' in predicate) {
+    return predicate.and.map((p) => predicateToDescription(p, fields)).join(' and ');
+  }
+  if ('or' in predicate) {
+    return predicate.or.map((p) => predicateToDescription(p, fields)).join(' or ');
+  }
+  if ('not' in predicate) {
+    return `not ${predicateToDescription(predicate.not, fields)}`;
+  }
+  return fieldPredicateToDescription(predicate, fields);
+}
+
+function fieldPredicateToDescription(predicate: FieldPredicate, fields: FieldDef[]) {
+  const fieldDef = getFieldDef(predicate.field, fields);
+  const field = fieldDef.name;
+  if ('equal' in predicate) {
+    return `${fmtValue(predicate.equal as OlliValue, fieldDef)}`;
+  }
+  if ('range' in predicate) {
+    return `${field} between ${fmtValue(predicate.range[0], fieldDef)} and ${fmtValue(predicate.range[1], fieldDef)}`;
+  }
+  if ('lt' in predicate) {
+    return `${field} less than ${fmtValue(predicate.lt as OlliValue, fieldDef)}`;
+  }
+  if ('lte' in predicate) {
+    return `${field} less than or equal to ${fmtValue(predicate.lte as OlliValue, fieldDef)}`;
+  }
+  if ('gt' in predicate) {
+    return `${field} greater than ${fmtValue(predicate.gt as OlliValue, fieldDef)}`;
+  }
+  if ('gte' in predicate) {
+    return `${field} greater than or equal to ${fmtValue(predicate.gte as OlliValue, fieldDef)}`;
+  }
+
+  return '';
 }
