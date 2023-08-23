@@ -39,6 +39,46 @@ export async function getData(spec: UmweltDataSource): Promise<OlliDataset> {
   }
 }
 
+export async function getTransformedData(data: OlliDataset, fields: FieldDef[]): Promise<OlliDataset> {
+  const vlSpec = {
+    data: { values: data },
+    transform: [],
+    mark: 'point',
+  };
+
+  if (fields) {
+    fields.forEach((fieldDef) => {
+      if (fieldDef.aggregate) {
+        const groupBy = fields.filter((f) => f.bin || f.timeUnit).map((f) => f.name);
+        if (groupBy.length) {
+          vlSpec.transform.push({ aggregate: [{ op: fieldDef.aggregate, field: fieldDef.name, as: fieldDef.name }], groupby: groupBy });
+        }
+      }
+      if (fieldDef.bin) {
+        vlSpec.transform.push({ bin: fieldDef.bin, field: fieldDef.name, as: fieldDef.name });
+      }
+      if (fieldDef.timeUnit) {
+        vlSpec.transform.push({ timeUnit: fieldDef.timeUnit, field: fieldDef.name, as: fieldDef.name });
+      }
+    });
+  }
+
+  const scene = await getVegaScene(compile(vlSpec as any).spec);
+
+  try {
+    const datasets = (scene as any).context.data;
+    const names = Object.keys(datasets).filter((name) => {
+      return name.match(/(source)|(data)_\d/);
+    });
+    const name = names.reverse()[0]; // TODO do we know this is the right one?
+    const dataset = datasets[name].values.value;
+    return dataset;
+  } catch (error) {
+    console.warn(`No data found in the Vega scenegraph \n ${error}`);
+    return [];
+  }
+}
+
 export function typeCoerceData(data: OlliDataset, fields: FieldDef[]): OlliDataset {
   // convert temporal fields into date objects converts quantitative into numbers
   const lookup = Object.fromEntries(fields.map((f) => [f.name, f.type]));

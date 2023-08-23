@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { OlliDataset } from 'olli';
 import { AudioSpec, AudioUnitSpec, FieldDef, MeasureType, VisualSpec, VisualUnitSpec } from '../grammar/Types';
-import { getDomain } from './data';
+import { getData, getDomain, getTransformedData } from './data';
 import { dateToTimeUnit } from './values';
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): FieldDef[] {
@@ -95,7 +95,7 @@ export function typeInference(data: OlliDataset, field: string): MeasureType {
   }
 }
 
-export const inferKey = (fields: FieldDef[], data: OlliDataset): string[] => {
+export const inferKey = async (fields: FieldDef[], data: OlliDataset): Promise<string[]> => {
   var combine = function (a, min) {
     var fn = function (n, src, got, all) {
       if (n == 0) {
@@ -117,27 +117,26 @@ export const inferKey = (fields: FieldDef[], data: OlliDataset): string[] => {
     return all;
   };
 
-  const nonQuantFields = fields.filter((fieldDef) => fieldDef.type !== 'quantitative');
-  const keyCandidates: FieldDef[][] = combine(nonQuantFields, 1);
+  const candidateFields = fields.filter((fieldDef) => !fieldDef.aggregate);
+  const keyCandidates: FieldDef[][] = combine(candidateFields, 1);
   const shortestPossibleKeys = [];
+
+  const transformedData = await getTransformedData(data, fields);
 
   for (let i = 0; i < keyCandidates.length; i++) {
     const keyCandidate = keyCandidates[i];
     if (shortestPossibleKeys.length && keyCandidate.length > shortestPossibleKeys[0].length) {
       break;
     }
-    const keyValues = data.map((datum) => {
+    const keyValues = transformedData.map((datum) => {
       return keyCandidate
         .map((key) => {
-          if (key.type === 'temporal' && key.timeUnit && datum[key.name] instanceof Date) {
-            return dateToTimeUnit(datum[key.name], key.timeUnit);
-          }
           return datum[key.name];
         })
         .join(',');
     });
     const uniqueKeyValues = new Set(keyValues);
-    if (uniqueKeyValues.size === data.length) {
+    if (uniqueKeyValues.size === transformedData.length) {
       shortestPossibleKeys.push(keyCandidate);
     }
   }

@@ -176,10 +176,14 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     const niceData = cleanData(typedData, fields);
     setData(niceData);
 
-    const nextKey = inferKey(fields, data);
-    if (!(key.length === nextKey.length && key.every((k) => nextKey.includes(k)))) {
-      setKey(nextKey);
+    const doInferKey = async () => {
+      const nextKey = await inferKey(fields, niceData);
+      if (!(key.length === nextKey.length && key.every((k) => nextKey.includes(k)))) {
+        setKey(nextKey);
+      }
     }
+
+    doInferKey();
   }, [fields]);
 
   const doInference = (keyFieldDefs, valueFieldDefs) => {
