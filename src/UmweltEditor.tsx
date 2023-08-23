@@ -1298,7 +1298,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         <div>
           <button onClick={() => addUnit(audioUnitSpecs)}>Add audio unit</button>
         </div>
-        {
+        {/* {
           audioUnitSpecs.length > 1 ? (
             <div className='def-property'>
               <label>
@@ -1310,7 +1310,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                 </label>
             </div>
           ) : null
-        }
+        } */}
       </div>
     </div>
   );

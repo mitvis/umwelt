@@ -414,7 +414,7 @@ export const inferUnitsFromKeys = (
         }
       }
     }
-    if (keys.length === 1 && (keys[0].type === 'temporal' || keys[0].type === 'ordinal')) {
+    if (keys.length === 1 && (keys[0].type === 'temporal' || keys[0].type === 'ordinal') && values.length === 2) {
       // connected scatterplot
       return {
         visual: {

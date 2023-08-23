@@ -93,6 +93,8 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         if (audioCtrl.current === 'sequence') {
           if (note.speakBefore && readAudioAxis && !muted) {
             Tone.Transport.pause();
+            Sonifier.releaseSynth();
+            speechSynthesis.cancel();
             setSpecIndices(note.indices);
             const utterance = new SpeechSynthesisUtterance(note.speakBefore);
             utterance.rate = speechRate;
