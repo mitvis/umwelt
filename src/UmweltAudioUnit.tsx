@@ -405,20 +405,22 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           fieldsToAdd.push(domainFilter.field);
         }
       }
-      label += ` by ${fieldsToAdd.map(field => {
-        if (domainFilter) {
-          if ('and' in domainFilter) {
-            const predTerm = domainFilter.and.find(pred => 'field' in pred && pred.field === field);
-            if (predTerm) {
-              return predicateToDescription(predTerm, fields);
+      if (fieldsToAdd.length) {
+        label += ` by ${fieldsToAdd.map(field => {
+          if (domainFilter) {
+            if ('and' in domainFilter) {
+              const predTerm = domainFilter.and.find(pred => 'field' in pred && pred.field === field);
+              if (predTerm && 'field' in predTerm && getFieldDef(predTerm.field, fields)) {
+                return predicateToDescription(predTerm, fields);
+              }
+            }
+            else if ('field' in domainFilter && domainFilter.field === field) {
+              return predicateToDescription(domainFilter, fields);
             }
           }
-          else if ('field' in domainFilter && domainFilter.field === field) {
-            return predicateToDescription(domainFilter, fields);
-          }
-        }
-        return `${field}`
-      }).join(', ')}`;
+          return `${field}`
+        }).join(', ')}`;
+      }
       return label;
     }
   }
