@@ -363,7 +363,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
     return <div className="audio-spec"></div>;
   }
 
-  function fromBeginningLabel() {
+  function fromBeginningLabel(): string {
     if (audioUnitSpec.traversal?.length) {
       const outerMostField = audioUnitSpec.traversal[0].field;
       const outerMostFieldDef = getFieldDef(outerMostField, fields);
@@ -388,7 +388,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         }
       }
       else {
-        label = outerDomain[0];
+        label = fmtValue(outerDomain[0], outerMostFieldDef);
       }
       if (outerDomain.length > 1) {
         label = `${fmtValue(outerDomain[0], outerMostFieldDef)} to ${fmtValue(outerDomain[outerDomain.length - 1], outerMostFieldDef)}`;
