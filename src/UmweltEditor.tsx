@@ -793,28 +793,19 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                 <button onClick={() => addKey()}>Add field to key</button>
               ) : null
             } */}
-            {
-              key?.length ? (
-                [...key].reverse().map((fieldName, idx) => {
-                  const reversedIdx = key.length - idx - 1;
-                  return (
-                    <div key={`key-${reversedIdx}`}>
-                      <select value={fieldName} onChange={(e) => changeKey(e.target.value, reversedIdx)}>
-                        <option key={fieldName} value={fieldName}>{fieldName}</option>
-                        {
-                          fields.filter(field => !key.includes(field.name)).map(field => {
-                            return (
-                              <option key={field.name} value={field.name}>{field.name}</option>
-                            )
-                          })
-                        }
-                      </select>
-                      {/* <button onClick={() => removeKey(fieldName)}>Remove field from key</button> */}
-                    </div>
-                  )
-                })
-              ) : 'None'
-            }
+            <div>
+              {
+                key?.length ? (
+                  key.map((fieldName) => {
+                    return (
+                      <div key={fieldName}>
+                        {fieldName}
+                      </div>
+                    )
+                  })
+                ) : 'None'
+              }
+            </div>
           </div>
         </div>
         {
