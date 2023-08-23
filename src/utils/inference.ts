@@ -117,7 +117,14 @@ export const inferKey = async (fields: FieldDef[], data: OlliDataset): Promise<s
     return all;
   };
 
-  const candidateFields = fields.filter((fieldDef) => !fieldDef.aggregate);
+  const candidateFields = fields
+    .filter((fieldDef) => !fieldDef.aggregate)
+    .filter((fieldDef) => {
+      if (fieldDef.type === 'quantitative') {
+        return fieldDef.bin || fieldDef.timeUnit;
+      }
+      return true;
+    });
   const keyCandidates: FieldDef[][] = combine(candidateFields, 1);
   const shortestPossibleKeys = [];
 
@@ -146,10 +153,6 @@ export const inferKey = async (fields: FieldDef[], data: OlliDataset): Promise<s
   }
   if (shortestPossibleKeys.length === 1) {
     return shortestPossibleKeys[0].map((fieldDef) => fieldDef.name);
-  }
-  if (shortestPossibleKeys.length > 1) {
-    const noQuant = shortestPossibleKeys.find((key) => key.every((field) => field.type !== 'quantitative'));
-    if (noQuant) return noQuant.map((fieldDef) => fieldDef.name);
   }
 
   // multiple key candidates, dont return one to be safe
