@@ -513,7 +513,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
       </div>
       <div>
         <label>
-          Playback mode
+          Playback order
           <select ref={playbackModeElement} value={playbackMode} onChange={(e) => setPlaybackMode(e.target.value)}>
             {/* <option value="current">Current</option> */}
             {/* <option value="onward">From current onward</option> */}
