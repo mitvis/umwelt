@@ -364,6 +364,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   function fromBeginningLabel() {
     if (audioUnitSpec.traversal?.length) {
       const outerMostField = audioUnitSpec.traversal[0].field;
+      const outerMostFieldDef = getFieldDef(outerMostField, fields);
       const outerDomain = specDomains[outerMostField];
       let label;
       if (!outerDomain.length) {
@@ -372,12 +373,12 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
             const predTerm = domainFilter.and.find(pred => 'field' in pred && pred.field === outerMostField);
             if (predTerm && 'field' in predTerm) {
               const {field, ...rest} = predTerm;
-              label = Object.values(rest).join(',');
+              label = Object.values(rest).map((v) => fmtValue(v, getFieldDef(field, fields))).join(',');
             }
           }
           else if ('field' in domainFilter && domainFilter.field === outerMostField) {
             const {field, ...rest} = domainFilter;
-            label = Object.values(rest).join(',');
+            label = Object.values(rest).map((v) => fmtValue(v, getFieldDef(field, fields))).join(',');
           }
           else {
             label = outerMostField;
@@ -388,7 +389,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         label = outerDomain[0];
       }
       if (outerDomain.length > 1) {
-        label = `${outerDomain[0]} to ${outerDomain[outerDomain.length - 1]}`;
+        label = `${fmtValue(outerDomain[0], outerMostFieldDef)} to ${fmtValue(outerDomain[outerDomain.length - 1], outerMostFieldDef)}`;
       }
       const fieldsToAdd = audioUnitSpec.traversal.filter((_, idx) => idx > 0).map(t => t.field);
       if (domainFilter) {
