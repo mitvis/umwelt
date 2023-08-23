@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { OlliDataset } from 'olli';
 import { AudioSpec, AudioUnitSpec, FieldDef, MeasureType, VisualSpec, VisualUnitSpec } from '../grammar/Types';
-import { getData, getDomain, getTransformedData } from './data';
+import { getData, getDomain, getFieldDef, getTransformedData } from './data';
 import { dateToTimeUnit } from './values';
 
 export function elaborateFields(fields: FieldDef[], data: OlliDataset): FieldDef[] {
@@ -147,6 +147,12 @@ export const inferKey = async (fields: FieldDef[], data: OlliDataset): Promise<s
   if (shortestPossibleKeys.length === 1) {
     return shortestPossibleKeys[0].map((fieldDef) => fieldDef.name);
   }
+  if (shortestPossibleKeys.length > 1) {
+    const noQuant = shortestPossibleKeys.find((key) => key.every((field) => field.type !== 'quantitative'));
+    if (noQuant) return noQuant.map((fieldDef) => fieldDef.name);
+  }
+
+  // multiple key candidates, dont return one to be safe
   return [];
 };
 
