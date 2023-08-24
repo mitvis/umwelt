@@ -6,8 +6,8 @@ import { isNumber } from 'vega';
 export type ScaleFunction = (value: any) => any;
 
 export const DEFAULT_RANGES: { [prop: string]: [number, number] } = {
-  volume: [-30, 0], // in decibels
-  pitch: [36, 76], // in MIDI
+  volume: [-45, -5], // in decibels
+  pitch: [48, 76], // in MIDI
   duration: [0.25, 1], // in seconds
 };
 

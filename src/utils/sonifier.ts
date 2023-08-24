@@ -1,5 +1,6 @@
 import * as Tone from 'tone';
 import { AudioUnitFieldSelectedIndices } from '../UmweltAudioUnit';
+import { DEFAULT_RANGES } from './scales';
 
 export type SonifierNote = {
   duration: number; // duration in seconds
@@ -37,14 +38,14 @@ class UmweltSonifier {
     this.vol = new Tone.Volume().toDestination();
     this.vol.mute = false;
 
-    this.synth = new Tone.Synth({ oscillator: { type: 'square8' } }).connect(this.vol);
+    this.synth = new Tone.Synth({ oscillator: { type: 'triangle' } }).connect(this.vol);
 
     this.noise = new Tone.NoiseSynth({
       envelope: {
         sustain: 0.1,
         attackCurve: 'sine',
       },
-      volume: -30,
+      volume: DEFAULT_RANGES.volume[0],
     }).connect(this.vol);
 
     Tone.Transport.on('pause', () => {
