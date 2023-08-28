@@ -75,7 +75,7 @@ export interface AudioEncodingFieldDef {
   field: FieldName;
   //
   scale?: ScaleDomain & ScaleRange;
-  timeUnit?: string;
+  // timeUnit?: string;
   aggregate?: NonArgAggregateOp | typeof NONE;
   sort?: Sort<any>;
   // bin: undefined;

@@ -141,7 +141,7 @@ export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: O
           olliSpec.fields.push({
             field: encoding.field,
             type: fieldDef.type,
-            timeUnit: encoding.timeUnit ?? fieldDef.timeUnit,
+            timeUnit: 'timeUnit' in encoding ? encoding.timeUnit ?? fieldDef.timeUnit : fieldDef.timeUnit,
           });
         }
       });

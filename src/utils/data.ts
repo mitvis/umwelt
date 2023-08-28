@@ -134,12 +134,12 @@ export const getDomain = moize((fieldDef: EncodingFieldDef, data: OlliDataset, p
   const unique_vals = new Set<OlliValue>();
   const dataset = predicate ? selectionTest(data, predicate) : data;
   // TODO account for domain overrides in the field def
-  if (fieldDef.timeUnit) {
+  if ('timeUnit' in fieldDef && fieldDef.timeUnit) {
     const unique_time_vals = new Set<string>();
     dataset
       .map((d) => d[fieldDef.field])
       .forEach((v) => {
-        if (v instanceof Date) {
+        if (v instanceof Date && 'timeUnit' in fieldDef) {
           const time_val = dateToTimeUnit(v, fieldDef.timeUnit);
           if (!unique_time_vals.has(time_val)) {
             unique_time_vals.add(time_val);

@@ -93,9 +93,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
         if (audioCtrl.current === 'sequence') {
           if (note.speakBefore && readAudioAxis && !muted) {
             Tone.Transport.pause();
-            Sonifier.releaseSynth();
-            speechSynthesis.cancel();
             setSpecIndices(note.indices);
+            // Sonifier.releaseSynth();
+            speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(note.speakBefore);
             utterance.rate = speechRate;
             utterance.onend = () => {
@@ -502,7 +502,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           if (fieldDef) {
             return (
               <div key={propName}>
-                {propName}: <span>{(encFieldDef.aggregate ?? fieldDef.aggregate) && encFieldDef.aggregate as any !== NONE ? `${encFieldDef.aggregate ?? fieldDef.aggregate} ` : null}{encFieldDef.field}{(encFieldDef.timeUnit ?? fieldDef.timeUnit) && encFieldDef.timeUnit !== NONE ? ` (${encFieldDef.timeUnit ?? fieldDef.timeUnit})` : null}</span>
+                {propName}: <span>{(encFieldDef.aggregate ?? fieldDef.aggregate) && encFieldDef.aggregate as any !== NONE ? `${encFieldDef.aggregate ?? fieldDef.aggregate} ` : null}{encFieldDef.field}</span>
               </div>
             )
           }
