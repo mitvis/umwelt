@@ -11,7 +11,7 @@ import * as Tone from 'tone';
 import { nodeIsTextInput } from './utils/events';
 import { debounce } from 'vega';
 import { clamp, fmtValue } from './utils/values';
-import { predicateToDescription, selectionTest } from './utils/selection';
+import { predicateToDescription, predicateToFields, selectionTest } from './utils/selection';
 import { DEFAULT_RANGES, scale } from './utils/scales';
 
 interface AudioUnitProps {
@@ -267,23 +267,25 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   useEffect(() => {
     // update specStates using domain filter
-    const nextDomains = getFieldDomains(audioUnitSpec, domainFilter);
-    const selectedValues = Object.fromEntries(
-      Object.entries(specIndices).map(([field, index]) => {
-        return [field, specDomains[field][index]];
-      })
-    );
-    // if a value exists in the new domain, use its new index
-    const remappedIndices = Object.fromEntries(
-      Object.keys(specIndices).map((field) => {
-        const nextIndex = nextDomains[field]?.findIndex(v => v === selectedValues[field]) || -1;
-        return [field, nextIndex === -1 ? 0 : nextIndex];
-      })
-    )
+    if (audioStateIsCurrent()) {
+      const nextDomains = getFieldDomains(audioUnitSpec, domainFilter);
+      const selectedValues = Object.fromEntries(
+        Object.entries(specIndices).map(([field, index]) => {
+          return [field, specDomains[field][index]];
+        })
+      );
+      // if a value exists in the new domain, use its new index
+      const remappedIndices = Object.fromEntries(
+        Object.keys(specIndices).map((field) => {
+          const nextIndex = nextDomains[field]?.findIndex(v => v === selectedValues[field]) || -1;
+          return [field, nextIndex === -1 ? 0 : nextIndex];
+        })
+      )
 
-    setAudioCtrl('umwelt');
-    setSpecDomains(nextDomains);
-    setSpecIndices(remappedIndices);
+      setAudioCtrl('umwelt');
+      setSpecDomains(nextDomains);
+      setSpecIndices(remappedIndices);
+    }
   }, [domainFilter]);
 
   useEffect(debounce(250, () => {
@@ -356,7 +358,9 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   function audioStateIsCurrent() {
     return Object.keys(specIndices).every(field => getFieldDef(field, fields)) &&
       Object.keys(specDomains).every(field => getFieldDef(field, fields)) &&
-      audioUnitSpec.traversal.every(f => getFieldDef(f.field, fields) && specIndices[f.field] !== undefined && specDomains[f.field] !== undefined);
+      audioUnitSpec.traversal.every(f => getFieldDef(f.field, fields) && specIndices[f.field] !== undefined && specDomains[f.field] !== undefined) && (
+        !domainFilter || (domainFilter && predicateToFields(domainFilter).every(field => getFieldDef(field, fields)))
+      );
   }
 
   if (!audioStateIsCurrent()) {

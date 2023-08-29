@@ -241,3 +241,16 @@ function fieldPredicateToDescription(predicate: FieldPredicate, fields: FieldDef
 
   return '';
 }
+
+export function predicateToFields(predicate: UmweltPredicate): string[] {
+  if ('and' in predicate) {
+    return predicate.and.flatMap((p) => predicateToFields(p));
+  }
+  if ('or' in predicate) {
+    return predicate.or.flatMap((p) => predicateToFields(p));
+  }
+  if ('not' in predicate) {
+    return predicateToFields(predicate.not);
+  }
+  return [predicate.field];
+}
