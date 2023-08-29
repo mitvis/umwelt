@@ -104,7 +104,7 @@ export function assignNoteSpeakBefore(notes: SonifierNote[], specDomains: AudioU
               }
               return b[0] <= prevNoteValue && prevNoteValue < b[1];
             });
-            if (binIdx !== prevBinIdx && !(idx === 1 && fmtValue(bins[binIdx][0], fieldDef) === fmtValue(prevNoteValue, fieldDef))) {
+            if (binIdx > -1 && prevBinIdx > -1 && binIdx !== prevBinIdx && !(idx === 1 && fmtValue(bins[binIdx][0], fieldDef) === fmtValue(prevNoteValue, fieldDef))) {
               announcement.push(fmtValue(bins[binIdx][0], fieldDef));
             }
           }
