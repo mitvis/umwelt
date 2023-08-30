@@ -188,35 +188,37 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   const doInference = (keyFieldDefs, valueFieldDefs) => {
     const inference = inferUnitsFromKeys(keyFieldDefs, valueFieldDefs, data);
-    const nextFields = structuredClone(fields);
-    nextFields.forEach(fieldDef => {
-      fieldDef.encodings = [];
-    })
-    if (inference && inference.visual) {
-      setVisualUnitSpecs(inference.visual.units);
-      setVisualComposition(inference.visual.composition);
-      inference.visual.units.forEach(unit => {
-        Object.entries(unit.encoding).forEach(([propName, encFieldDef]) => {
-          const field = encFieldDef.field;
-          const encodingRef: EncodingRef = {property: propName as any, unit: unit.name};
-          const fieldDef = nextFields.find(f => f.name === field);
-          fieldDef.encodings.push(encodingRef);
+    if (inference && (inference.audio || inference.visual)) {
+      const nextFields = structuredClone(fields);
+      nextFields.forEach(fieldDef => {
+        fieldDef.encodings = [];
+      })
+      if (inference && inference.visual) {
+        setVisualUnitSpecs(inference.visual.units);
+        setVisualComposition(inference.visual.composition);
+        inference.visual.units.forEach(unit => {
+          Object.entries(unit.encoding).forEach(([propName, encFieldDef]) => {
+            const field = encFieldDef.field;
+            const encodingRef: EncodingRef = {property: propName as any, unit: unit.name};
+            const fieldDef = nextFields.find(f => f.name === field);
+            fieldDef.encodings.push(encodingRef);
+          });
         });
-      });
-    }
-    if (inference && inference.audio) {
-      setAudioUnitSpecs(inference.audio.units);
-      setAudioComposition(inference.audio.composition);
-      inference.audio.units.forEach(unit => {
-        Object.entries(unit.encoding).forEach(([propName, encFieldDef]) => {
-          const field = encFieldDef.field;
-          const encodingRef: EncodingRef = {property: propName as any, unit: unit.name};
-          const fieldDef = nextFields.find(f => f.name === field);
-          fieldDef.encodings.push(encodingRef);
+      }
+      if (inference && inference.audio) {
+        setAudioUnitSpecs(inference.audio.units);
+        setAudioComposition(inference.audio.composition);
+        inference.audio.units.forEach(unit => {
+          Object.entries(unit.encoding).forEach(([propName, encFieldDef]) => {
+            const field = encFieldDef.field;
+            const encodingRef: EncodingRef = {property: propName as any, unit: unit.name};
+            const fieldDef = nextFields.find(f => f.name === field);
+            fieldDef.encodings.push(encodingRef);
+          });
         });
-      });
+      }
+      setFields(nextFields);
     }
-    setFields(nextFields);
   }
 
   useEffect(() => {
