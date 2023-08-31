@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AudioEncoding, AudioEncodingFieldDef, AudioPropName, AudioTraversalFieldDef, AudioUnitSpec, EncodingPropName, EncodingRef, FieldDef, NONE, UmweltSpec, ViewComposition, VisualEncoding, VisualEncodingFieldDef, VisualPropName, VisualUnitSpec } from './grammar';
 import { OlliDataset } from 'olli';
-import { cleanData, getData, typeCoerceData } from './utils/data';
+import { cleanData, getData, getDomain, typeCoerceData } from './utils/data';
 import { elaborateFields, inferKey, inferUnitsFromKeys } from './utils/inference';
+import dayjs from 'dayjs';
 
 import './UmweltEditor.css'
 import { nodeIsTextInput } from './utils/events';
+import { isNumeric } from './utils/values';
+import { isString } from 'vega';
 
 interface EditorProps {
   initialSpec: UmweltSpec;
@@ -39,7 +42,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   const lastFocused = useRef<HTMLElement>();
 
 
-  const mtypes = ['quantitative', 'nominal', 'ordinal', 'temporal'];
   const visualPropNames: VisualPropName[] = ['x', 'y', 'color', 'shape', 'size', 'opacity', 'order', 'facet'];
   const audioPropNames: AudioPropName[] = ['pitch', 'duration', 'volume'];
   const commonPropNames = ['x', 'y', 'color', 'pitch'].reverse();
@@ -73,6 +75,18 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     else if (audioPropNames.includes(propName as AudioPropName)) {
       return audioUnitSpecs.filter(spec => spec.encoding[propName]?.field !== fieldName).map(spec => spec.name);
     }
+  }
+
+  const assignableMtypes = (field: FieldDef) => {
+    const mtypes = ['nominal', 'ordinal'];
+    const domain = getDomain({...field, field: field.name}, data);
+    if (domain.every(v => dayjs(v).isValid())) {
+      mtypes.push('temporal')
+    }
+    if (domain.every(v => v ? Number(v) === v || (isString(v) && isNumeric(v)) : true)) {
+      mtypes.push('quantitative');
+    }
+    return mtypes;
   }
 
   useEffect(() => {
@@ -434,23 +448,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       }
       return spec;
     }));
-  }
-
-  const addKey = () => {
-    const nextField = fields.find(field => !key.includes(field.name)).name;
-    const newKey = [...key, nextField];
-    setKey(newKey);
-  }
-
-  const changeKey = (fieldName, idx) => {
-    const newKey = [...key];
-    newKey[idx] = fieldName;
-    setKey(newKey);
-  }
-
-  const removeKey = (fieldName: string) => {
-    const newKey = key.filter(field => field !== fieldName);
-    setKey(newKey);
   }
 
   const addEncoding = (field: FieldDef) => {
@@ -820,7 +817,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     Type
                     <select value={field.type} onChange={(e) => onSelectType(field, e.target.value)}>
                         {
-                          mtypes.map(mtype => {
+                          assignableMtypes(field).map(mtype => {
                             return (
                               <option key={mtype} value={mtype}>{mtype}</option>
                             )

@@ -1,6 +1,7 @@
 import { NONE, UmweltSpec, VlSpec } from './Types';
 import { VegaLiteAdapter } from 'olli-adapters';
 import { OlliSpec, OlliDataset } from 'olli';
+import { getDomain } from '../utils/data';
 
 export * from './Types';
 
@@ -45,10 +46,22 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
         };
         encoding[channel] = Object.fromEntries(Object.entries(encoding[channel]).filter(([k, v]) => v !== NONE));
         if (channel === 'facet') {
+          const domain = getDomain(encoding[channel], spec.fields);
           encoding[channel] = {
             ...encoding[channel],
-            columns: 2,
+            columns: domain.length === 3 ? 3 : 2, // TODO do something better
           } as any;
+        }
+        if (unit.mark === 'point') {
+          if ((channel === 'x' || channel === 'y') && fieldDef.type === 'quantitative') {
+            encoding[channel] = {
+              ...encoding[channel],
+              scale: {
+                ...encoding[channel].scale,
+                zero: false,
+              },
+            };
+          }
         }
       });
       return {
