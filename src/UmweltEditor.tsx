@@ -18,7 +18,7 @@ interface EditorProps {
 const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
 
   const [tab, setTab] = useState<'data' | 'fields' | 'visual' | 'audio'>('data');
-  const [dataUrlInput, setDataUrlInput] = useState<string>(`stocks.csv`);
+  const [dataUrlInput, setDataUrlInput] = useState<string>('stocks.csv');
   const [dataUrl, setDataUrl] = useState<string>();
   const [data, setData] = useState<OlliDataset>([]);
   const [fields, setFields] = useState<FieldDef[]>([]);
@@ -88,6 +88,35 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }
     return mtypes;
   }
+
+  useEffect(() => {
+    if (initialSpec) {
+      if ('url' in initialSpec.data) {
+        const match = vegaDatasets.find(dataset => 'url' in initialSpec.data && initialSpec.data.url.endsWith(dataset));
+        if (match) {
+          setDataUrlInput(match);
+        }
+        setDataUrl(initialSpec.data.url);
+      }
+      window.setTimeout(() => {
+        if (initialSpec.fields) {
+          setFields(initialSpec.fields);
+        }
+        if (initialSpec.key) {
+          setKey(initialSpec.key);
+        }
+        if (initialSpec.visual) {
+          setVisualUnitSpecs(initialSpec.visual.units);
+          setVisualComposition(initialSpec.visual.composition);
+        }
+        if (initialSpec.audio) {
+          setAudioUnitSpecs(initialSpec.audio.units);
+          setAudioComposition(initialSpec.audio.composition);
+        }
+      }, 500)
+
+    }
+  }, [initialSpec])
 
   useEffect(() => {
     if (data && data.length > 0) {

@@ -5,6 +5,16 @@ import { getDomain } from '../utils/data';
 
 export * from './Types';
 
+export function validateSpec(spec: UmweltSpec) {
+  if (!spec.data) {
+    return false;
+  }
+  if (!(spec.fields && spec.fields.length)) {
+    return false;
+  }
+  return true;
+}
+
 export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpec {
   if (spec.visual === false || spec.visual.units.length === 0) {
     return null;

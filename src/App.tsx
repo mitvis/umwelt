@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import Debounce from 'react-debounce-component';
 import { OlliDataset } from 'olli';
 import Umwelt from './Umwelt';
-import { UmweltSpec } from './grammar';
+import { UmweltSpec, validateSpec } from './grammar';
 import UmweltEditor from './UmweltEditor';
+import LZString from 'lz-string';
 
 function App() {
 
@@ -30,9 +31,28 @@ function App() {
     // useState("connected-scatterplot.uw.json");
 
   const [props, setProps] = useState<{spec: UmweltSpec, data: OlliDataset}>(null);
+  const [initialSpec, setInitialSpec] = useState<UmweltSpec>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const spec = params.get('spec');
+    if (spec) {
+      try {
+        const maybeSpec = JSON.parse(LZString.decompressFromEncodedURIComponent(spec));
+        if (validateSpec(maybeSpec)) {
+          setInitialSpec(maybeSpec);
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+  }, [])
 
   const onSpec = useCallback((spec: UmweltSpec, data: OlliDataset) => {
     setProps({spec, data});
+    const params = new URLSearchParams(window.location.search);
+    params.set('spec', LZString.compressToEncodedURIComponent(JSON.stringify(spec)));
+    window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
   }, []);
 
   return (
@@ -51,7 +71,7 @@ function App() {
           </select>
         </div> */}
         <h1 id="header-editor">Editor</h1>
-        <UmweltEditor initialSpec={specs[selectedSpec]} onSpec={onSpec} />
+        <UmweltEditor initialSpec={initialSpec} onSpec={onSpec} />
 
 
       </div>
