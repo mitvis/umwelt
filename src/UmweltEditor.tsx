@@ -840,11 +840,11 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           fields.map(field => {
             return (
               <div className='field-def' key={field.name}>
-                <h5 className='def-name'>{field.name}</h5>
+                <h5 id={`label-${field.name}`} className='def-name'>{field.name}</h5>
                 <div className='def-property'>
                   <label>
                     Type
-                    <select value={field.type} onChange={(e) => onSelectType(field, e.target.value)}>
+                    <select aria-describedby={`label-${field.name}`} value={field.type} onChange={(e) => onSelectType(field, e.target.value)}>
                         {
                           assignableMtypes(field).map(mtype => {
                             return (
@@ -881,7 +881,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     {
                       field.encodings.length < propertyNames.length ?
                       (
-                        <button onClick={() => addEncoding(field)}>Add encoding</button>
+                        <button aria-describedby={`label-${field.name}`} onClick={() => addEncoding(field)}>Add encoding</button>
                       ) : null
                     }
                     {
@@ -889,7 +889,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         const reversedIdx = field.encodings.length - idx - 1;
                         return (
                           <div key={`${encodingRef.property}-${encodingRef.unit}`}>
-                            <select value={encodingRef.property} onChange={(e) => onSelectEncoding(field.name, reversedIdx, e.target.value)}>
+                            <select aria-describedby={`label-${field.name}`} value={encodingRef.property} onChange={(e) => onSelectEncoding(field.name, reversedIdx, e.target.value)}>
                               {
                                 !assignablePropertyNames().includes(encodingRef.property) ? (
                                   <option value={encodingRef.property}>{encodingRef.property}</option>
@@ -906,7 +906,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                             {
                               ((visualPropNames.includes(encodingRef.property as any) && visualUnitSpecs.length > 1) ||
                                (audioPropNames.includes(encodingRef.property as any) && audioUnitSpecs.length > 1)) ? (
-                                <select value={encodingRef.unit} onChange={(e) => onSelectUnit(field.name, reversedIdx, e.target.value)}>
+                                <select aria-describedby={`label-${field.name}`} value={encodingRef.unit} onChange={(e) => onSelectUnit(field.name, reversedIdx, e.target.value)}>
                                   {
                                     !assignableUnitsForFieldAndProperty(field.name, encodingRef.property).includes(encodingRef.unit) ? (
                                       <option value={encodingRef.unit}>{encodingRef.unit}</option>
@@ -936,7 +936,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                     <div className='def-property'>
                       <label>
                         Aggregate
-                        <select value={field.aggregate} onChange={(e) => onSelectFieldProperty(field, 'aggregate', e.target.value)}>
+                        <select aria-describedby={`label-${field.name}`} value={field.aggregate} onChange={(e) => onSelectFieldProperty(field, 'aggregate', e.target.value)}>
                           <option value=''>None</option>
                           {
                             aggregateOps.map(aggregateOp => {
@@ -953,7 +953,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         <div className='def-property'>
                           <label>
                             Bin
-                            <input type='checkbox' checked={field.bin} onChange={(e) => onSelectFieldProperty(field, 'bin', e.target.checked)}/>
+                            <input aria-describedby={`label-${field.name}`} type='checkbox' checked={field.bin} onChange={(e) => onSelectFieldProperty(field, 'bin', e.target.checked)}/>
                           </label>
                         </div>
                       ) : null
@@ -963,7 +963,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                         <div className='def-property'>
                           <label>
                             Time unit
-                            <select value={field.timeUnit} onChange={(e) => onSelectFieldProperty(field, 'timeUnit', e.target.value)}>
+                            <select aria-describedby={`label-${field.name}`} value={field.timeUnit} onChange={(e) => onSelectFieldProperty(field, 'timeUnit', e.target.value)}>
                               <option value=''>None</option>
                               {
                                 timeUnits.map(timeUnit => {
