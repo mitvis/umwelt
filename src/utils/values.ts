@@ -82,6 +82,9 @@ export const dateToTimeUnit = moize((date: Date, timeUnit: string) => {
 });
 
 export const fmtValue = moize((value, fieldDef): string => {
+  if (Array.isArray(value)) {
+    return value.map((v) => fmtValue(v, fieldDef)).join(', ');
+  }
   if (fieldDef.type === 'temporal' && !(value instanceof Date)) {
     value = new Date(value);
   }

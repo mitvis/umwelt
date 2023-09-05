@@ -118,11 +118,10 @@ function typeCoerceDatum(lookup, datum) {
 }
 
 export function cleanData(data: OlliDataset, fields: FieldDef[]): OlliDataset {
-  const usedFields = fields.filter((f) => f.encodings?.length);
   // remove rows with null or undefined values
   return data.filter((datum) => {
     return Object.entries(datum).every(([field, value]: [string, OlliValue]) => {
-      if (usedFields.find((f) => f.name === field)) {
+      if (fields.find((f) => f.name === field)) {
         return value !== null && value !== undefined;
       }
       return true;
