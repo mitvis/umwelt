@@ -229,6 +229,23 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     doInferKey();
   }, [fields]);
 
+  useEffect(() => {
+    let didChange = false;
+    const nextVisualUnitSpecs = structuredClone(visualUnitSpecs);
+    visualUnitSpecs?.forEach((unit, i) => {
+      const xField = fields.find(f => unit.encoding.x?.field === f.name);
+      const yField = fields.find(f => unit.encoding.y?.field === f.name);
+      const orderField = fields.find(f => unit.encoding.order?.field === f.name);
+      if (!orderField && xField && yField && xField.type === 'quantitative' && yField.type === 'quantitative' && unit.mark !== 'point') {
+        nextVisualUnitSpecs[i].mark = 'point';
+        didChange = true;
+      }
+    });
+    if (didChange) {
+      setVisualUnitSpecs(nextVisualUnitSpecs);
+    }
+  }, [visualUnitSpecs])
+
   const doInference = (keyFieldDefs, valueFieldDefs) => {
     const inference = inferUnitsFromKeys(keyFieldDefs, valueFieldDefs, data);
     if (inference && (inference.audio || inference.visual)) {
