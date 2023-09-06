@@ -337,6 +337,39 @@ export const inferUnitsFromKeys = (
     }
   }
   const quantValues = values.filter((f) => f.type === 'quantitative');
+  if (values.length === 2 && quantValues.length === 1) {
+    const temporalValue = values.find((f) => f.type === 'temporal');
+    if (temporalValue) {
+      // temporal dot plot
+      return {
+        visual: {
+          units: [
+            {
+              name: 'vis_unit_0',
+              mark: 'point',
+              encoding: {
+                x: { field: temporalValue.name },
+                y: { field: quantValues[0].name },
+              },
+            },
+          ],
+          composition: 'layer',
+        },
+        audio: {
+          units: [
+            {
+              name: `audio_unit_0`,
+              encoding: {
+                pitch: { field: quantValues[0].name, aggregate: 'mean' },
+              },
+              traversal: [{ field: temporalValue.name }],
+            },
+          ],
+          composition: 'concat',
+        },
+      };
+    }
+  }
   if (quantValues.length === 2) {
     if (keys.length === 0) {
       if (values.length === 2) {
