@@ -1,10 +1,10 @@
 import { OlliDataset } from 'olli';
-import { AudioAggregateOp, EncodingFieldDef } from '../grammar';
+import { AudioAggregateOp, EncodingFieldDef, NONE } from '../grammar';
 
 const mean = (array) => array.reduce((a, b) => a + b) / array.length;
 
 export function aggregate(encodingFieldDef: EncodingFieldDef, data: OlliDataset): number {
-  if (encodingFieldDef.aggregate) {
+  if (encodingFieldDef.aggregate && encodingFieldDef.aggregate !== NONE) {
     if (data.length) {
       switch (encodingFieldDef.aggregate as AudioAggregateOp) {
         case 'mean':

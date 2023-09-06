@@ -931,65 +931,73 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                   </div>
                 </div>
                 <div>
-                  <details>
-                    <summary>Additional options</summary>
-                    <div className='def-property'>
-                      <label>
-                        Aggregate
-                        <select aria-describedby={`label-${field.name}`} value={field.aggregate} onChange={(e) => onSelectFieldProperty(field, 'aggregate', e.target.value)}>
-                          <option value=''>None</option>
-                          {
-                            aggregateOps.map(aggregateOp => {
-                              return (
-                                <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
-                              )
-                            })
-                          }
-                        </select>
-                      </label>
-                    </div>
-                    {
-                      field.type === 'quantitative' || field.type === 'temporal' ? (
+                  {
+                    (!key.includes(field.name) && field.type === 'quantitative') || field.type === 'quantitative' || field.type === 'temporal' ? (
+                      <details>
+                        <summary>Additional options</summary>
+                        {
+                          !key.includes(field.name) && field.type === 'quantitative' ? (
+                            <div className='def-property'>
+                              <label>
+                                Aggregate
+                                <select aria-describedby={`label-${field.name}`} value={field.aggregate} onChange={(e) => onSelectFieldProperty(field, 'aggregate', e.target.value)}>
+                                  <option value=''>None</option>
+                                  {
+                                    aggregateOps.map(aggregateOp => {
+                                      return (
+                                        <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
+                                      )
+                                    })
+                                  }
+                                </select>
+                              </label>
+                            </div>
+                          ) : null
+                        }
+                        {
+                          field.type === 'quantitative' || field.type === 'temporal' ? (
+                            <div className='def-property'>
+                              <label>
+                                Bin
+                                <input aria-describedby={`label-${field.name}`} type='checkbox' checked={field.bin} onChange={(e) => onSelectFieldProperty(field, 'bin', e.target.checked)}/>
+                              </label>
+                            </div>
+                          ) : null
+                        }
+                        {
+                          field.type === 'temporal' ? (
+                            <div className='def-property'>
+                              <label>
+                                Time unit
+                                <select aria-describedby={`label-${field.name}`} value={field.timeUnit} onChange={(e) => onSelectFieldProperty(field, 'timeUnit', e.target.value)}>
+                                  <option value=''>None</option>
+                                  {
+                                    timeUnits.map(timeUnit => {
+                                      return (
+                                        <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
+                                      )
+                                    })
+                                  }
+                                </select>
+                              </label>
+                            </div>
+                          ) : null
+                        }
+                        {/* <div className='def-property'>
+                          <label>
+                            Scale
+                            (todo: domain, zero, nice)
+                            </label>
+                        </div>
                         <div className='def-property'>
                           <label>
-                            Bin
-                            <input aria-describedby={`label-${field.name}`} type='checkbox' checked={field.bin} onChange={(e) => onSelectFieldProperty(field, 'bin', e.target.checked)}/>
+                            Sort
+                            (todo: ascending, descending, by encoding, by field, etc)
                           </label>
-                        </div>
-                      ) : null
-                    }
-                    {
-                      field.type === 'temporal' ? (
-                        <div className='def-property'>
-                          <label>
-                            Time unit
-                            <select aria-describedby={`label-${field.name}`} value={field.timeUnit} onChange={(e) => onSelectFieldProperty(field, 'timeUnit', e.target.value)}>
-                              <option value=''>None</option>
-                              {
-                                timeUnits.map(timeUnit => {
-                                  return (
-                                    <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
-                                  )
-                                })
-                              }
-                            </select>
-                          </label>
-                        </div>
-                      ) : null
-                    }
-                    {/* <div className='def-property'>
-                      <label>
-                        Scale
-                        (todo: domain, zero, nice)
-                        </label>
-                    </div>
-                    <div className='def-property'>
-                      <label>
-                        Sort
-                        (todo: ascending, descending, by encoding, by field, etc)
-                      </label>
-                    </div> */}
-                  </details>
+                        </div> */}
+                      </details>
+                    ) : null
+                  }
                 </div>
               </div>
             );
@@ -1037,65 +1045,73 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                               <button aria-describedby={`label-${visualUnitSpec.name}-${propName}`} id={`encoding-${visualUnitSpec.name}-${propName}`} onClick={() => jumpToField(propValue.field, propName)}>Go to fields tab</button>
                               <button aria-describedby={`label-${visualUnitSpec.name}-${propName}`} onClick={() => removeEncoding(visualUnitSpec, propName)}>Remove encoding</button>
                             </div>
-                            <details>
-                              <summary>Additional options</summary>
-                              <div className='def-property'>
-                                <label>
-                                  Aggregate
-                                  <select value={propValue.aggregate ?? fieldDef.aggregate} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'aggregate', e.target.value)}>
-                                    <option value={NONE}>None</option>
-                                    {
-                                      aggregateOps.map(aggregateOp => {
-                                        return (
-                                          <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
-                                        )
-                                      })
-                                    }
-                                  </select>
-                                </label>
-                              </div>
-                              {
-                                fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' ? (
+                            {
+                              (!key.includes(fieldDef.name) && fieldDef.type === 'quantitative') || fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' ? (
+                                <details>
+                                  <summary>Additional options</summary>
+                                  {
+                                    !key.includes(fieldDef.name) && fieldDef.type === 'quantitative' ? (
+                                      <div className='def-property'>
+                                        <label>
+                                          Aggregate
+                                          <select value={propValue.aggregate ?? fieldDef.aggregate} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'aggregate', e.target.value)}>
+                                            <option value={NONE}>None</option>
+                                            {
+                                              aggregateOps.map(aggregateOp => {
+                                                return (
+                                                  <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
+                                                )
+                                              })
+                                            }
+                                          </select>
+                                        </label>
+                                      </div>
+                                    ) : null
+                                  }
+                                  {
+                                    fieldDef.type === 'quantitative' || fieldDef.type === 'temporal' ? (
+                                      <div className='def-property'>
+                                        <label>
+                                          Bin
+                                          <input type='checkbox' checked={propValue.bin ?? fieldDef.bin} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'bin', e.target.checked)}/>
+                                        </label>
+                                      </div>
+                                    ) : null
+                                  }
+                                  {
+                                    fieldDef.type === 'temporal' ? (
+                                      <div className='def-property'>
+                                        <label>
+                                          Time unit
+                                          <select value={propValue.timeUnit ?? fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'timeUnit', e.target.value)}>
+                                            <option value={NONE}>None</option>
+                                            {
+                                              timeUnits.map(timeUnit => {
+                                                return (
+                                                  <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
+                                                )
+                                              })
+                                            }
+                                          </select>
+                                        </label>
+                                      </div>
+                                    ) : null
+                                  }
+                                  {/* <div className='def-property'>
+                                    <label>
+                                      Scale
+                                      (todo: domain, zero, nice)
+                                      </label>
+                                  </div>
                                   <div className='def-property'>
                                     <label>
-                                      Bin
-                                      <input type='checkbox' checked={propValue.bin ?? fieldDef.bin} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'bin', e.target.checked)}/>
+                                      Sort
+                                      (todo: ascending, descending, by encoding, by field, etc)
                                     </label>
-                                  </div>
-                                ) : null
-                              }
-                              {
-                                fieldDef.type === 'temporal' ? (
-                                  <div className='def-property'>
-                                    <label>
-                                      Time unit
-                                      <select value={propValue.timeUnit ?? fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(visualUnitSpec, propName, 'timeUnit', e.target.value)}>
-                                        <option value={NONE}>None</option>
-                                        {
-                                          timeUnits.map(timeUnit => {
-                                            return (
-                                              <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
-                                            )
-                                          })
-                                        }
-                                      </select>
-                                    </label>
-                                  </div>
-                                ) : null
-                              }
-                              {/* <div className='def-property'>
-                                <label>
-                                  Scale
-                                  (todo: domain, zero, nice)
-                                  </label>
-                              </div>
-                              <div className='def-property'>
-                                <label>
-                                  Sort
-                                  (todo: ascending, descending, by encoding, by field, etc)
-                                </label>
-                              </div> */}
-                            </details>
+                                  </div> */}
+                                </details>
+                              ) : null
+                            }
                           </div>
                         )
                       })
@@ -1158,56 +1174,64 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                               <button aria-describedby={`label-${audioUnitSpec.name}-${propName}`} id={`encoding-${audioUnitSpec.name}-${propName}`} onClick={() => jumpToField(propValue.field, propName)}>Go to fields tab</button>
                               <button aria-describedby={`label-${audioUnitSpec.name}-${propName}`} onClick={() => removeEncoding(audioUnitSpec, propName)}>Remove encoding</button>
                             </div>
-                            <details>
-                              <summary>Additional options</summary>
-                              <div className='def-property'>
-                                <label>
-                                  Aggregate
-                                  <select value={propValue.aggregate ?? fieldDef.aggregate} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'aggregate', e.target.value)}>
-                                    <option value={NONE}>None</option>
-                                    {
-                                      aggregateOps.map(aggregateOp => {
-                                        return (
-                                          <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
-                                        )
-                                      })
-                                    }
-                                  </select>
-                                </label>
-                              </div>
-                              {/* {
-                                fieldDef.type === 'temporal' ? (
+                            {
+                              !key.includes(fieldDef.name) && fieldDef.type === 'quantitative' ? (
+                                <details>
+                                  <summary>Additional options</summary>
+                                  {
+                                    !key.includes(fieldDef.name) && fieldDef.type === 'quantitative' ? (
+                                      <div className='def-property'>
+                                        <label>
+                                          Aggregate
+                                          <select value={propValue.aggregate ?? fieldDef.aggregate} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'aggregate', e.target.value)}>
+                                            <option value={NONE}>None</option>
+                                            {
+                                              aggregateOps.map(aggregateOp => {
+                                                return (
+                                                  <option key={aggregateOp} value={aggregateOp}>{aggregateOp}</option>
+                                                )
+                                              })
+                                            }
+                                          </select>
+                                        </label>
+                                      </div>
+                                    ) : null
+                                  }
+                                  {/* {
+                                    fieldDef.type === 'temporal' ? (
+                                      <div className='def-property'>
+                                        <label>
+                                          Time unit
+                                          <select value={propValue.timeUnit ?? fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'timeUnit', e.target.value)}>
+                                            <option value={NONE}>None</option>
+                                            {
+                                              timeUnits.map(timeUnit => {
+                                                return (
+                                                  <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
+                                                )
+                                              })
+                                            }
+                                          </select>
+                                        </label>
+                                      </div>
+                                    ) : null
+                                  } */}
+
+                                  {/* <div className='def-property'>
+                                    <label>
+                                      Scale
+                                      (todo: domain, zero, nice)
+                                      </label>
+                                  </div>
                                   <div className='def-property'>
                                     <label>
-                                      Time unit
-                                      <select value={propValue.timeUnit ?? fieldDef.timeUnit} onChange={(e) => onSelectEncodingProperty(audioUnitSpec, propName, 'timeUnit', e.target.value)}>
-                                        <option value={NONE}>None</option>
-                                        {
-                                          timeUnits.map(timeUnit => {
-                                            return (
-                                              <option key={timeUnit} value={timeUnit}>{timeUnit}</option>
-                                            )
-                                          })
-                                        }
-                                      </select>
+                                      Sort
+                                      (todo: ascending, descending, by encoding, by field, etc)
                                     </label>
-                                  </div>
-                                ) : null
-                              } */}
-
-                              {/* <div className='def-property'>
-                                <label>
-                                  Scale
-                                  (todo: domain, zero, nice)
-                                  </label>
-                              </div>
-                              <div className='def-property'>
-                                <label>
-                                  Sort
-                                  (todo: ascending, descending, by encoding, by field, etc)
-                                </label>
-                              </div> */}
-                            </details>
+                                  </div> */}
+                                </details>
+                              ) : null
+                            }
                           </div>
                         )
                       }) : "None"
