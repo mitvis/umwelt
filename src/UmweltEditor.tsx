@@ -1245,7 +1245,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                       audioUnitSpec.traversal.length ?
                       audioUnitSpec.traversal.map((traversal) => {
                         const fieldDef = fields.find(field => field.name === traversal.field);
-                        console.log(fields, fieldDef, traversal);
                         return (
                           <div className='enc-def' key={`${traversal.field}-${audioUnitSpec.name}`}>
                             <div className='unit-encoding-def'>
