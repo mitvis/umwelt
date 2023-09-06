@@ -452,5 +452,48 @@ export const inferUnitsFromKeys = (
         },
       };
     }
+    if (keys.length === 2 && keys.find((f) => f.type === 'temporal')) {
+      const temporalKey = keys.find((f) => f.type === 'temporal');
+      const categoricalKey = keys.find((f) => f.type === 'nominal' || f.type === 'ordinal');
+      // multi-connected scatterplot (e.g. gapminder trails)
+      if (temporalKey && categoricalKey) {
+        return {
+          visual: {
+            units: [
+              {
+                name: 'vis_unit_0',
+                mark: 'line',
+                encoding: {
+                  x: { field: quantValues[0].name },
+                  y: { field: quantValues[1].name },
+                  color: { field: categoricalKey.name },
+                  order: { field: temporalKey.name },
+                },
+              },
+            ],
+            composition: 'layer',
+          },
+          audio: {
+            units: [
+              {
+                name: 'audio_unit_0',
+                encoding: {
+                  pitch: { field: quantValues[0].name },
+                },
+                traversal: [{ field: categoricalKey.name }, { field: temporalKey.name }],
+              },
+              {
+                name: 'audio_unit_1',
+                encoding: {
+                  pitch: { field: quantValues[1].name },
+                },
+                traversal: [{ field: categoricalKey.name }, { field: temporalKey.name }],
+              },
+            ],
+            composition: 'concat',
+          },
+        };
+      }
+    }
   }
 };
