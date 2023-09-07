@@ -92,7 +92,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
   useEffect(() => {
     if (initialSpec) {
       if ('url' in initialSpec.data) {
-        const match = vegaDatasets.find(dataset => 'url' in initialSpec.data && initialSpec.data.url.endsWith(dataset));
+        const match = vegaDatasets.find(dataset => 'url' in initialSpec.data && initialSpec.data.url.endsWith('/' + dataset));
         if (match) {
           setDataUrlInput(match);
         }
