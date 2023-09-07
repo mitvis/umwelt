@@ -520,7 +520,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           if (fieldDef) {
             return (
               <div key={propName}>
-                {propName}: <span>{(encFieldDef.aggregate ?? fieldDef.aggregate) && encFieldDef.aggregate as any !== NONE ? `${encFieldDef.aggregate ?? fieldDef.aggregate} ` : null}{encFieldDef.field}</span>
+                {propName}: {(encFieldDef.aggregate ?? fieldDef.aggregate) === 'count' ? <span>count</span> : <span>{(encFieldDef.aggregate ?? fieldDef.aggregate) && encFieldDef.aggregate as any !== NONE ? `${encFieldDef.aggregate ?? fieldDef.aggregate} ` : null}{encFieldDef.field}</span>}
               </div>
             )
           }
