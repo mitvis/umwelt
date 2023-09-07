@@ -266,6 +266,19 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
   }, [selection, selectionCtrl]);
 
   useEffect(() => {
+    // TODO this is basically a hack to deal with how i did time unit in olli
+    if (domainFilter && 'and' in domainFilter) {
+      domainFilter.and = domainFilter.and.map(pred => {
+        if ('field' in pred && pred.field.endsWith('_year')) {
+          return {
+            ...pred,
+            field: pred.field.substring(0, pred.field.indexOf('_year')),
+          }
+        }
+        return pred;
+      })
+    }
+
     // update specStates using domain filter
     if (audioStateIsCurrent()) {
       const nextDomains = getFieldDomains(audioUnitSpec, domainFilter);

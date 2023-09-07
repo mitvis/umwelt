@@ -488,7 +488,7 @@ export const inferUnitsFromKeys = (
     if (keys.length === 2 && keys.find((f) => f.type === 'temporal')) {
       const temporalKey = keys.find((f) => f.type === 'temporal');
       const categoricalKey = keys.find((f) => f.type === 'nominal' || f.type === 'ordinal');
-      // multi-connected scatterplot (e.g. gapminder trails)
+      // faceted connected scatterplot (e.g. gapminder small multiples)
       if (temporalKey && categoricalKey) {
         return {
           visual: {
@@ -499,6 +499,7 @@ export const inferUnitsFromKeys = (
                 encoding: {
                   x: { field: quantValues[0].name },
                   y: { field: quantValues[1].name },
+                  facet: { field: categoricalKey.name },
                   color: { field: categoricalKey.name },
                   order: { field: temporalKey.name },
                 },
