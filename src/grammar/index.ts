@@ -143,50 +143,66 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
 export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: OlliDataset): Promise<OlliSpec> {
   let olliSpec: OlliSpec;
   if (vlSpec) {
+    console.log('vlspec', JSON.parse(JSON.stringify(vlSpec)));
     olliSpec = await VegaLiteAdapter(vlSpec as any);
+    console.log('vegaliteadapter', JSON.parse(JSON.stringify(olliSpec)), 'argh');
   } else {
     olliSpec = {
       data,
       fields: [],
     };
   }
-  if (olliSpec.fields.length === 0) {
-    delete olliSpec.mark;
-    delete olliSpec.axes;
-    delete olliSpec.legends;
-  }
-  if (spec.audio) {
-    spec.audio.units.forEach((unit) => {
-      Object.values(unit.encoding).forEach((encoding) => {
-        // if olliSpec does not have field, add it
-        if (!olliSpec.fields.find((f) => f.field === encoding.field)) {
-          const fieldDef = spec.fields.find((f) => f.name === encoding.field);
-          olliSpec.fields.push({
-            field: encoding.field,
-            type: fieldDef.type,
-            timeUnit: 'timeUnit' in encoding ? encoding.timeUnit ?? fieldDef.timeUnit : fieldDef.timeUnit,
-          });
-        }
-      });
-      unit.traversal.forEach((traversal) => {
-        if (!olliSpec.fields.find((f) => f.field === traversal.field)) {
-          const fieldDef = spec.fields.find((f) => f.name === traversal.field);
-          olliSpec.fields.push({
-            field: traversal.field,
-            type: fieldDef.type,
-            timeUnit: traversal.timeUnit ?? fieldDef.timeUnit,
-          });
-        }
-      });
+
+  if ('units' in olliSpec) {
+    // multi-spec
+    olliSpec.units.forEach((unit) => {
+      handleUnitSpec(unit, spec);
     });
+  } else {
+    handleUnitSpec(olliSpec, spec);
   }
-  if (olliSpec.fields.length === 0) {
-    olliSpec.fields = spec.fields.map((field) => {
-      return {
-        ...field,
-        field: field.name,
-      };
-    });
+
+  function handleUnitSpec(olliSpec: OlliSpec, spec: UmweltSpec) {
+    if (olliSpec.fields.length === 0) {
+      delete olliSpec.mark;
+      delete olliSpec.axes;
+      delete olliSpec.legends;
+    }
+    if (spec.audio) {
+      spec.audio.units.forEach((unit) => {
+        Object.values(unit.encoding).forEach((encoding) => {
+          // if olliSpec does not have field, add it
+          if (!olliSpec.fields.find((f) => f.field === encoding.field)) {
+            const fieldDef = spec.fields.find((f) => f.name === encoding.field);
+            olliSpec.fields.push({
+              field: encoding.field,
+              type: fieldDef.type,
+              timeUnit: 'timeUnit' in encoding ? encoding.timeUnit ?? fieldDef.timeUnit : fieldDef.timeUnit,
+            });
+          }
+        });
+        unit.traversal.forEach((traversal) => {
+          if (!olliSpec.fields.find((f) => f.field === traversal.field)) {
+            const fieldDef = spec.fields.find((f) => f.name === traversal.field);
+            olliSpec.fields.push({
+              field: traversal.field,
+              type: fieldDef.type,
+              timeUnit: traversal.timeUnit ?? fieldDef.timeUnit,
+            });
+          }
+        });
+      });
+    }
+    if (olliSpec.fields.length === 0) {
+      olliSpec.fields = spec.fields.map((field) => {
+        return {
+          ...field,
+          field: field.name,
+        };
+      });
+    }
   }
+
+  console.log('aaargh', JSON.parse(JSON.stringify(olliSpec)));
   return olliSpec;
 }
