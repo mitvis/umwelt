@@ -53,7 +53,6 @@ function App() {
     const params = new URLSearchParams(window.location.search);
     params.set('spec', LZString.compressToEncodedURIComponent(JSON.stringify(spec)));
     window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
-    console.log(spec);
   }, []);
 
   return (

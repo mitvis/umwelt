@@ -143,9 +143,7 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
 export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: OlliDataset): Promise<OlliSpec> {
   let olliSpec: OlliSpec;
   if (vlSpec) {
-    console.log('vlspec', JSON.parse(JSON.stringify(vlSpec)));
     olliSpec = await VegaLiteAdapter(vlSpec as any);
-    console.log('vegaliteadapter', JSON.parse(JSON.stringify(olliSpec)), 'argh');
   } else {
     olliSpec = {
       data,
@@ -203,6 +201,5 @@ export async function umweltToOlliSpec(spec: UmweltSpec, vlSpec: VlSpec, data: O
     }
   }
 
-  console.log('aaargh', JSON.parse(JSON.stringify(olliSpec)));
   return olliSpec;
 }

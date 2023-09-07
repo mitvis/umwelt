@@ -131,7 +131,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
         (!initialSpec.audio || initialSpec.audio.composition === audioComposition)
       ) {
         setTimeout(() => {
-          console.log('done');
           initialSpecIsResolving.current = false;
         }, 5000); // TODO this is bullshit i need to switch to redux
       }
@@ -532,7 +531,6 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       }
       return spec;
     }));
-    console.log(audioUnitSpecs, newTraversal, fields);
   }
 
   const addEncoding = (field: FieldDef) => {
