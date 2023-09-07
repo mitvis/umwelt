@@ -233,7 +233,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
           }]);
         }
       }
-      else if (!(allFields.every(field => initialSpec.fields.find(f => f.name === field.name))) && initialSpec.fields.every(f => nextAllFields.find(field => f.name === field.name))) {
+      else if (!(initialSpec.fields.every(f => allFields.find(field => f.name === field.name))) && initialSpec.fields.every(f => nextAllFields.find(field => f.name === field.name))) {
         const elaboratedFields = elaborateFields(nextAllFields, data);
         setAllFields(elaboratedFields);
       }
