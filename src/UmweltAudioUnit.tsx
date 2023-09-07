@@ -78,6 +78,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
 
   const notesToTransport = (notes: SonifierNote[]) => {
     Sonifier.resetTransport();
+    Sonifier.releaseSynth();
     if (!notes.length) {
       Tone.Transport.schedule(() => {
         if (audioCtrl.current === 'sequence') {
