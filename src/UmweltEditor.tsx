@@ -337,6 +337,27 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     }
   }
 
+  const onUploadDataFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (fileList.length) {
+      const file = fileList[0];
+      const reader = new FileReader();
+
+      reader.onload = function(loadedEvent) {
+        // result contains loaded file.
+        const contents = loadedEvent.target.result;
+        try {
+          const data = JSON.parse(contents as string);
+          setData(data);
+        } catch (e) {
+          console.error('uploaded file was not successfully parsed as json')
+        }
+      }
+
+      reader.readAsText(file);
+    }
+  }
+
   const onSelectType = (fieldDef, type) => {
     const newFields = fields.map(f => {
       if (f.name === fieldDef.name) {
@@ -822,7 +843,7 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       </div>
 
       <div role='tabpanel' id='tabpanel-data' aria-labelledby='tab-data' hidden={tab !== 'data'}>
-        <h3 id="uw-data">Data</h3>
+        <h3>Data</h3>
         {/* <input aria-labelledby='uw-data' list='vega-datasets-list' type="text" className="input-data" value={dataUrlInput} onChange={onDataUrlInput} required></input>
         <datalist id="vega-datasets-list">
           {
@@ -840,22 +861,36 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
             })
           }
         </datalist> */}
-        <select aria-labelledby='uw-data' value={dataUrlInput} className="input-data" onChange={onDataUrlInput} required>
-          {
-            vegaDatasets.map(url => {
-              return (
-                <option key={url} value={url}>{url}</option>
-              )
-            })
-          }
-          {
-            umweltDatasets.map(url => {
-              return (
-                <option key={url} value={url}>{url}</option>
-              )
-            })
-          }
-        </select>
+        <div>
+          <label>
+            Choose example dataset<br/>
+            <select value={dataUrlInput} className="input-data" onChange={onDataUrlInput} required>
+              {
+                vegaDatasets.map(url => {
+                  return (
+                    <option key={url} value={url}>{url}</option>
+                  )
+                })
+              }
+              {
+                umweltDatasets.map(url => {
+                  return (
+                    <option key={url} value={url}>{url}</option>
+                  )
+                })
+              }
+            </select>
+          </label>
+        </div>
+        <p>
+          or
+        </p>
+        <div>
+          <label>
+            Upload JSON file <br/>
+            <input type="file" onChange={(e) => onUploadDataFile(e)} ></input>
+          </label>
+        </div>
       </div>
 
       <div role='tabpanel' id='tabpanel-fields' aria-labelledby='tab-fields' hidden={tab !== 'fields'}>
