@@ -79,7 +79,9 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
         encoding: {
           ...encoding,
           opacity: condition(encoding.opacity || { value: 1 }, 'external_state', 0.3, false),
-          color: condition(encoding.color || { value: 'navy' }, 'brush', 'grey'),
+          color: {
+            ...condition({ ...(encoding.color || { value: 'navy' }), scale: unit.mark === 'area' ? { scheme: 'category20b' } : undefined }, 'brush', 'grey'),
+          },
         },
       };
     } else if (units.length > 1) {
