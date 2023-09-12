@@ -481,7 +481,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
               <div key={field}>
                 <label>
                 <span>{(traversalFieldDef.bin ?? fieldDef.bin) ? `binned ` : null}{traversalFieldDef.field}{(traversalFieldDef.timeUnit ?? fieldDef.timeUnit) && traversalFieldDef.timeUnit !== NONE ? ` (${traversalFieldDef.timeUnit ?? fieldDef.timeUnit})` : null}</span>
-                  <input aria-valuetext={fmtValue(domain[specIndices?.[field]], traversalFieldDef)} onChange={onchange} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
+                  <input aria-live="assertive" aria-valuetext={fmtValue(domain[specIndices?.[field]], traversalFieldDef)} onChange={onchange} type="range" min="0" max={domain.length - 1} value={specIndices?.[field]}></input>
                 </label>
                 {/* <button onClick={() => playPredicate(field, domain[specIndices?.[field]])}>Play {fmtValue(domain[specIndices?.[field]], traversalFieldDef)}</button> */}
               </div>

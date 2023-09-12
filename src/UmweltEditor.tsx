@@ -728,20 +728,23 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
       } as VisualUnitSpec];
       key.forEach(fieldName => {
         const lastSpec = visualUnitSpecs[visualUnitSpecs.length - 1];
-        const [propName, encFieldDef] = Object.entries(lastSpec.encoding).find(([propName, encFieldDef]) => encFieldDef.field === fieldName);
-        const lastNextSpec = nextSpecs[nextSpecs.length - 1];
-        if (encFieldDef) {
-          lastNextSpec.encoding[propName] = structuredClone(encFieldDef);
-        }
-        const encodingRef: EncodingRef = {property: propName as any, unit: lastNextSpec.name};
-        const fieldDef = nextFields.find(f => f.name === fieldName);
-        if (fieldDef) {
-          if (!fieldDef.encodings) {
-            fieldDef.encodings = [];
+        const keyEnc = Object.entries(lastSpec.encoding).find(([propName, encFieldDef]) => encFieldDef.field === fieldName);
+        if (keyEnc) {
+          const [propName, encFieldDef] = keyEnc;
+          const lastNextSpec = nextSpecs[nextSpecs.length - 1];
+          if (encFieldDef) {
+            lastNextSpec.encoding[propName] = structuredClone(encFieldDef);
           }
-          if (!fieldDef.encodings.find(enc => enc.property === propName && enc.unit === lastNextSpec.name)) {
-            fieldDef.encodings.push(encodingRef);
-            didEditFields = true;
+          const encodingRef: EncodingRef = {property: propName as any, unit: lastNextSpec.name};
+          const fieldDef = nextFields.find(f => f.name === fieldName);
+          if (fieldDef) {
+            if (!fieldDef.encodings) {
+              fieldDef.encodings = [];
+            }
+            if (!fieldDef.encodings.find(enc => enc.property === propName && enc.unit === lastNextSpec.name)) {
+              fieldDef.encodings.push(encodingRef);
+              didEditFields = true;
+            }
           }
         }
       });
