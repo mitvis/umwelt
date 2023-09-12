@@ -53,10 +53,10 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
     const bIndex = commonPropNames.indexOf(b);
     return bIndex - aIndex;
   });
-  const markTypes = ['point', 'line', 'bar'];
+  const markTypes = ['point', 'line', 'bar', 'area'];
   const aggregateOps = ['mean', 'median', 'min', 'max', 'sum', 'count'];
-  const timeUnits = ['year', 'month', 'day', 'date', 'hours', 'minutes', 'seconds'];
-  const vegaDatasets = ['stocks.csv', 'cars.json', 'weather.csv', 'seattle-weather.csv', 'penguins.json', 'driving.json', 'barley.json', 'disasters.csv', 'gapminder.json'];
+  const timeUnits = ['year', 'month', 'yearmonth', 'day', 'date', 'hours', 'minutes', 'seconds'];
+  const vegaDatasets = ['stocks.csv', 'cars.json', 'weather.csv', 'seattle-weather.csv', 'penguins.json', 'driving.json', 'barley.json', 'disasters.csv', 'gapminder.json', 'unemployment-across-industries.json'];
   const umweltDatasets = ['phoenix_chicago_temp.csv'];
 
   const assignablePropertyNames = (): string[] => {
@@ -1198,12 +1198,20 @@ const UmweltEditor = React.memo(({ initialSpec, onSpec }: EditorProps) => {
                                       </div>
                                     ) : null
                                   }
-                                  {/* <div className='def-property'>
-                                    <label>
-                                      Scale
-                                      (todo: domain, zero, nice)
-                                      </label>
-                                  </div>
+                                  {/* {
+                                    propName === 'color' ? (
+                                      <div className='def-property'>
+                                        <details>
+                                          <summary>Scale</summary>
+                                          <label>
+                                            Scheme
+                                            <select></select>
+                                          </label>
+                                        </details>
+                                      </div>
+                                    ) : null
+                                  } */}
+                                  {/*
                                   <div className='def-property'>
                                     <label>
                                       Sort

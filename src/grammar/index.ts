@@ -56,7 +56,7 @@ export function umweltToVegaLiteSpec(spec: UmweltSpec, data: OlliDataset): VlSpe
         };
         encoding[channel] = Object.fromEntries(Object.entries(encoding[channel]).filter(([k, v]) => v !== NONE));
         if (channel === 'facet') {
-          const domain = getDomain(encoding[channel], spec.fields);
+          const domain = getDomain(encoding[channel], data);
           encoding[channel] = {
             ...encoding[channel],
             columns: domain.length === 3 ? 3 : 2, // TODO do something better
