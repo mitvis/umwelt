@@ -95,7 +95,7 @@ const UmweltAudioUnit = ({audioUnitSpec, fields, data, onAudioState, selection, 
           if (note.speakBefore && readAudioAxis && !muted) {
             Tone.Transport.pause();
             setSpecIndices(note.indices);
-            // Sonifier.releaseSynth();
+            Sonifier.releaseSynth();
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(note.speakBefore);
             utterance.rate = speechRate;
