@@ -21,7 +21,7 @@ function UmweltAudio({audioSpec, fields, data, onAudioState, selection, selectio
 
   const [muted, setMuted] = useState(false);
   const [readAudioAxis, setReadAudioAxis] = useState(true);
-  const [speechRate, setSpeechRate] = useState(1.5);
+  const [speechRate, setSpeechRate] = useState(3.5);
   const [_, setActiveUnit, activeUnitRef] = useState<string>();
   const lastFocused = useRef<HTMLElement>();
 
